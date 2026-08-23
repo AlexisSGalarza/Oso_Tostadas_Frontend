@@ -1,0 +1,53 @@
+:root {
+  --verde-tinta: #16301f;
+  --verde-tinta-2: #1e3f28;
+  --verde-salsa: #4c7a3e;
+  --verde-salsa-dark: #3b6130;
+  --verde-brote: #a3ca4a;
+  --masa: #f4ecd8;
+  --page: #fbf7ec;
+  --tostado: #8a5a34;
+  --tinta: #201c14;
+  --chile: #b23a2e;
+
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-body: 'Public Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--tinta);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
