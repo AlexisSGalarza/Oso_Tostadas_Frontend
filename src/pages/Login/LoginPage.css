@@ -23,15 +23,6 @@
   max-width: 30rem;
 }
 
-.brand__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--verde-brote);
-  margin: 0 0 0.75rem;
-}
-
 .brand__mark {
   font-family: var(--font-display);
   font-optical-sizing: auto;
@@ -50,69 +41,12 @@
   max-width: 22rem;
 }
 
-.brand__features {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(163, 202, 74, 0.85);
-  margin: 2.25rem 0 0;
-}
-
-.brand__steam {
+.brand__glow {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-}
-
-.brand__steam span {
-  position: absolute;
-  width: 22rem;
-  height: 22rem;
-  border-radius: 50%;
-  filter: blur(60px);
-  background: radial-gradient(circle, rgba(163, 202, 74, 0.16), transparent 70%);
-  opacity: 0;
-  animation: drift 16s ease-in-out infinite;
-}
-
-.brand__steam span:nth-child(1) {
-  left: -4rem;
-  bottom: -6rem;
-  animation-delay: 0s;
-}
-
-.brand__steam span:nth-child(2) {
-  right: -2rem;
-  top: -4rem;
-  animation-duration: 20s;
-  animation-delay: 3s;
-  background: radial-gradient(circle, rgba(76, 122, 62, 0.3), transparent 70%);
-}
-
-.brand__steam span:nth-child(3) {
-  right: 10%;
-  bottom: -8rem;
-  animation-duration: 24s;
-  animation-delay: 7s;
-}
-
-@keyframes drift {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  50% {
-    transform: translate(2rem, -3rem) scale(1.12);
-  }
-  100% {
-    transform: translate(-1.5rem, -7rem) scale(1);
-    opacity: 0;
-  }
+  background: radial-gradient(38rem 30rem at 8% 100%, rgba(163, 202, 74, 0.14), transparent 70%);
 }
 
 /* ---------- Stage / ticket ---------- */
@@ -298,16 +232,6 @@
   accent-color: var(--verde-salsa);
 }
 
-.ticket__row a {
-  color: var(--verde-salsa-dark);
-  text-decoration: none;
-}
-
-.ticket__row a:hover,
-.ticket__row a:focus-visible {
-  text-decoration: underline;
-}
-
 .ticket__submit {
   width: 100%;
   padding: 0.85rem;
@@ -365,10 +289,6 @@
     padding: 2rem 1.5rem;
   }
 
-  .brand__features {
-    margin-top: 1.25rem;
-  }
-
   .stage {
     padding: 2rem 1.25rem 3rem;
   }
@@ -377,10 +297,5 @@
 @media (prefers-reduced-motion: reduce) {
   .ticket {
     animation: none;
-  }
-
-  .brand__steam span {
-    animation: none;
-    opacity: 0.5;
   }
 }

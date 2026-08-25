@@ -1,17 +1,19 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import BearStamp from './BearStamp'
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import BearStamp from '../../components/BearStamp'
+import { formatClock } from '../../lib/format'
 import './LoginPage.css'
 
-function formatClock(date: Date) {
-  return date.toLocaleTimeString('es-MX', { hour12: false })
+type Props = {
+  onIniciarSesion: () => void
 }
 
-function LoginPage() {
+function LoginPage({ onIniciarSesion }: Props) {
   const [usuario, setUsuario] = useState('')
   const [contrasena, setContrasena] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [clock, setClock] = useState(() => formatClock(new Date()))
+  const contrasenaRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const id = setInterval(() => setClock(formatClock(new Date())), 1000)
@@ -25,16 +27,20 @@ function LoginPage() {
       return
     }
     setError('')
+    onIniciarSesion()
+  }
+
+  function handleUsuarioKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      contrasenaRef.current?.focus()
+    }
   }
 
   return (
     <main className="login">
       <section className="brand">
-        <div className="brand__steam" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
+        <div className="brand__glow" aria-hidden="true" />
         <div className="brand__content">
           <h1 className="brand__mark">Oso Tostadas</h1>
           <p className="brand__tag">Punto de venta para tu tostadería</p>
@@ -58,6 +64,8 @@ function LoginPage() {
               placeholder="tu.usuario"
               value={usuario}
               onChange={(event) => setUsuario(event.target.value)}
+              onKeyDown={handleUsuarioKeyDown}
+              autoFocus
             />
           </div>
 
@@ -67,6 +75,7 @@ function LoginPage() {
               <input
                 id="contrasena"
                 name="contrasena"
+                ref={contrasenaRef}
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 placeholder="••••••••"
