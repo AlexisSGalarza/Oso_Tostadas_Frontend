@@ -3,8 +3,10 @@ import BearStamp from '../../components/BearStamp'
 import { formatClock } from '../../lib/format'
 import './LoginPage.css'
 
+type Rol = 'vendedor' | 'admin'
+
 type Props = {
-  onIniciarSesion: () => void
+  onIniciarSesion: (rol: Rol) => void
 }
 
 function LoginPage({ onIniciarSesion }: Props) {
@@ -12,6 +14,7 @@ function LoginPage({ onIniciarSesion }: Props) {
   const [contrasena, setContrasena] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [rol, setRol] = useState<Rol>('vendedor')
   const [clock, setClock] = useState(() => formatClock(new Date()))
   const contrasenaRef = useRef<HTMLInputElement>(null)
 
@@ -27,7 +30,7 @@ function LoginPage({ onIniciarSesion }: Props) {
       return
     }
     setError('')
-    onIniciarSesion()
+    onIniciarSesion(rol)
   }
 
   function handleUsuarioKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -53,6 +56,27 @@ function LoginPage({ onIniciarSesion }: Props) {
 
           <h2 className="ticket__title">Iniciar sesión</h2>
           <p className="ticket__subtitle">Accede a tu turno en el punto de venta</p>
+
+          <div className="rol-toggle" role="tablist" aria-label="Tipo de acceso">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={rol === 'vendedor'}
+              className={`rol-toggle__opcion ${rol === 'vendedor' ? 'is-activo' : ''}`}
+              onClick={() => setRol('vendedor')}
+            >
+              Vendedor
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={rol === 'admin'}
+              className={`rol-toggle__opcion ${rol === 'admin' ? 'is-activo' : ''}`}
+              onClick={() => setRol('admin')}
+            >
+              Administrador
+            </button>
+          </div>
 
           <div className="field">
             <label htmlFor="usuario">Usuario</label>
