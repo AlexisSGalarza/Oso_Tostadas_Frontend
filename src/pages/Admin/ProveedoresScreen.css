@@ -1,0 +1,323 @@
+.proveedores {
+  min-height: 100dvh;
+  background: var(--page);
+  display: flex;
+  flex-direction: column;
+}
+
+.proveedores__main {
+  flex: 1;
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.proveedores__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.proveedores__head h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+  color: var(--tinta);
+}
+
+.proveedores__subtitulo {
+  font-size: 0.88rem;
+  color: var(--tostado);
+  margin: 0.4rem 0 0;
+}
+
+.proveedores__nuevo {
+  padding: 0.65rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+  white-space: nowrap;
+}
+
+.proveedores__nuevo:hover {
+  background: var(--verde-salsa-dark);
+}
+
+.proveedores__nuevo:active {
+  transform: scale(0.98);
+}
+
+.proveedores__nuevo:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- Alta form ---------- */
+
+.alta {
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+}
+
+.alta__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 12rem;
+}
+
+.alta__campo label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.alta__campo input {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.alta__campo input:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
+.alta__error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--chile);
+  font-size: 0.82rem;
+}
+
+.alta__guardar {
+  padding: 0.65rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-tinta);
+  color: var(--page);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.alta__guardar:hover {
+  background: var(--verde-tinta-2);
+}
+
+.alta__guardar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- List ---------- */
+
+.lista {
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 1.5rem 1.5rem 0.5rem;
+  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+}
+
+.lista__cabecera,
+.pfila__fila {
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr 1fr 1fr 0.8fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.lista__cabecera {
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(32, 28, 20, 0.14);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.lista__filas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pfila {
+  border-bottom: 1px dashed rgba(138, 90, 52, 0.3);
+}
+
+.pfila__fila {
+  padding: 0.8rem 0;
+  font-size: 0.86rem;
+  color: var(--tinta);
+}
+
+.lista__filas li.pfila:last-child {
+  border-bottom: none;
+}
+
+.pfila__celda--nombre {
+  font-weight: 600;
+}
+
+.pfila__celda--mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--tostado);
+}
+
+.pfila__urgente {
+  color: var(--chile);
+  font-weight: 600;
+}
+
+.pfila__estado {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+}
+
+.pfila__estado.is-activo {
+  background: rgba(163, 202, 74, 0.28);
+  color: var(--verde-salsa-dark);
+}
+
+.pfila__estado.is-inactivo {
+  background: rgba(138, 90, 52, 0.15);
+  color: var(--tostado);
+}
+
+.pfila__celda--accion {
+  text-align: right;
+}
+
+.pfila__detalle,
+.pfila__toggle {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 0.74rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pfila__detalle:hover,
+.pfila__toggle:hover {
+  border-color: var(--verde-salsa);
+}
+
+.pfila__detalle:focus-visible,
+.pfila__toggle:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- Detail panel ---------- */
+
+.pfila__panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0 0 1rem 1.25rem;
+  border-left: 2px solid var(--verde-salsa);
+  margin: -0.25rem 0 0.75rem;
+}
+
+.pfila__dato {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.84rem;
+  color: var(--tinta);
+}
+
+.pfila__datolabel {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 860px) {
+  .lista__cabecera {
+    display: none;
+  }
+
+  .pfila__fila {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 0.4rem;
+    padding: 0.9rem 0;
+  }
+
+  .pfila__celda--nombre {
+    grid-column: 1 / -1;
+    font-size: 1rem;
+  }
+
+  .pfila__celda--accion {
+    grid-column: 1 / -1;
+    text-align: left;
+    margin-top: 0.25rem;
+  }
+
+  .pfila__celda[data-label]::before {
+    content: attr(data-label) ': ';
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tostado);
+    margin-bottom: 0.15rem;
+  }
+
+  .pfila__celda--nombre::before {
+    display: none;
+  }
+
+  .pfila__panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-left: 0.9rem;
+  }
+}
