@@ -1,0 +1,118 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.75rem;
+  background: var(--verde-tinta);
+  flex-wrap: wrap;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 1.75rem;
+}
+
+.topbar__mark {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--verde-brote);
+}
+
+.bear-mark {
+  fill: currentColor;
+}
+
+.bear-mark-muzzle {
+  fill: var(--verde-tinta);
+}
+
+.topbar__name {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: var(--page);
+}
+
+.topbar__back {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--page);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.3rem 0.4rem;
+  margin: -0.3rem -0.4rem;
+  border-radius: 4px;
+}
+
+.topbar__back:hover {
+  background: rgba(251, 247, 236, 0.1);
+}
+
+.topbar__back:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.topbar__meta {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(251, 247, 236, 0.75);
+  flex-wrap: wrap;
+}
+
+.topbar__clock {
+  color: var(--verde-brote);
+  font-variant-numeric: tabular-nums;
+}
+
+.topbar__logout {
+  background: none;
+  border: 1px solid rgba(251, 247, 236, 0.35);
+  color: var(--page);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.topbar__logout:hover {
+  background: rgba(251, 247, 236, 0.1);
+}
+
+.topbar__logout:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .topbar__sucursal {
+    display: none;
+  }
+
+  .topbar__meta {
+    gap: 0.75rem;
+  }
+}

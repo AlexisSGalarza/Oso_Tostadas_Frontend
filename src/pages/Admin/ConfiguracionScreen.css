@@ -1,0 +1,153 @@
+.config {
+  min-height: 100dvh;
+  background: var(--page);
+  display: flex;
+  flex-direction: column;
+}
+
+.config__main {
+  flex: 1;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.config__main h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+  color: var(--tinta);
+}
+
+.config__subtitulo {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tostado);
+  margin: 0.5rem 0 2rem;
+}
+
+.config__form {
+  position: relative;
+  background: var(--masa);
+  border-radius: 0 0 6px 6px;
+  padding: 2rem 1.75rem 1.75rem;
+  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.config__form::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 18px;
+  background: radial-gradient(circle at 18px 0, var(--masa) 17px, transparent 18px) repeat-x
+    left top;
+  background-size: 36px 36px;
+  transform: translateY(-50%);
+}
+
+.config__fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.config__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.config__campo label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.config__campo input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.92rem;
+}
+
+.config__campo input:disabled {
+  color: var(--tostado);
+  background: rgba(138, 90, 52, 0.08);
+}
+
+.config__campo input:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
+.config__ayuda {
+  font-size: 0.74rem;
+  color: var(--tostado);
+}
+
+.config__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.config__guardar {
+  padding: 0.8rem 1.4rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.config__guardar:hover {
+  background: var(--verde-salsa-dark);
+}
+
+.config__guardar:active {
+  transform: scale(0.98);
+}
+
+.config__guardar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.config__confirmacion {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--verde-salsa-dark);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 480px) {
+  .config__fila {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}

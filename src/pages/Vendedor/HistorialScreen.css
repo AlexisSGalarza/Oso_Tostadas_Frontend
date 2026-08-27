@@ -1,0 +1,170 @@
+.historial {
+  min-height: 100dvh;
+  background: var(--page);
+  display: flex;
+  flex-direction: column;
+}
+
+.historial__main {
+  flex: 1;
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.historial__main h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+  color: var(--tinta);
+}
+
+.historial__subtitulo {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tostado);
+  margin: 0.5rem 0 2rem;
+}
+
+.historial__vacio {
+  background: var(--masa);
+  border-radius: 8px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.historial__vacio p {
+  margin: 0 0 1.25rem;
+  color: var(--tostado);
+  font-size: 0.95rem;
+}
+
+.historial__vacio button {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.historial__vacio button:hover {
+  background: var(--verde-salsa-dark);
+}
+
+.historial__vacio button:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- Roll of tickets ---------- */
+
+.rollo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--masa);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 44px -28px rgba(22, 48, 31, 0.35);
+}
+
+.ticket-fila {
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px dashed rgba(138, 90, 52, 0.35);
+  position: relative;
+}
+
+.ticket-fila:last-child {
+  border-bottom: none;
+}
+
+.ticket-fila__principal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--tostado);
+  margin-bottom: 0.4rem;
+}
+
+.ticket-fila__numero {
+  color: var(--tinta);
+}
+
+.pill {
+  margin-left: auto;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.ticket-fila__cambio {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--verde-salsa-dark);
+}
+
+.pill--efectivo {
+  background: rgba(163, 202, 74, 0.28);
+  color: var(--verde-salsa-dark);
+}
+
+.pill--tarjeta {
+  background: rgba(138, 90, 52, 0.15);
+  color: var(--tostado);
+}
+
+.pill--devolucion {
+  background: rgba(178, 58, 46, 0.15);
+  color: var(--chile);
+}
+
+.ticket-fila--devolucion {
+  background: rgba(178, 58, 46, 0.04);
+}
+
+.ticket-fila__total--negativo {
+  color: var(--chile);
+}
+
+.ticket-fila__items {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  color: var(--tinta);
+}
+
+.ticket-fila__total {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.historial__resumen {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1rem 1.4rem;
+  background: var(--verde-tinta);
+  border-radius: 8px;
+  color: var(--page);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
