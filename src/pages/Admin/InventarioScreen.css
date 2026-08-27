@@ -1,0 +1,314 @@
+.inventario {
+  min-height: 100dvh;
+  background: var(--page);
+  display: flex;
+  flex-direction: column;
+}
+
+.inventario__main {
+  flex: 1;
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inventario__main h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+  color: var(--tinta);
+}
+
+.inventario__subtitulo {
+  font-size: 0.88rem;
+  color: var(--tostado);
+  margin: -0.75rem 0 0;
+}
+
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: inline-flex;
+  background: var(--masa);
+  border-radius: 999px;
+  padding: 0.3rem;
+  gap: 0.2rem;
+  width: fit-content;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--tostado);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.tab.is-activo {
+  background: var(--verde-salsa);
+  color: var(--page);
+}
+
+.tab__badge {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  background: var(--chile);
+  color: var(--page);
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+}
+
+.tab.is-activo .tab__badge {
+  background: rgba(251, 247, 236, 0.3);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- List ---------- */
+
+.lista {
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 1.5rem 1.5rem 0.5rem;
+  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+}
+
+.lista__cabecera,
+.ifila__fila {
+  display: grid;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.lista__cabecera--insumos,
+.ifila__fila--insumos {
+  grid-template-columns: 1.4fr 0.9fr 0.9fr 1.1fr 0.8fr auto;
+}
+
+.lista__cabecera--productos,
+.ifila__fila--productos {
+  grid-template-columns: 1.5fr 0.8fr 0.9fr 0.8fr 0.8fr auto;
+}
+
+.lista__cabecera {
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(32, 28, 20, 0.14);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.lista__filas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ifila {
+  border-bottom: 1px dashed rgba(138, 90, 52, 0.3);
+}
+
+.lista__filas li.ifila:last-child {
+  border-bottom: none;
+}
+
+.ifila__fila {
+  padding: 0.8rem 0;
+  font-size: 0.88rem;
+  color: var(--tinta);
+}
+
+.ifila__celda--nombre {
+  font-weight: 600;
+}
+
+.ifila__celda--num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--tostado);
+}
+
+.ifila__celda--proveedor {
+  font-size: 0.82rem;
+  color: var(--tinta);
+}
+
+.ifila__estado {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+}
+
+.ifila__estado.is-bien {
+  background: rgba(163, 202, 74, 0.28);
+  color: var(--verde-salsa-dark);
+}
+
+.ifila__estado.is-bajo {
+  background: rgba(138, 90, 52, 0.18);
+  color: var(--tostado);
+}
+
+.ifila__estado.is-agotado {
+  background: rgba(178, 58, 46, 0.14);
+  color: var(--chile);
+}
+
+.ifila__celda--accion {
+  text-align: right;
+}
+
+.ifila__entrada {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 0.74rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ifila__entrada:hover {
+  border-color: var(--verde-salsa);
+}
+
+.ifila__entrada:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- Inline entry form ---------- */
+
+.ifila__form {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0 0 1rem 1.25rem;
+  border-left: 2px solid var(--verde-salsa);
+  margin: -0.25rem 0 0.75rem;
+}
+
+.ifila__formcampo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ifila__formcampo label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.ifila__formcampo input,
+.ifila__formcampo select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.85rem;
+  min-width: 11rem;
+}
+
+.ifila__formcampo input:focus-visible,
+.ifila__formcampo select:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
+.ifila__confirmar {
+  padding: 0.55rem 0.9rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ifila__confirmar:hover {
+  background: var(--verde-salsa-dark);
+}
+
+.ifila__confirmar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 760px) {
+  .lista__cabecera {
+    display: none;
+  }
+
+  .ifila__fila--insumos,
+  .ifila__fila--productos {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 0.4rem;
+    padding: 0.9rem 0;
+  }
+
+  .ifila__celda--nombre {
+    grid-column: 1 / -1;
+    font-size: 1rem;
+  }
+
+  .ifila__celda--accion {
+    grid-column: 1 / -1;
+    text-align: left;
+    margin-top: 0.25rem;
+  }
+
+  .ifila__celda[data-label]::before {
+    content: attr(data-label) ': ';
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tostado);
+    margin-bottom: 0.15rem;
+  }
+
+  .ifila__celda--nombre::before {
+    display: none;
+  }
+
+  .ifila__form {
+    padding-left: 0.9rem;
+  }
+}

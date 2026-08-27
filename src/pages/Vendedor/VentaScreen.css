@@ -1,0 +1,429 @@
+.venta {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+}
+
+.venta__main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+/* ---------- Catalog ---------- */
+
+.catalogo__titulo {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  margin: 0 0 1.25rem;
+  color: var(--tinta);
+}
+
+.catalogo__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.85rem;
+}
+
+.producto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(138, 90, 52, 0.2);
+  background: var(--masa);
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+}
+
+.producto:hover {
+  border-color: var(--verde-salsa);
+  box-shadow: 0 10px 24px -16px rgba(22, 48, 31, 0.35);
+}
+
+.producto:active {
+  transform: scale(0.98);
+}
+
+.producto:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.producto__nombre {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.producto__precio {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  color: var(--verde-salsa-dark);
+}
+
+/* ---------- Cuenta (cart) ---------- */
+
+.cuenta {
+  position: relative;
+  background: var(--masa);
+  border-radius: 0 0 6px 6px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  position: sticky;
+  top: 1.25rem;
+}
+
+.cuenta::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 18px;
+  background: radial-gradient(circle at 18px 0, var(--masa) 17px, transparent 18px) repeat-x
+    left top;
+  background-size: 36px 36px;
+  transform: translateY(-50%);
+}
+
+.cuenta__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+}
+
+.cuenta__label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.cuenta__ticket {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: var(--tostado);
+}
+
+.cuenta__vacio {
+  font-size: 0.9rem;
+  color: var(--tostado);
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.cuenta__confirmado {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.cuenta__confirmado p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--verde-salsa-dark);
+}
+
+.cuenta__confirmado-sub {
+  margin-top: 0.4rem !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tostado) !important;
+  font-weight: 400 !important;
+}
+
+.cuenta__items {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.item__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.item__nombre {
+  font-size: 0.88rem;
+  color: var(--tinta);
+}
+
+.item__preciounidad {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--tostado);
+}
+
+.item__cantidad {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.item__cantidad button {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.item__cantidad button:hover {
+  border-color: var(--verde-salsa);
+}
+
+.item__cantidad button:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.item__cantidad span {
+  min-width: 1.4rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+.item__total {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+  color: var(--tinta);
+  min-width: 3.4rem;
+  text-align: right;
+}
+
+.cuenta__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 0.9rem;
+  margin-bottom: 1.1rem;
+  border-top: 1px dashed rgba(138, 90, 52, 0.4);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta__total span:first-child {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tostado);
+}
+
+.cuenta__total span:last-child {
+  font-size: 1.4rem;
+  color: var(--tinta);
+}
+
+.cuenta__pago {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.pago {
+  padding: 0.6rem;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  background: var(--page);
+  color: var(--tostado);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.pago.is-active {
+  background: var(--verde-salsa);
+  border-color: var(--verde-salsa);
+  color: var(--page);
+}
+
+.pago:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.cuenta__recibido {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.cuenta__recibido label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.cuenta__recibido input {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+
+.cuenta__recibido input:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
+.cuenta__cambio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.6rem;
+}
+
+.cuenta__cambio span:last-child {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta__cambio.is-ok {
+  background: rgba(163, 202, 74, 0.25);
+  color: var(--verde-salsa-dark);
+}
+
+.cuenta__cambio.is-falta {
+  background: rgba(178, 58, 46, 0.12);
+  color: var(--chile);
+}
+
+.cuenta__cobrar {
+  width: 100%;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.cuenta__cobrar:hover:not(:disabled) {
+  background: var(--verde-salsa-dark);
+}
+
+.cuenta__cobrar:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.cuenta__cobrar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cuenta__cobrar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.cuenta__cancelar {
+  width: 100%;
+  padding: 0.7rem;
+  margin-top: 0.6rem;
+  border: 1px solid rgba(178, 58, 46, 0.4);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--chile);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.cuenta__cancelar:hover {
+  background: rgba(178, 58, 46, 0.08);
+}
+
+.cuenta__cancelar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .venta__main {
+    grid-template-columns: 1fr;
+  }
+
+  .cuenta {
+    position: static;
+  }
+}
+
+@media (max-width: 480px) {
+  .venta__main {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .cuenta {
+    padding: 1.5rem 1.1rem 1.25rem;
+  }
+
+  .catalogo__grid {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.6rem;
+  }
+
+  .producto {
+    padding: 1.1rem 0.9rem;
+  }
+}
