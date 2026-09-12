@@ -1,20 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import BearStamp from '../../components/BearStamp'
 import { formatClock } from '../../lib/format'
+import { api, ApiError, type EmpleadoMe } from '../../lib/api'
 import './LoginPage.css'
 
-type Rol = 'vendedor' | 'admin'
-
 type Props = {
-  onIniciarSesion: (rol: Rol) => void
+  onIniciarSesion: (empleado: EmpleadoMe) => void
 }
 
 function LoginPage({ onIniciarSesion }: Props) {
-  const [usuario, setUsuario] = useState('')
+  const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [rol, setRol] = useState<Rol>('vendedor')
+  const [cargando, setCargando] = useState(false)
   const [clock, setClock] = useState(() => formatClock(new Date()))
   const contrasenaRef = useRef<HTMLInputElement>(null)
 
@@ -23,17 +22,26 @@ function LoginPage({ onIniciarSesion }: Props) {
     return () => clearInterval(id)
   }, [])
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!usuario.trim() || !contrasena.trim()) {
-      setError('Ingresa tu usuario y contraseña para continuar.')
+    if (!correo.trim() || !contrasena.trim()) {
+      setError('Ingresa tu correo y contraseña para continuar.')
       return
     }
     setError('')
-    onIniciarSesion(rol)
+    setCargando(true)
+    try {
+      await api.login(correo.trim(), contrasena)
+      const empleado = await api.me()
+      onIniciarSesion(empleado)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo conectar con el servidor.')
+    } finally {
+      setCargando(false)
+    }
   }
 
-  function handleUsuarioKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  function handleCorreoKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       event.preventDefault()
       contrasenaRef.current?.focus()
@@ -57,38 +65,17 @@ function LoginPage({ onIniciarSesion }: Props) {
           <h2 className="ticket__title">Iniciar sesión</h2>
           <p className="ticket__subtitle">Accede a tu turno en el punto de venta</p>
 
-          <div className="rol-toggle" role="tablist" aria-label="Tipo de acceso">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={rol === 'vendedor'}
-              className={`rol-toggle__opcion ${rol === 'vendedor' ? 'is-activo' : ''}`}
-              onClick={() => setRol('vendedor')}
-            >
-              Vendedor
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={rol === 'admin'}
-              className={`rol-toggle__opcion ${rol === 'admin' ? 'is-activo' : ''}`}
-              onClick={() => setRol('admin')}
-            >
-              Administrador
-            </button>
-          </div>
-
           <div className="field">
-            <label htmlFor="usuario">Usuario</label>
+            <label htmlFor="correo">Correo</label>
             <input
-              id="usuario"
-              name="usuario"
-              type="text"
+              id="correo"
+              name="correo"
+              type="email"
               autoComplete="username"
-              placeholder="tu.usuario"
-              value={usuario}
-              onChange={(event) => setUsuario(event.target.value)}
-              onKeyDown={handleUsuarioKeyDown}
+              placeholder="tu.correo@osotostadas.com"
+              value={correo}
+              onChange={(event) => setCorreo(event.target.value)}
+              onKeyDown={handleCorreoKeyDown}
               autoFocus
             />
           </div>
@@ -131,12 +118,12 @@ function LoginPage({ onIniciarSesion }: Props) {
             </label>
           </div>
 
-          <button type="submit" className="ticket__submit">
-            Entrar
+          <button type="submit" className="ticket__submit" disabled={cargando}>
+            {cargando ? 'Entrando…' : 'Entrar'}
           </button>
 
           <div className="ticket__footer">
-            <span>TICKET N.&deg; 00427</span>
+            <span>Oso Tostadas POS</span>
             <span>{clock}</span>
           </div>
         </form>
