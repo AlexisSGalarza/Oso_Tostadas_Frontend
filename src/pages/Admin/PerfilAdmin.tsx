@@ -1,94 +1,81 @@
+import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
-import { formatClock, formatMoney } from '../../lib/format'
-import type { Pendiente, TurnoResumen } from './types'
+import { formatClock, formatMoney, ZONA_HORARIA_MX } from '../../lib/format'
+import { api, ApiError, type AdminDashboard, type EmpleadoMe } from '../../lib/api'
 import './PerfilAdmin.css'
 
-const TURNOS: TurnoResumen[] = [
-  {
-    id: 't1',
-    cajero: 'María Duarte',
-    caja: 'Caja 01',
-    jornada: 'Matutino',
-    estado: 'cerrado',
-    horario: '08:00–14:00',
-    ventas: 2760,
-    corte: 'cuadrada',
-  },
-  {
-    id: 't2',
-    cajero: 'Luis Peña',
-    caja: 'Caja 01',
-    jornada: 'Vespertino',
-    estado: 'abierto',
-    horario: 'Desde 14:05',
-    ventas: 1820,
-    corte: 'en curso',
-  },
-  {
-    id: 't3',
-    cajero: 'Rosa Elizalde',
-    caja: 'Caja 02',
-    jornada: 'Matutino',
-    estado: 'cerrado',
-    horario: '08:15–13:50',
-    ventas: 1980,
-    corte: 'faltante',
-    diferencia: 45,
-  },
-  {
-    id: 't4',
-    cajero: 'Iván Cortés',
-    caja: 'Caja 02',
-    jornada: 'Vespertino',
-    estado: 'cerrado',
-    horario: '14:00–20:00',
-    ventas: 1340,
-    corte: 'pendiente',
-  },
-]
+type CorteEstado = 'en curso' | 'cuadrada' | 'faltante'
 
-const PENDIENTES: Pendiente[] = [
-  { id: 1, severidad: 'urgente', texto: 'Caja 02 — Rosa: faltante de $45.00 en el corte de su turno matutino.' },
-  { id: 2, severidad: 'aviso', texto: 'Caja 02 — Iván: turno vespertino cerrado sin corte capturado.' },
-  { id: 3, severidad: 'urgente', texto: 'Insumo: bolsas para paquete grande agotadas — pedido urgente con Empaques Monarca.' },
-  { id: 4, severidad: 'aviso', texto: 'Producto: paquete grande con solo 22 unidades en existencia (mínimo 60).' },
-  { id: 5, severidad: 'info', texto: 'Insumo: masa de maíz nixtamalizada por debajo del mínimo (18/25 kg).' },
-]
-
-const CORTE_LABEL: Record<TurnoResumen['corte'], string> = {
+const CORTE_LABEL: Record<CorteEstado, string> = {
   'en curso': 'Turno en curso',
   cuadrada: 'Caja cuadrada',
-  pendiente: 'Corte pendiente',
-  faltante: 'Faltante',
+  faltante: 'Diferencia',
 }
 
-type Props = {
-  now: Date
-  onCerrarSesion: () => void
-  onUsuarios: () => void
-  onReportes: () => void
-  onInventario: () => void
-  onProveedores: () => void
-  onConfiguracion: () => void
+function corteDe(turno: AdminDashboard['turnos'][number]): CorteEstado {
+  if (turno.estado === 'abierto') return 'en curso'
+  return turno.diferencia && turno.diferencia !== 0 ? 'faltante' : 'cuadrada'
 }
 
 function capitalizar(texto: string) {
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
+// Fecha de "hoy" en horario de Mexico (no la del navegador), en formato AAAA-MM-DD.
+function hoyMexicoISO() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ZONA_HORARIA_MX }).format(new Date())
+}
+
+function sumarDias(fechaIso: string, dias: number) {
+  const fecha = new Date(`${fechaIso}T12:00:00Z`)
+  fecha.setUTCDate(fecha.getUTCDate() + dias)
+  return fecha.toISOString().slice(0, 10)
+}
+
+type Props = {
+  now: Date
+  empleado: EmpleadoMe
+  onCerrarSesion: () => void
+  onUsuarios: () => void
+  onReportes: () => void
+  onInventario: () => void
+  onProveedores: () => void
+  onConfiguracion: () => void
+  onAuditoria: () => void
+  onVerTurno: (idTurno: number) => void
+}
+
 function PerfilAdmin({
   now,
+  empleado,
   onCerrarSesion,
   onUsuarios,
   onReportes,
   onInventario,
   onProveedores,
   onConfiguracion,
+  onAuditoria,
+  onVerTurno,
 }: Props) {
-  const ventasHoy = TURNOS.reduce((suma, turno) => suma + turno.ventas, 0)
-  const turnosActivos = TURNOS.filter((turno) => turno.estado === 'abierto').length
-  const cortesPorRevisar = TURNOS.filter((turno) => turno.estado === 'cerrado' && turno.corte !== 'cuadrada').length
-  const fecha = capitalizar(now.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }))
+  const [dashboard, setDashboard] = useState<AdminDashboard | null>(null)
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState('')
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(hoyMexicoISO)
+
+  useEffect(() => {
+    setCargando(true)
+    api
+      .dashboardAdmin(fechaSeleccionada)
+      .then(setDashboard)
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'No se pudo cargar el panel.'))
+      .finally(() => setCargando(false))
+  }, [fechaSeleccionada])
+
+  const esHoySeleccionado = fechaSeleccionada === hoyMexicoISO()
+
+  const fecha = capitalizar(
+    now.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', timeZone: ZONA_HORARIA_MX }),
+  )
 
   const acciones = [
     { label: 'Gestionar usuarios', onClick: onUsuarios },
@@ -96,101 +83,167 @@ function PerfilAdmin({
     { label: 'Inventario', onClick: onInventario },
     { label: 'Proveedores', onClick: onProveedores },
     { label: 'Configuración', onClick: onConfiguracion },
+    { label: 'Auditoría', onClick: onAuditoria },
   ]
 
   return (
     <div className="admin">
-      <TopBar clock={formatClock(now)} sucursal="Sucursal Centro" onCerrarSesion={onCerrarSesion} />
+      <TopBar clock={formatClock(now)} sucursal={empleado.sucursal} onCerrarSesion={onCerrarSesion} />
 
       <main className="admin__main">
         <section className="saludo saludo--admin">
           <div>
-            <h1>Hola, Ana</h1>
-            <p className="saludo__rol">Administradora · Sucursal Centro</p>
+            <h1>Hola, {empleado.nombre}</h1>
+            <p className="saludo__rol">
+              {empleado.rol} · {empleado.sucursal}
+            </p>
           </div>
           <p className="saludo__fecha">{fecha}</p>
         </section>
 
-        <section className="resumen" aria-label="Resumen del día">
-          <div className="resumen__item resumen__item--principal">
-            <span className="resumen__valor">{formatMoney(ventasHoy)}</span>
-            <span className="resumen__etiqueta">Ventas de hoy</span>
-          </div>
-          <div className="resumen__item">
-            <span className="resumen__valor">{turnosActivos}</span>
-            <span className="resumen__etiqueta">Turnos activos</span>
-          </div>
-          <div className="resumen__item">
-            <span className="resumen__valor">{cortesPorRevisar}</span>
-            <span className="resumen__etiqueta">Cortes por revisar</span>
-          </div>
-        </section>
+        {cargando && <p className="saludo__rol">Cargando…</p>}
+        {error && (
+          <p className="saludo__rol" role="alert">
+            {error}
+          </p>
+        )}
 
-        <div className="paneles-admin">
-          <section className="libro" aria-label="Libro de turnos">
-            <h2 className="libro__titulo">Libro de turnos</h2>
-
-            <div className="libro__cabecera" aria-hidden="true">
-              <span>Cajero</span>
-              <span>Caja</span>
-              <span>Turno</span>
-              <span>Ventas</span>
-              <span>Corte</span>
-            </div>
-
-            <ul className="libro__filas">
-              {TURNOS.map((turno) => (
-                <li className="fila" key={turno.id}>
-                  <span className="fila__celda fila__celda--nombre" data-label="Cajero">
-                    {turno.cajero}
-                  </span>
-                  <span className="fila__celda" data-label="Caja">
-                    {turno.caja}
-                  </span>
-                  <span className="fila__celda" data-label="Turno">
-                    <span className={`fila__estado ${turno.estado === 'abierto' ? 'is-abierto' : 'is-cerrado'}`}>
-                      {turno.jornada} · {turno.horario}
-                    </span>
-                  </span>
-                  <span className="fila__celda fila__celda--num" data-label="Ventas">
-                    {formatMoney(turno.ventas)}
-                  </span>
-                  <span
-                    className={`fila__celda fila__celda--corte is-${turno.corte.replace(' ', '-')}`}
-                    data-label="Corte"
-                  >
-                    {turno.corte === 'faltante' && turno.diferencia
-                      ? `Faltante de ${formatMoney(turno.diferencia)}`
-                      : CORTE_LABEL[turno.corte]}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <div className="lateral">
-            <section className="pendientes" aria-label="Pendientes">
-              <h2 className="lateral__titulo">Pendientes</h2>
-              <ul className="pendientes__lista">
-                {PENDIENTES.map((pendiente) => (
-                  <li key={pendiente.id} className={`pendiente is-${pendiente.severidad}`}>
-                    {pendiente.texto}
-                  </li>
-                ))}
-              </ul>
+        {dashboard && (
+          <>
+            <section className="resumen" aria-label="Resumen del día">
+              <div className="resumen__item resumen__item--principal">
+                <span className="resumen__valor">{formatMoney(dashboard.resumen.ventas_dia)}</span>
+                <span className="resumen__etiqueta">{esHoySeleccionado ? 'Ventas de hoy' : 'Ventas del día'}</span>
+              </div>
+              <div className="resumen__item">
+                <span className="resumen__valor">{dashboard.resumen.turnos_activos}</span>
+                <span className="resumen__etiqueta">Turnos activos</span>
+              </div>
+              <div className="resumen__item">
+                <span className="resumen__valor">{dashboard.resumen.cortes_por_revisar}</span>
+                <span className="resumen__etiqueta">Cortes por revisar</span>
+              </div>
             </section>
 
-            <nav className="acciones-admin" aria-label="Acciones de administración">
-              <h2 className="lateral__titulo">Acciones</h2>
-              {acciones.map((accion) => (
-                <button type="button" className="accion-admin" key={accion.label} onClick={accion.onClick}>
-                  <span>{accion.label}</span>
-                  <span aria-hidden="true">→</span>
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
+            <div className="paneles-admin">
+              <section className="libro" aria-label="Libro de turnos">
+                <div className="libro__head">
+                  <h2 className="libro__titulo">
+                    Libro de turnos ·{' '}
+                    {capitalizar(
+                      new Date(`${fechaSeleccionada}T12:00:00Z`).toLocaleDateString('es-MX', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        timeZone: ZONA_HORARIA_MX,
+                      }),
+                    )}
+                  </h2>
+                  <div className="libro__navfecha">
+                    <button
+                      type="button"
+                      className="libro__navboton"
+                      onClick={() => setFechaSeleccionada((f) => sumarDias(f, -1))}
+                      aria-label="Día anterior"
+                    >
+                      ←
+                    </button>
+                    {!esHoySeleccionado && (
+                      <button type="button" className="libro__navhoy" onClick={() => setFechaSeleccionada(hoyMexicoISO())}>
+                        Hoy
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="libro__navboton"
+                      onClick={() => setFechaSeleccionada((f) => sumarDias(f, 1))}
+                      disabled={esHoySeleccionado}
+                      aria-label="Día siguiente"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+
+                <div className="libro__cabecera" aria-hidden="true">
+                  <span>Cajero</span>
+                  <span>Horario</span>
+                  <span>Estado</span>
+                  <span>Ventas</span>
+                  <span>Corte</span>
+                </div>
+
+                {dashboard.turnos.length === 0 ? (
+                  <p className="saludo__rol">
+                    {esHoySeleccionado ? 'Todavía no hay turnos hoy.' : 'No hubo turnos ese día.'}
+                  </p>
+                ) : (
+                  <ul className="libro__filas">
+                    {dashboard.turnos.map((turno) => {
+                      const corte = corteDe(turno)
+                      return (
+                        <li key={turno.id_turno}>
+                        <button type="button" className="fila fila--clic" onClick={() => onVerTurno(turno.id_turno)}>
+                          <span className="fila__celda fila__celda--nombre" data-label="Cajero">
+                            {turno.empleado}
+                          </span>
+                          <span className="fila__celda" data-label="Horario">
+                            {turno.hora_inicio.slice(0, 5)}
+                            {turno.hora_fin ? `–${turno.hora_fin.slice(0, 5)}` : ' (en curso)'}
+                          </span>
+                          <span className="fila__celda" data-label="Estado">
+                            <span className={`fila__estado ${turno.estado === 'abierto' ? 'is-abierto' : 'is-cerrado'}`}>
+                              {turno.estado === 'abierto' ? 'Abierto' : 'Cerrado'}
+                            </span>
+                          </span>
+                          <span className="fila__celda fila__celda--num" data-label="Ventas">
+                            {formatMoney(turno.ventas)}
+                          </span>
+                          <span
+                            className={`fila__celda fila__celda--corte is-${corte.replace(' ', '-')}`}
+                            data-label="Corte"
+                          >
+                            {corte === 'faltante' && turno.diferencia
+                              ? `${turno.diferencia < 0 ? 'Faltante' : 'Sobrante'} de ${formatMoney(Math.abs(turno.diferencia))}`
+                              : CORTE_LABEL[corte]}
+                          </span>
+                        </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </section>
+
+              <div className="lateral">
+                <section className="pendientes" aria-label="Pendientes">
+                  <h2 className="lateral__titulo">Pendientes</h2>
+                  {dashboard.pendientes.length === 0 ? (
+                    <p className="saludo__rol">Sin pendientes por ahora.</p>
+                  ) : (
+                    <ul className="pendientes__lista">
+                      {dashboard.pendientes.map((pendiente, index) => (
+                        <li key={index} className={`pendiente is-${pendiente.severidad}`}>
+                          {pendiente.texto}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <nav className="acciones-admin" aria-label="Acciones de administración">
+                  <h2 className="lateral__titulo">Acciones</h2>
+                  {acciones.map((accion) => (
+                    <button type="button" className="accion-admin" key={accion.label} onClick={accion.onClick}>
+                      <span>{accion.label}</span>
+                      <span aria-hidden="true">→</span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          </>
+        )}
       </main>
     </div>
   )

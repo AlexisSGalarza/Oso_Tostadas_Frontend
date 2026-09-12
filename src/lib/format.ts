@@ -1,5 +1,13 @@
+// Todas las fechas/horas se muestran en hora de Mexico sin importar la
+// zona horaria del dispositivo/navegador de quien las este viendo.
+export const ZONA_HORARIA_MX = 'America/Mexico_City'
+
 export function formatClock(date: Date) {
-  return date.toLocaleTimeString('es-MX', { hour12: false })
+  return date.toLocaleTimeString('es-MX', { hour12: false, timeZone: ZONA_HORARIA_MX })
+}
+
+export function formatFecha(date: Date, opciones: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }) {
+  return date.toLocaleDateString('es-MX', { ...opciones, timeZone: ZONA_HORARIA_MX })
 }
 
 export function formatMoney(amount: number) {

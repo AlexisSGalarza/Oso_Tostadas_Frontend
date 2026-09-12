@@ -11,7 +11,10 @@ import ReportesScreen from './pages/Admin/ReportesScreen'
 import InventarioScreen from './pages/Admin/InventarioScreen'
 import ProveedoresScreen from './pages/Admin/ProveedoresScreen'
 import ConfiguracionScreen from './pages/Admin/ConfiguracionScreen'
-import type { Devolucion, Venta } from './pages/Vendedor/types'
+import AuditoriaScreen from './pages/Admin/AuditoriaScreen'
+import AdminTurnoDetalleScreen from './pages/Admin/AdminTurnoDetalleScreen'
+import type { Devolucion, MetodoPago, Venta } from './pages/Vendedor/types'
+import { api, ApiError, getAccessToken, type EmpleadoMe, type Turno, type VentaApi } from './lib/api'
 
 type Screen =
   | 'login'
@@ -26,20 +29,88 @@ type Screen =
   | 'inventario'
   | 'proveedores'
   | 'configuracion'
+  | 'auditoria'
+  | 'turno-detalle'
 
 const BASE_TICKET = 428
+const ROLES_VENDEDOR = ['vendedor', 'cajero']
+
+// Reconstruye una Venta (para Historial/Corte) a partir de lo que ya quedo guardado
+// en el servidor; se usa al recuperar un turno abierto en un relogin.
+function mapVentaApi(v: VentaApi): Venta {
+  const pago = v.pagos[0]
+  const metodoPago: MetodoPago = pago?.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
+  return {
+    id: v.id_venta,
+    idVenta: v.id_venta,
+    hora: v.creado_en ? new Date(v.creado_en) : new Date(`${v.fecha}T00:00:00`),
+    items: v.detalles.map((d) => ({
+      id_producto: d.id_producto,
+      nombre: d.producto,
+      precio: d.precio_unitario,
+      cantidad: d.unidades,
+    })),
+    total: v.total,
+    metodoPago,
+  }
+}
+
+function mapDevolucionesDeVenta(v: VentaApi): Devolucion[] {
+  const metodoPago: MetodoPago = v.pagos[0]?.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
+  return v.devoluciones.map((d) => ({
+    id: d.id_devolucion,
+    ventaId: v.id_venta,
+    hora: d.creado_en ? new Date(d.creado_en) : new Date(`${d.fecha}T00:00:00`),
+    items: d.detalles.map((det) => ({
+      id_producto: det.id_producto,
+      nombre: det.producto,
+      precio: v.detalles.find((dv) => dv.id_producto === det.id_producto)?.precio_unitario ?? 0,
+      cantidad: det.cantidad,
+    })),
+    total: d.monto,
+    metodoPago,
+  }))
+}
 
 function App() {
   const [screen, setScreen] = useState<Screen>('login')
   const [now, setNow] = useState(() => new Date())
-  const [turnoInicio, setTurnoInicio] = useState<Date | null>(null)
+  const [empleado, setEmpleado] = useState<EmpleadoMe | null>(null)
+  const [turno, setTurno] = useState<Turno | null>(null)
+  const [turnoError, setTurnoError] = useState('')
   const [ventas, setVentas] = useState<Venta[]>([])
   const [devoluciones, setDevoluciones] = useState<Devolucion[]>([])
+  const [idTurnoSeleccionado, setIdTurnoSeleccionado] = useState<number | null>(null)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    if (!getAccessToken()) return
+    api
+      .me()
+      .then(async (datos) => {
+        setEmpleado(datos)
+        setScreen(ROLES_VENDEDOR.includes(datos.rol.toLowerCase()) ? 'perfil' : 'perfil-admin')
+        await recuperarTurnoYVentas()
+      })
+      .catch(() => api.logout())
+  }, [])
+
+  async function recuperarTurnoYVentas() {
+    const turnoActual = await api.turnoActual()
+    setTurno(turnoActual)
+    if (!turnoActual) {
+      setVentas([])
+      setDevoluciones([])
+      return
+    }
+    const ventasApi = await api.listarVentasTurno()
+    setVentas(ventasApi.map(mapVentaApi))
+    setDevoluciones(ventasApi.flatMap(mapDevolucionesDeVenta))
+  }
 
   const siguienteTicket = BASE_TICKET + ventas.length + devoluciones.length + 1
 
@@ -51,60 +122,124 @@ function App() {
     setDevoluciones((actual) => [...actual, devolucion])
   }
 
-  function cerrarTurno() {
-    setTurnoInicio(null)
+  async function handleIniciarSesion(datosEmpleado: EmpleadoMe) {
+    setEmpleado(datosEmpleado)
+    setScreen(ROLES_VENDEDOR.includes(datosEmpleado.rol.toLowerCase()) ? 'perfil' : 'perfil-admin')
+    // si la sesion anterior se cerro sin cerrar turno, lo recuperamos junto con su historial
+    // en vez de bloquear "Iniciar turno" y perder las ventas ya registradas
+    await recuperarTurnoYVentas()
+  }
+
+  function handleCerrarSesion() {
+    api.logout()
+    setEmpleado(null)
+    setTurno(null)
+    setTurnoError('')
+    setVentas([])
+    setDevoluciones([])
+    setScreen('login')
+  }
+
+  async function abrirTurno(montoInicial: number) {
+    setTurnoError('')
+    try {
+      const nuevoTurno = await api.abrirTurno(montoInicial)
+      setTurno(nuevoTurno)
+      setVentas([])
+      setDevoluciones([])
+    } catch (err) {
+      setTurnoError(err instanceof ApiError ? err.message : 'No se pudo abrir el turno.')
+    }
+  }
+
+  function turnoCerrado() {
+    setTurno(null)
     setVentas([])
     setDevoluciones([])
     setScreen('perfil')
   }
 
   if (screen === 'login') {
-    return <LoginPage onIniciarSesion={(rol) => setScreen(rol === 'admin' ? 'perfil-admin' : 'perfil')} />
+    return <LoginPage onIniciarSesion={handleIniciarSesion} />
   }
 
-  if (screen === 'perfil-admin') {
+  if (screen === 'perfil-admin' && empleado) {
     return (
       <PerfilAdmin
         now={now}
-        onCerrarSesion={() => setScreen('login')}
+        empleado={empleado}
+        onCerrarSesion={handleCerrarSesion}
         onUsuarios={() => setScreen('usuarios')}
         onReportes={() => setScreen('reportes')}
         onInventario={() => setScreen('inventario')}
         onProveedores={() => setScreen('proveedores')}
         onConfiguracion={() => setScreen('configuracion')}
+        onAuditoria={() => setScreen('auditoria')}
+        onVerTurno={(idTurno) => {
+          setIdTurnoSeleccionado(idTurno)
+          setScreen('turno-detalle')
+        }}
       />
     )
   }
 
   if (screen === 'usuarios') {
-    return <UsuariosScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={() => setScreen('login')} />
+    return (
+      <UsuariosScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
   }
 
   if (screen === 'reportes') {
-    return <ReportesScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={() => setScreen('login')} />
+    return (
+      <ReportesScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
   }
 
   if (screen === 'inventario') {
-    return <InventarioScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={() => setScreen('login')} />
+    return (
+      <InventarioScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
   }
 
   if (screen === 'proveedores') {
-    return <ProveedoresScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={() => setScreen('login')} />
+    return (
+      <ProveedoresScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
   }
 
   if (screen === 'configuracion') {
     return (
-      <ConfiguracionScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={() => setScreen('login')} />
+      <ConfiguracionScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
     )
   }
 
-  if (screen === 'venta') {
+  if (screen === 'auditoria') {
+    return (
+      <AuditoriaScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
+  }
+
+  if (screen === 'turno-detalle' && idTurnoSeleccionado !== null) {
+    return (
+      <AdminTurnoDetalleScreen
+        now={now}
+        idTurno={idTurnoSeleccionado}
+        onVolver={() => setScreen('perfil-admin')}
+        onCerrarSesion={handleCerrarSesion}
+      />
+    )
+  }
+
+  if (screen === 'venta' && empleado && turno) {
     return (
       <VentaScreen
         now={now}
+        turno={turno}
+        ventasTurno={ventas}
+        devolucionesTurno={devoluciones}
         siguienteTicket={siguienteTicket}
         onVolver={() => setScreen('perfil')}
-        onCerrarSesion={() => setScreen('login')}
+        onCerrarSesion={handleCerrarSesion}
         onRegistrarVenta={registrarVenta}
       />
     )
@@ -117,21 +252,22 @@ function App() {
         ventas={ventas}
         devoluciones={devoluciones}
         onVolver={() => setScreen('perfil')}
-        onCerrarSesion={() => setScreen('login')}
+        onCerrarSesion={handleCerrarSesion}
         onNuevaVenta={() => setScreen('venta')}
       />
     )
   }
 
-  if (screen === 'corte') {
+  if (screen === 'corte' && turno) {
     return (
       <CorteScreen
         now={now}
+        turno={turno}
         ventas={ventas}
         devoluciones={devoluciones}
         onVolver={() => setScreen('perfil')}
-        onCerrarSesion={() => setScreen('login')}
-        onConfirmarCorte={cerrarTurno}
+        onCerrarSesion={handleCerrarSesion}
+        onConfirmarCorte={turnoCerrado}
       />
     )
   }
@@ -142,23 +278,28 @@ function App() {
         now={now}
         ventas={ventas}
         devoluciones={devoluciones}
-        siguienteTicket={siguienteTicket}
         onVolver={() => setScreen('perfil')}
-        onCerrarSesion={() => setScreen('login')}
+        onCerrarSesion={handleCerrarSesion}
         onRegistrarDevolucion={registrarDevolucion}
       />
     )
   }
 
+  if (!empleado) {
+    return <LoginPage onIniciarSesion={handleIniciarSesion} />
+  }
+
   return (
     <PerfilVendedor
       now={now}
-      turnoInicio={turnoInicio}
+      empleado={empleado}
+      turno={turno}
+      turnoError={turnoError}
       ventas={ventas}
       devoluciones={devoluciones}
-      onAbrirTurno={() => setTurnoInicio(new Date())}
-      onCerrarTurno={cerrarTurno}
-      onCerrarSesion={() => setScreen('login')}
+      onAbrirTurno={abrirTurno}
+      onCerrarTurno={() => setScreen('corte')}
+      onCerrarSesion={handleCerrarSesion}
       onNuevaVenta={() => setScreen('venta')}
       onHistorial={() => setScreen('historial')}
       onCorte={() => setScreen('corte')}

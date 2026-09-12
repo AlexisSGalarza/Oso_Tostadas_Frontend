@@ -244,15 +244,20 @@
 }
 
 .renglon__cantidad button {
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 4px;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 8px;
   border: 1px solid rgba(138, 90, 52, 0.35);
   background: var(--page);
   color: var(--tinta);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
+  transition: border-color 150ms ease, transform 100ms ease;
+}
+
+.renglon__cantidad button:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .renglon__cantidad button:hover:not(:disabled) {
@@ -284,6 +289,12 @@
   color: var(--tinta);
   min-width: 3.4rem;
   text-align: right;
+}
+
+.devolucion__error {
+  font-size: 0.82rem;
+  color: var(--chile);
+  margin: 0 0 1rem;
 }
 
 .detalle__total {

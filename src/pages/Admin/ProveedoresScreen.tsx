@@ -1,8 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock } from '../../lib/format'
-import { PROVEEDORES } from './data'
-import type { Proveedor } from './types'
+import { api, ApiError, type Proveedor } from '../../lib/api'
 import './ProveedoresScreen.css'
 
 type Props = {
@@ -12,8 +11,9 @@ type Props = {
 }
 
 function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
-  const [proveedores, setProveedores] = useState<Proveedor[]>(PROVEEDORES)
-  const [detalleId, setDetalleId] = useState<string | null>(null)
+  const [proveedores, setProveedores] = useState<Proveedor[]>([])
+  const [cargando, setCargando] = useState(true)
+  const [detalleId, setDetalleId] = useState<number | null>(null)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [nombre, setNombre] = useState('')
   const [insumo, setInsumo] = useState('')
@@ -21,49 +21,74 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [correo, setCorreo] = useState('')
   const [direccion, setDireccion] = useState('')
   const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [accionandoId, setAccionandoId] = useState<number | null>(null)
+  const [busqueda, setBusqueda] = useState('')
+
+  useEffect(() => {
+    api
+      .proveedores()
+      .then(setProveedores)
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'No se pudo cargar a los proveedores.'))
+      .finally(() => setCargando(false))
+  }, [])
 
   const urgentes = proveedores.filter((proveedor) => proveedor.urgente).length
 
-  function alternarEstado(id: string) {
-    setProveedores((actual) =>
-      actual.map((proveedor) =>
-        proveedor.id === id
-          ? { ...proveedor, estado: proveedor.estado === 'activo' ? 'inactivo' : 'activo' }
-          : proveedor,
-      ),
-    )
+  const busquedaNormalizada = busqueda.trim().toLowerCase()
+  const proveedoresFiltrados = busquedaNormalizada
+    ? proveedores.filter((proveedor) =>
+        [proveedor.nombre, proveedor.insumo_principal, proveedor.correo, proveedor.telefono]
+          .join(' ')
+          .toLowerCase()
+          .includes(busquedaNormalizada),
+      )
+    : proveedores
+
+  async function alternarEstado(id: number) {
+    setAccionandoId(id)
+    try {
+      const actualizado = await api.alternarEstadoProveedor(id)
+      setProveedores((actual) => actual.map((p) => (p.id_proveedor === id ? actualizado : p)))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo actualizar el proveedor.')
+    } finally {
+      setAccionandoId(null)
+    }
   }
 
-  function alternarDetalle(id: string) {
+  function alternarDetalle(id: number) {
     setDetalleId((actual) => (actual === id ? null : id))
   }
 
-  function agregarProveedor(event: FormEvent<HTMLFormElement>) {
+  async function agregarProveedor(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!nombre.trim() || !insumo.trim()) {
       setError('Escribe el nombre del proveedor y qué insumo surte.')
       return
     }
-    setProveedores((actual) => [
-      ...actual,
-      {
-        id: `p${actual.length + 1}`,
-        nombre: nombre.trim(),
-        insumo: insumo.trim(),
-        contacto: contacto.trim() || '—',
-        correo: correo.trim() || '—',
-        direccion: direccion.trim() || '—',
-        proximaEntrega: 'Por programar',
-        estado: 'activo',
-      },
-    ])
-    setNombre('')
-    setInsumo('')
-    setContacto('')
-    setCorreo('')
-    setDireccion('')
     setError('')
-    setMostrarForm(false)
+    setEnviando(true)
+    try {
+      const nuevo = await api.crearProveedor({
+        nombre: nombre.trim(),
+        insumo_principal: insumo.trim(),
+        telefono: contacto.trim(),
+        correo: correo.trim(),
+        direccion: direccion.trim(),
+      })
+      setProveedores((actual) => [...actual, nuevo])
+      setNombre('')
+      setInsumo('')
+      setContacto('')
+      setCorreo('')
+      setDireccion('')
+      setMostrarForm(false)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo crear el proveedor.')
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -75,7 +100,7 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
           <div>
             <h1>Proveedores</h1>
             <p className="proveedores__subtitulo">
-              Quién surte cada insumo · Sucursal Centro
+              Quién surte cada insumo
               {urgentes > 0 ? ` · ${urgentes} con entrega urgente` : ''}
             </p>
           </div>
@@ -142,72 +167,99 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
                 {error}
               </p>
             )}
-            <button type="submit" className="alta__guardar">
-              Guardar proveedor
+            <button type="submit" className="alta__guardar" disabled={enviando}>
+              {enviando ? 'Guardando…' : 'Guardar proveedor'}
             </button>
           </form>
         )}
 
-        <section className="lista" aria-label="Proveedores registrados">
-          <div className="lista__cabecera" aria-hidden="true">
-            <span>Proveedor</span>
-            <span>Insumo</span>
-            <span>Contacto</span>
-            <span>Próxima entrega</span>
-            <span>Estado</span>
-            <span></span>
-          </div>
-          <ul className="lista__filas">
-            {proveedores.map((proveedor) => (
-              <li className="pfila" key={proveedor.id}>
-                <div className="pfila__fila">
-                  <span className="pfila__celda pfila__celda--nombre" data-label="Proveedor">
-                    {proveedor.nombre}
-                  </span>
-                  <span className="pfila__celda" data-label="Insumo">
-                    {proveedor.insumo}
-                  </span>
-                  <span className="pfila__celda pfila__celda--mono" data-label="Contacto">
-                    {proveedor.contacto}
-                  </span>
-                  <span className="pfila__celda pfila__celda--mono" data-label="Próxima entrega">
-                    {proveedor.urgente ? (
-                      <span className="pfila__urgente">Urgente · {proveedor.proximaEntrega}</span>
-                    ) : (
-                      proveedor.proximaEntrega
-                    )}
-                  </span>
-                  <span className="pfila__celda" data-label="Estado">
-                    <span className={`pfila__estado is-${proveedor.estado}`}>
-                      {proveedor.estado === 'activo' ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </span>
-                  <span className="pfila__celda pfila__celda--accion">
-                    <button type="button" className="pfila__detalle" onClick={() => alternarDetalle(proveedor.id)}>
-                      {detalleId === proveedor.id ? 'Ocultar' : 'Ver detalle'}
-                    </button>
-                  </span>
-                </div>
+        {cargando && <p className="proveedores__subtitulo">Cargando…</p>}
 
-                {detalleId === proveedor.id && (
-                  <div className="pfila__panel">
-                    <div className="pfila__dato">
-                      <span className="pfila__datolabel">Correo</span>
-                      <span>{proveedor.correo}</span>
-                    </div>
-                    <div className="pfila__dato">
-                      <span className="pfila__datolabel">Dirección</span>
-                      <span>{proveedor.direccion}</span>
-                    </div>
-                    <button type="button" className="pfila__toggle" onClick={() => alternarEstado(proveedor.id)}>
-                      {proveedor.estado === 'activo' ? 'Desactivar proveedor' : 'Reactivar proveedor'}
-                    </button>
+        {!cargando && proveedores.length > 0 && (
+          <input
+            type="search"
+            className="proveedores__buscador"
+            placeholder="Buscar por nombre, insumo, correo o teléfono…"
+            value={busqueda}
+            onChange={(event) => setBusqueda(event.target.value)}
+            aria-label="Buscar proveedores"
+          />
+        )}
+
+        {!cargando && (
+          <section className="lista" aria-label="Proveedores registrados">
+            <div className="lista__cabecera" aria-hidden="true">
+              <span>Proveedor</span>
+              <span>Insumo</span>
+              <span>Contacto</span>
+              <span>Próxima entrega</span>
+              <span>Estado</span>
+              <span></span>
+            </div>
+            {proveedoresFiltrados.length === 0 && proveedores.length > 0 && (
+              <p className="proveedores__subtitulo">No hay proveedores que coincidan con "{busqueda}".</p>
+            )}
+            <ul className="lista__filas">
+              {proveedoresFiltrados.map((proveedor) => (
+                <li className="pfila" key={proveedor.id_proveedor}>
+                  <div className="pfila__fila">
+                    <span className="pfila__celda pfila__celda--nombre" data-label="Proveedor">
+                      {proveedor.nombre}
+                    </span>
+                    <span className="pfila__celda" data-label="Insumo">
+                      {proveedor.insumo_principal || '—'}
+                    </span>
+                    <span className="pfila__celda pfila__celda--mono" data-label="Contacto">
+                      {proveedor.telefono || '—'}
+                    </span>
+                    <span className="pfila__celda pfila__celda--mono" data-label="Próxima entrega">
+                      {proveedor.urgente ? (
+                        <span className="pfila__urgente">Urgente · {proveedor.proxima_entrega ?? '—'}</span>
+                      ) : (
+                        proveedor.proxima_entrega ?? 'Por programar'
+                      )}
+                    </span>
+                    <span className="pfila__celda" data-label="Estado">
+                      <span className={`pfila__estado is-${proveedor.estado}`}>
+                        {proveedor.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </span>
+                    <span className="pfila__celda pfila__celda--accion">
+                      <button
+                        type="button"
+                        className="pfila__detalle"
+                        onClick={() => alternarDetalle(proveedor.id_proveedor)}
+                      >
+                        {detalleId === proveedor.id_proveedor ? 'Ocultar' : 'Ver detalle'}
+                      </button>
+                    </span>
                   </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
+
+                  {detalleId === proveedor.id_proveedor && (
+                    <div className="pfila__panel">
+                      <div className="pfila__dato">
+                        <span className="pfila__datolabel">Correo</span>
+                        <span>{proveedor.correo || '—'}</span>
+                      </div>
+                      <div className="pfila__dato">
+                        <span className="pfila__datolabel">Dirección</span>
+                        <span>{proveedor.direccion || '—'}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="pfila__toggle"
+                        onClick={() => alternarEstado(proveedor.id_proveedor)}
+                        disabled={accionandoId === proveedor.id_proveedor}
+                      >
+                        {proveedor.estado === 'activo' ? 'Desactivar proveedor' : 'Reactivar proveedor'}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
     </div>
   )

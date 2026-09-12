@@ -1,14 +1,18 @@
+import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
-import { formatClock, formatElapsed, formatMoney } from '../../lib/format'
+import { formatClock, formatMoney } from '../../lib/format'
+import { api, type EmpleadoMe, type Turno } from '../../lib/api'
 import type { Devolucion, Venta } from './types'
 import './PerfilVendedor.css'
 
 type Props = {
   now: Date
-  turnoInicio: Date | null
+  empleado: EmpleadoMe
+  turno: Turno | null
+  turnoError: string
   ventas: Venta[]
   devoluciones: Devolucion[]
-  onAbrirTurno: () => void
+  onAbrirTurno: (montoInicial: number) => void | Promise<void>
   onCerrarTurno: () => void
   onCerrarSesion: () => void
   onNuevaVenta: () => void
@@ -21,9 +25,19 @@ function contarPaquetes(movimientos: { items: { cantidad: number }[] }[]) {
   return movimientos.flatMap((movimiento) => movimiento.items).reduce((suma, item) => suma + item.cantidad, 0)
 }
 
+function calcularElapsed(horaInicio: string, fecha: string, now: Date) {
+  const inicio = new Date(`${fecha}T${horaInicio}`)
+  const ms = now.getTime() - inicio.getTime()
+  const horas = Math.floor(ms / 3_600_000)
+  const minutos = Math.floor((ms % 3_600_000) / 60_000)
+  return `${horas}h ${minutos}m`
+}
+
 function PerfilVendedor({
   now,
-  turnoInicio,
+  empleado,
+  turno,
+  turnoError,
   ventas,
   devoluciones,
   onAbrirTurno,
@@ -34,12 +48,33 @@ function PerfilVendedor({
   onCorte,
   onDevolucion,
 }: Props) {
-  const turnoAbierto = turnoInicio !== null
+  const [montoInicial, setMontoInicial] = useState('500')
+  const [abriendo, setAbriendo] = useState(false)
+
+  useEffect(() => {
+    api
+      .miSucursal()
+      .then((sucursal) => setMontoInicial(String(sucursal.fondo_caja_default)))
+      .catch(() => {})
+  }, [])
+
+  const turnoAbierto = turno !== null && turno.estado === 'abierto'
   const totalVentas = ventas.reduce((suma, venta) => suma + venta.total, 0)
   const totalDevoluciones = devoluciones.reduce((suma, devolucion) => suma + devolucion.total, 0)
   const ventasNetas = totalVentas - totalDevoluciones
   const paquetesVendidos = contarPaquetes(ventas) - contarPaquetes(devoluciones)
   const ticketPromedio = ventas.length > 0 ? totalVentas / ventas.length : 0
+
+  async function iniciarTurno() {
+    const monto = Number.parseFloat(montoInicial)
+    if (Number.isNaN(monto) || monto < 0) return
+    setAbriendo(true)
+    try {
+      await onAbrirTurno(monto)
+    } finally {
+      setAbriendo(false)
+    }
+  }
 
   return (
     <div className="perfil">
@@ -47,8 +82,10 @@ function PerfilVendedor({
 
       <main className="perfil__main">
         <section className="saludo">
-          <h1>Hola, María</h1>
-          <p className="saludo__rol">Vendedora · Sucursal Centro</p>
+          <h1>Hola, {empleado.nombre}</h1>
+          <p className="saludo__rol">
+            {empleado.rol} · {empleado.sucursal}
+          </p>
         </section>
 
         <div className="paneles">
@@ -60,11 +97,11 @@ function PerfilVendedor({
               </span>
             </div>
 
-            {turnoAbierto && turnoInicio ? (
+            {turnoAbierto && turno ? (
               <>
-                <p className="turno__tiempo">{formatElapsed(now.getTime() - turnoInicio.getTime())}</p>
+                <p className="turno__tiempo">{calcularElapsed(turno.hora_inicio, turno.fecha, now)}</p>
                 <p className="turno__detalle">
-                  Inicio {formatClock(turnoInicio)} · Corte estimado 21:00
+                  Inicio {turno.hora_inicio.slice(0, 5)} · Fondo inicial {formatMoney(turno.monto_inicial)}
                 </p>
                 <button type="button" className="turno__accion turno__accion--cerrar" onClick={onCerrarTurno}>
                   Cerrar turno
@@ -73,8 +110,30 @@ function PerfilVendedor({
             ) : (
               <>
                 <p className="turno__hint">Abre tu turno para comenzar a vender.</p>
-                <button type="button" className="turno__accion turno__accion--abrir" onClick={onAbrirTurno}>
-                  Iniciar turno
+                <div className="turno__monto-inicial">
+                  <label htmlFor="monto-inicial">Fondo inicial de caja</label>
+                  <input
+                    id="monto-inicial"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={montoInicial}
+                    onChange={(event) => setMontoInicial(event.target.value)}
+                  />
+                </div>
+                {turnoError && (
+                  <p className="turno__error" role="alert">
+                    {turnoError}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className="turno__accion turno__accion--abrir"
+                  onClick={iniciarTurno}
+                  disabled={abriendo}
+                >
+                  {abriendo ? 'Abriendo…' : 'Iniciar turno'}
                 </button>
               </>
             )}
