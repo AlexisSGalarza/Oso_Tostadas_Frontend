@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
+import { api, ApiError } from '../../lib/api'
 import type { Devolucion, Venta } from './types'
 import './HistorialScreen.css'
 
@@ -19,6 +21,22 @@ function resumenItems(items: { nombre: string; cantidad: number }[]) {
 }
 
 function HistorialScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, onNuevaVenta }: Props) {
+  const [descargandoId, setDescargandoId] = useState<number | null>(null)
+  const [error, setError] = useState('')
+
+  async function descargarRecibo(idVenta: number | undefined) {
+    if (!idVenta) return
+    setDescargandoId(idVenta)
+    setError('')
+    try {
+      await api.descargarRecibo(idVenta)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo descargar el recibo.')
+    } finally {
+      setDescargandoId(null)
+    }
+  }
+
   const totalVentas = ventas.reduce((suma, venta) => suma + venta.total, 0)
   const totalDevoluciones = devoluciones.reduce((suma, devolucion) => suma + devolucion.total, 0)
   const totalNeto = totalVentas - totalDevoluciones
@@ -35,6 +53,12 @@ function HistorialScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, 
       <main className="historial__main">
         <h1>Historial del turno</h1>
         <p className="historial__subtitulo">Ventas y devoluciones registradas en tu turno actual</p>
+
+        {error && (
+          <p className="historial__error" role="alert">
+            {error}
+          </p>
+        )}
 
         {movimientos.length === 0 ? (
           <div className="historial__vacio">
@@ -63,7 +87,17 @@ function HistorialScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, 
                         {formatMoney(movimiento.data.cambio ?? 0)}
                       </p>
                     )}
-                    <span className="ticket-fila__total">{formatMoney(movimiento.data.total)}</span>
+                    <div className="ticket-fila__pie">
+                      <button
+                        type="button"
+                        className="ticket-fila__recibo"
+                        onClick={() => descargarRecibo(movimiento.data.idVenta)}
+                        disabled={descargandoId === movimiento.data.idVenta}
+                      >
+                        {descargandoId === movimiento.data.idVenta ? 'Generando…' : 'Descargar recibo'}
+                      </button>
+                      <span className="ticket-fila__total">{formatMoney(movimiento.data.total)}</span>
+                    </div>
                   </li>
                 ) : (
                   <li key={`devolucion-${movimiento.data.id}`} className="ticket-fila ticket-fila--devolucion">

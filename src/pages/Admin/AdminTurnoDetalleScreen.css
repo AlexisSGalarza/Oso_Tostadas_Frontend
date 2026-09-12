@@ -1,0 +1,252 @@
+.turnodetalle {
+  min-height: 100dvh;
+  background: var(--page);
+  display: flex;
+  flex-direction: column;
+}
+
+.turnodetalle__main {
+  flex: 1;
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.turnodetalle__main h1 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 2.8vw, 1.9rem);
+  margin: 0;
+  color: var(--tinta);
+}
+
+.turnodetalle__subtitulo {
+  font-size: 0.85rem;
+  color: var(--tostado);
+  margin: -0.6rem 0 0;
+}
+
+.turnodetalle__error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--chile);
+}
+
+.turnodetalle__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--tinta);
+}
+
+.turnodetalle__resumen .is-desajuste {
+  color: var(--chile);
+  font-weight: 600;
+}
+
+.turnodetalle__resumen .is-exacto {
+  color: var(--verde-salsa-dark);
+  font-weight: 600;
+}
+
+.turnodetalle__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tventa {
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 12px 28px -20px rgba(22, 48, 31, 0.35);
+}
+
+.tventa__cabeza {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--tostado);
+  margin-bottom: 0.35rem;
+}
+
+.tventa__numero {
+  color: var(--tinta);
+}
+
+.pill {
+  margin-left: auto;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.pill--efectivo {
+  background: rgba(163, 202, 74, 0.28);
+  color: var(--verde-salsa-dark);
+}
+
+.pill--tarjeta {
+  background: rgba(138, 90, 52, 0.15);
+  color: var(--tostado);
+}
+
+.tventa__items {
+  margin: 0 0 0.3rem;
+  font-size: 0.88rem;
+  color: var(--tinta);
+}
+
+.tventa__devuelto {
+  margin: 0 0 0.4rem;
+  font-size: 0.76rem;
+  color: var(--chile);
+}
+
+.tventa__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tventa__acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tventa__boton {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--tostado);
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tventa__boton:hover:not(:disabled) {
+  border-color: var(--verde-salsa);
+  color: var(--verde-salsa-dark);
+}
+
+.tventa__boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tventa__boton:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.tventa__total {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.tventa__form {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgba(138, 90, 52, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tventa__formfila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--tinta);
+}
+
+.tventa__cantidad {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tventa__cantidad button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, transform 100ms ease;
+}
+
+.tventa__cantidad button:hover:not(:disabled) {
+  border-color: var(--verde-salsa);
+}
+
+.tventa__cantidad button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.tventa__cantidad button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tventa__cantidad button:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.tventa__disponible {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--tostado);
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.tventa__confirmar {
+  padding: 0.6rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tventa__confirmar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tventa__confirmar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}

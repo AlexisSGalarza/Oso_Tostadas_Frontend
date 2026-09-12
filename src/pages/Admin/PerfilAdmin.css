@@ -125,13 +125,65 @@
   background-repeat: repeat-y;
 }
 
+.libro__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+}
+
 .libro__titulo {
   font-family: var(--font-display);
   font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.15rem;
-  margin: 0 0 1.1rem;
+  margin: 0;
   color: var(--tinta);
+}
+
+.libro__navfecha {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.libro__navboton {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.libro__navboton:hover:not(:disabled) {
+  border-color: var(--verde-salsa);
+}
+
+.libro__navboton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.libro__navhoy {
+  padding: 0 0.6rem;
+  height: 1.9rem;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  background: var(--page);
+  color: var(--tostado);
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.libro__navhoy:hover {
+  border-color: var(--verde-salsa);
+  color: var(--verde-salsa-dark);
 }
 
 .libro__cabecera,
@@ -165,7 +217,27 @@
   color: var(--tinta);
 }
 
-.libro__filas li.fila:last-child {
+.fila--clic {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed rgba(138, 90, 52, 0.3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.fila--clic:hover {
+  background: rgba(76, 122, 62, 0.06);
+}
+
+.fila--clic:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: -2px;
+}
+
+.libro__filas li:last-child .fila--clic {
   border-bottom: none;
 }
 

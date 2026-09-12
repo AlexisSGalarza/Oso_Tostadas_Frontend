@@ -9,7 +9,7 @@ type Props = {
 }
 
 function LoginPage({ onIniciarSesion }: Props) {
-  const [correo, setCorreo] = useState('')
+  const [numeroEmpleado, setNumeroEmpleado] = useState('')
   const [contrasena, setContrasena] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -24,14 +24,14 @@ function LoginPage({ onIniciarSesion }: Props) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!correo.trim() || !contrasena.trim()) {
-      setError('Ingresa tu correo y contraseña para continuar.')
+    if (!numeroEmpleado.trim() || !contrasena.trim()) {
+      setError('Ingresa tu número de empleado y contraseña para continuar.')
       return
     }
     setError('')
     setCargando(true)
     try {
-      await api.login(correo.trim(), contrasena)
+      await api.login(numeroEmpleado.trim(), contrasena)
       const empleado = await api.me()
       onIniciarSesion(empleado)
     } catch (err) {
@@ -41,7 +41,7 @@ function LoginPage({ onIniciarSesion }: Props) {
     }
   }
 
-  function handleCorreoKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  function handleNumeroEmpleadoKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       event.preventDefault()
       contrasenaRef.current?.focus()
@@ -66,16 +66,17 @@ function LoginPage({ onIniciarSesion }: Props) {
           <p className="ticket__subtitle">Accede a tu turno en el punto de venta</p>
 
           <div className="field">
-            <label htmlFor="correo">Correo</label>
+            <label htmlFor="numero-empleado">Número de empleado</label>
             <input
-              id="correo"
-              name="correo"
-              type="email"
+              id="numero-empleado"
+              name="numero-empleado"
+              type="text"
+              inputMode="numeric"
               autoComplete="username"
-              placeholder="tu.correo@osotostadas.com"
-              value={correo}
-              onChange={(event) => setCorreo(event.target.value)}
-              onKeyDown={handleCorreoKeyDown}
+              placeholder="801244"
+              value={numeroEmpleado}
+              onChange={(event) => setNumeroEmpleado(event.target.value)}
+              onKeyDown={handleNumeroEmpleadoKeyDown}
               autoFocus
             />
           </div>

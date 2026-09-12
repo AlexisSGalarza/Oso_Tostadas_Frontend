@@ -157,6 +157,27 @@
   font-weight: 400 !important;
 }
 
+.cuenta__recibo {
+  margin-top: 1.25rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--verde-salsa);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--verde-salsa-dark);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cuenta__recibo:hover:not(:disabled) {
+  background: rgba(163, 202, 74, 0.14);
+}
+
+.cuenta__recibo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .cuenta__items {
   list-style: none;
   margin: 0 0 1rem;
@@ -199,15 +220,20 @@
 }
 
 .item__cantidad button {
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 4px;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 8px;
   border: 1px solid rgba(138, 90, 52, 0.35);
   background: var(--page);
   color: var(--tinta);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
+  transition: border-color 150ms ease, transform 100ms ease;
+}
+
+.item__cantidad button:active {
+  transform: scale(0.95);
 }
 
 .item__cantidad button:hover {

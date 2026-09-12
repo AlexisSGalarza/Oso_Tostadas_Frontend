@@ -41,6 +41,8 @@ function VentaScreen({
   const [metodoPago, setMetodoPago] = useState<MetodoPago>('efectivo')
   const [efectivoRecibido, setEfectivoRecibido] = useState('')
   const [justCharged, setJustCharged] = useState(false)
+  const [ultimaVentaId, setUltimaVentaId] = useState<number | null>(null)
+  const [descargandoRecibo, setDescargandoRecibo] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [errorVenta, setErrorVenta] = useState('')
 
@@ -139,13 +141,25 @@ function VentaScreen({
       setEfectivoRecibido('')
       setMetodoPago('efectivo')
       setJustCharged(true)
+      setUltimaVentaId(ventaCreada.id_venta)
       // refresca el stock mostrado ya que la venta lo descuenta en el servidor
       api.productosDisponibles().then(setProductos).catch(() => {})
-      setTimeout(() => setJustCharged(false), 1100)
+      setTimeout(() => setJustCharged(false), 4000)
     } catch (err) {
       setErrorVenta(err instanceof ApiError ? err.message : 'No se pudo registrar la venta.')
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function descargarRecibo(idVenta: number) {
+    setDescargandoRecibo(true)
+    try {
+      await api.descargarRecibo(idVenta)
+    } catch (err) {
+      setErrorVenta(err instanceof ApiError ? err.message : 'No se pudo descargar el recibo.')
+    } finally {
+      setDescargandoRecibo(false)
     }
   }
 
@@ -195,7 +209,22 @@ function VentaScreen({
           {justCharged ? (
             <div className="cuenta__confirmado">
               <p>Venta registrada</p>
-              <p className="cuenta__confirmado-sub">Ticket impreso</p>
+              <p className="cuenta__confirmado-sub">Ticket #{ultimaVentaId}</p>
+              {ultimaVentaId !== null && (
+                <button
+                  type="button"
+                  className="cuenta__recibo"
+                  onClick={() => descargarRecibo(ultimaVentaId)}
+                  disabled={descargandoRecibo}
+                >
+                  {descargandoRecibo ? 'Generando…' : 'Descargar recibo PDF'}
+                </button>
+              )}
+              {errorVenta && (
+                <p className="venta__error" role="alert">
+                  {errorVenta}
+                </p>
+              )}
             </div>
           ) : carrito.length === 0 ? (
             <p className="cuenta__vacio">Toca un paquete para agregarlo a la cuenta.</p>
