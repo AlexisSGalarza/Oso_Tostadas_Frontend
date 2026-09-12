@@ -156,6 +156,45 @@
   color: var(--tinta);
 }
 
+.ticket-fila__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ticket-fila__recibo {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--tostado);
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ticket-fila__recibo:hover:not(:disabled) {
+  border-color: var(--verde-salsa);
+  color: var(--verde-salsa-dark);
+}
+
+.ticket-fila__recibo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ticket-fila__recibo:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.historial__error {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--chile);
+}
+
 .historial__resumen {
   display: flex;
   justify-content: space-between;

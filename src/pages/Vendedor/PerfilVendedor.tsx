@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatMoney } from '../../lib/format'
-import type { EmpleadoMe, Turno } from '../../lib/api'
+import { api, type EmpleadoMe, type Turno } from '../../lib/api'
 import type { Devolucion, Venta } from './types'
 import './PerfilVendedor.css'
 
@@ -50,6 +50,13 @@ function PerfilVendedor({
 }: Props) {
   const [montoInicial, setMontoInicial] = useState('500')
   const [abriendo, setAbriendo] = useState(false)
+
+  useEffect(() => {
+    api
+      .miSucursal()
+      .then((sucursal) => setMontoInicial(String(sucursal.fondo_caja_default)))
+      .catch(() => {})
+  }, [])
 
   const turnoAbierto = turno !== null && turno.estado === 'abierto'
   const totalVentas = ventas.reduce((suma, venta) => suma + venta.total, 0)

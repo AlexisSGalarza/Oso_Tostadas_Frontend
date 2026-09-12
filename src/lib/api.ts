@@ -77,6 +77,7 @@ async function request<T>(path: string, options: RequestInit = {}, reintentado =
 
 export type EmpleadoMe = {
   id_empleado: number
+  numero_empleado: string
   nombre: string
   correo: string
   rol: string
@@ -152,11 +153,146 @@ export type VentaApi = {
   devoluciones: DevolucionApi[]
 }
 
+export type Rol = {
+  id_rol: number
+  nombre_rol: string
+}
+
+export type EmpleadoAdmin = {
+  id_empleado: number
+  numero_empleado: string
+  nombre: string
+  correo: string
+  telefono: string
+  fecha_ingreso: string
+  estado: 'activo' | 'inactivo'
+  rol: string
+  id_rol: number
+  horario_dias: string
+  horario_hora_inicio: string | null
+  horario_hora_fin: string | null
+}
+
+export type Sucursal = {
+  id_sucursal: number
+  nombre: string
+  direccion: string
+  telefono: string
+  estado: string
+  hora_apertura: string | null
+  hora_cierre: string | null
+  fondo_caja_default: number
+}
+
+export type ProductoAdmin = {
+  id_producto: number
+  nombre: string
+  precio: number
+  estado: string
+  stock: number
+  stock_minimo: number
+}
+
+export type InsumoAdmin = {
+  id_insumo: number
+  nombre: string
+  unidad_medida: string
+  estado: string
+  stock: number
+  stock_minimo: number
+  id_proveedor: number | null
+  proveedor: string | null
+}
+
+export type Proveedor = {
+  id_proveedor: number
+  nombre: string
+  insumo_principal: string
+  direccion: string
+  correo: string
+  telefono: string
+  proxima_entrega: string | null
+  urgente: boolean
+  estado: 'activo' | 'inactivo'
+}
+
+export type ReporteSemana = {
+  dias: { fecha: string; ventas: number; tickets: number }[]
+  productos: { nombre: string; cantidad: number; ingresos: number }[]
+}
+
+export type TurnoDashboard = {
+  id_turno: number
+  empleado: string
+  hora_inicio: string
+  hora_fin: string | null
+  estado: 'abierto' | 'cerrado'
+  ventas: number
+  diferencia: number | null
+}
+
+export type Pendiente = {
+  severidad: 'urgente' | 'aviso'
+  texto: string
+}
+
+export type AdminDashboard = {
+  fecha: string
+  es_hoy: boolean
+  resumen: { ventas_dia: number; turnos_activos: number; cortes_por_revisar: number }
+  turnos: TurnoDashboard[]
+  pendientes: Pendiente[]
+}
+
+export type TurnoDetalleAdmin = Turno & {
+  empleado_nombre: string
+  ventas: VentaApi[]
+}
+
+export type RegistroAuditoria = {
+  id_registro: number
+  actor: string
+  accion: string
+  detalle: string
+  creado_en: string
+}
+
+// --- Cliente: consulta publica de ticket y facturacion ---
+
+export type TicketPublico = {
+  id_venta: number
+  folio: number
+  fecha: string
+  creado_en: string | null
+  total: number
+  detalles: DetalleVentaDto[]
+  facturado: boolean
+}
+
+export type UsoCfdi = 'G01' | 'G03' | 'P01'
+export type RegimenFiscal = '616' | '621' | '612' | '601'
+
+export type DatosFiscales = {
+  rfc: string
+  razon_social: string
+  correo: string
+  codigo_postal: string
+  regimen_fiscal: RegimenFiscal
+  uso_cfdi: UsoCfdi
+}
+
+export type FacturaGenerada = {
+  folio_fiscal: string
+  correo: string
+  fecha_emision: string
+  url_pdf: string
+}
+
 export const api = {
-  async login(correo: string, password: string) {
+  async login(numeroEmpleado: string, password: string) {
     const data = await request<{ access: string; refresh: string }>('/auth/login/', {
       method: 'POST',
-      body: JSON.stringify({ correo, password }),
+      body: JSON.stringify({ numero_empleado: numeroEmpleado, password }),
     })
     setTokens(data.access, data.refresh)
     return data
@@ -215,6 +351,149 @@ export const api = {
     return request<DevolucionApi>(`/ventas/${idVenta}/devoluciones/`, {
       method: 'POST',
       body: JSON.stringify({ detalles }),
+    })
+  },
+
+  // Descarga el recibo de compra en PDF (no es un CFDI/factura fiscal) y dispara
+  // la descarga en el navegador. No usa `request()` porque la respuesta es binaria.
+  async descargarRecibo(idVenta: number) {
+    const access = getAccessToken()
+    const response = await fetch(`${API_URL}/ventas/${idVenta}/recibo/`, {
+      headers: access ? { Authorization: `Bearer ${access}` } : undefined,
+    })
+    if (!response.ok) {
+      throw new ApiError(response.status, await extraerMensajeError(response))
+    }
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const enlace = document.createElement('a')
+    enlace.href = url
+    enlace.download = `recibo-${idVenta}.pdf`
+    document.body.appendChild(enlace)
+    enlace.click()
+    enlace.remove()
+    URL.revokeObjectURL(url)
+  },
+
+  // --- Admin: usuarios ---
+
+  roles() {
+    return request<Rol[]>('/roles/')
+  },
+
+  empleados() {
+    return request<EmpleadoAdmin[]>('/empleados/')
+  },
+
+  crearEmpleado(datos: { nombre: string; correo: string; telefono: string; id_rol: number; password?: string }) {
+    return request<EmpleadoAdmin & { password_temporal?: string }>('/empleados/', {
+      method: 'POST',
+      body: JSON.stringify(datos),
+    })
+  },
+
+  alternarEstadoEmpleado(idEmpleado: number) {
+    return request<EmpleadoAdmin>(`/empleados/${idEmpleado}/alternar-estado/`, { method: 'POST' })
+  },
+
+  restablecerPasswordEmpleado(idEmpleado: number) {
+    return request<{ password_temporal: string }>(`/empleados/${idEmpleado}/restablecer-password/`, {
+      method: 'POST',
+    })
+  },
+
+  actualizarHorarioEmpleado(
+    idEmpleado: number,
+    datos: { horario_dias: string; horario_hora_inicio: string | null; horario_hora_fin: string | null },
+  ) {
+    return request<EmpleadoAdmin>(`/empleados/${idEmpleado}/horario/`, {
+      method: 'PATCH',
+      body: JSON.stringify(datos),
+    })
+  },
+
+  // --- Admin: sucursal / configuracion ---
+
+  miSucursal() {
+    return request<Sucursal>('/sucursales/mia/')
+  },
+
+  actualizarMiSucursal(datos: Partial<Pick<Sucursal, 'nombre' | 'direccion' | 'telefono' | 'hora_apertura' | 'hora_cierre' | 'fondo_caja_default'>>) {
+    return request<Sucursal>('/sucursales/mia/', {
+      method: 'PATCH',
+      body: JSON.stringify(datos),
+    })
+  },
+
+  // --- Admin: inventario ---
+
+  productosAdmin() {
+    return request<ProductoAdmin[]>('/admin/productos/')
+  },
+
+  registrarProduccion(idProducto: number, cantidad: number) {
+    return request<ProductoAdmin>(`/admin/productos/${idProducto}/produccion/`, {
+      method: 'POST',
+      body: JSON.stringify({ cantidad }),
+    })
+  },
+
+  insumosAdmin() {
+    return request<InsumoAdmin[]>('/admin/insumos/')
+  },
+
+  registrarEntradaInsumo(idInsumo: number, cantidad: number, idProveedor: number | null) {
+    return request<InsumoAdmin>(`/admin/insumos/${idInsumo}/entrada/`, {
+      method: 'POST',
+      body: JSON.stringify({ cantidad, id_proveedor: idProveedor }),
+    })
+  },
+
+  // --- Admin: proveedores ---
+
+  proveedores() {
+    return request<Proveedor[]>('/proveedores/')
+  },
+
+  crearProveedor(datos: { nombre: string; insumo_principal: string; direccion: string; correo: string; telefono: string }) {
+    return request<Proveedor>('/proveedores/', {
+      method: 'POST',
+      body: JSON.stringify(datos),
+    })
+  },
+
+  alternarEstadoProveedor(idProveedor: number) {
+    return request<Proveedor>(`/proveedores/${idProveedor}/alternar-estado/`, { method: 'POST' })
+  },
+
+  // --- Admin: reportes y dashboard ---
+
+  reporteSemana() {
+    return request<ReporteSemana>('/reportes/semana/')
+  },
+
+  dashboardAdmin(fecha?: string) {
+    return request<AdminDashboard>(`/admin/dashboard/${fecha ? `?fecha=${fecha}` : ''}`)
+  },
+
+  auditoria() {
+    return request<RegistroAuditoria[]>('/auditoria/')
+  },
+
+  turnoDetalleAdmin(idTurno: number) {
+    return request<TurnoDetalleAdmin>(`/admin/turnos/${idTurno}/`)
+  },
+
+  // --- Cliente ---
+
+  buscarTicketPublico(folio: string) {
+    return request<TicketPublico>(`/publico/tickets/${folio}/`)
+  },
+
+  generarFacturaPublica(idVenta: number, datos: DatosFiscales) {
+    return request<FacturaGenerada>(`/publico/tickets/${idVenta}/factura/`, {
+      method: 'POST',
+      body: JSON.stringify(datos),
     })
   },
 }

@@ -16,6 +16,12 @@
   gap: 1.25rem;
 }
 
+.alta__error {
+  margin: 0;
+  color: var(--chile);
+  font-size: 0.82rem;
+}
+
 .inventario__main h1 {
   font-family: var(--font-display);
   font-optical-sizing: auto;

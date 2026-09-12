@@ -11,6 +11,8 @@ import ReportesScreen from './pages/Admin/ReportesScreen'
 import InventarioScreen from './pages/Admin/InventarioScreen'
 import ProveedoresScreen from './pages/Admin/ProveedoresScreen'
 import ConfiguracionScreen from './pages/Admin/ConfiguracionScreen'
+import AuditoriaScreen from './pages/Admin/AuditoriaScreen'
+import AdminTurnoDetalleScreen from './pages/Admin/AdminTurnoDetalleScreen'
 import type { Devolucion, MetodoPago, Venta } from './pages/Vendedor/types'
 import { api, ApiError, getAccessToken, type EmpleadoMe, type Turno, type VentaApi } from './lib/api'
 
@@ -27,6 +29,8 @@ type Screen =
   | 'inventario'
   | 'proveedores'
   | 'configuracion'
+  | 'auditoria'
+  | 'turno-detalle'
 
 const BASE_TICKET = 428
 const ROLES_VENDEDOR = ['vendedor', 'cajero']
@@ -76,6 +80,7 @@ function App() {
   const [turnoError, setTurnoError] = useState('')
   const [ventas, setVentas] = useState<Venta[]>([])
   const [devoluciones, setDevoluciones] = useState<Devolucion[]>([])
+  const [idTurnoSeleccionado, setIdTurnoSeleccionado] = useState<number | null>(null)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -158,16 +163,22 @@ function App() {
     return <LoginPage onIniciarSesion={handleIniciarSesion} />
   }
 
-  if (screen === 'perfil-admin') {
+  if (screen === 'perfil-admin' && empleado) {
     return (
       <PerfilAdmin
         now={now}
+        empleado={empleado}
         onCerrarSesion={handleCerrarSesion}
         onUsuarios={() => setScreen('usuarios')}
         onReportes={() => setScreen('reportes')}
         onInventario={() => setScreen('inventario')}
         onProveedores={() => setScreen('proveedores')}
         onConfiguracion={() => setScreen('configuracion')}
+        onAuditoria={() => setScreen('auditoria')}
+        onVerTurno={(idTurno) => {
+          setIdTurnoSeleccionado(idTurno)
+          setScreen('turno-detalle')
+        }}
       />
     )
   }
@@ -199,6 +210,23 @@ function App() {
   if (screen === 'configuracion') {
     return (
       <ConfiguracionScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
+  }
+
+  if (screen === 'auditoria') {
+    return (
+      <AuditoriaScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
+    )
+  }
+
+  if (screen === 'turno-detalle' && idTurnoSeleccionado !== null) {
+    return (
+      <AdminTurnoDetalleScreen
+        now={now}
+        idTurno={idTurnoSeleccionado}
+        onVolver={() => setScreen('perfil-admin')}
+        onCerrarSesion={handleCerrarSesion}
+      />
     )
   }
 

@@ -39,6 +39,23 @@
   margin: 0.4rem 0 0;
 }
 
+.proveedores__buscador {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.proveedores__buscador:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
 .proveedores__nuevo {
   padding: 0.65rem 1.1rem;
   border: none;

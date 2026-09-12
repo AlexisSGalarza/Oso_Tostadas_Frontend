@@ -104,6 +104,12 @@
   color: var(--tostado);
 }
 
+.config__error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--chile);
+}
+
 .config__acciones {
   display: flex;
   align-items: center;

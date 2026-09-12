@@ -39,6 +39,23 @@
   margin: 0.4rem 0 0;
 }
 
+.usuarios__buscador {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.usuarios__buscador:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
 .usuarios__nuevo {
   padding: 0.65rem 1.1rem;
   border: none;
@@ -110,6 +127,31 @@
   outline: none;
   border-color: var(--verde-salsa);
   box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
+.alta__password {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.alta__password input {
+  flex: 1;
+  min-width: 0;
+}
+
+.alta__passwordtoggle {
+  padding: 0 0.75rem;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tostado);
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.alta__passwordtoggle:hover {
+  border-color: var(--verde-salsa);
 }
 
 .alta__error {
@@ -281,6 +323,66 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--tostado);
+}
+
+.ufila__horario {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  background: rgba(76, 122, 62, 0.06);
+  border-radius: 6px;
+}
+
+.ufila__horariocampo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ufila__horariocampo label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.ufila__horariocampo input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.82rem;
+}
+
+.ufila__horariocampo input[type='text'] {
+  min-width: 10rem;
+}
+
+.ufila__horarioguardar {
+  padding: 0.5rem 0.85rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ufila__horarioguardar:hover:not(:disabled) {
+  background: var(--verde-salsa-dark);
+}
+
+.ufila__horarioguardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .ufila__seguridad {
