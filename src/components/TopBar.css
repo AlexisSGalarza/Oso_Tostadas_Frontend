@@ -49,6 +49,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
+  min-height: 44px;
   padding: 0.3rem 0.4rem;
   margin: -0.3rem -0.4rem;
   border-radius: 4px;
@@ -88,7 +89,9 @@
   font-size: 0.78rem;
   text-transform: none;
   letter-spacing: 0;
-  padding: 0.35rem 0.75rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
   transition: background 150ms ease;

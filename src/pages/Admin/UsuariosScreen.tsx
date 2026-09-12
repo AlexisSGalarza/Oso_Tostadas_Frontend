@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatClock } from '../../lib/format'
 import { api, ApiError, type EmpleadoAdmin, type Rol } from '../../lib/api'
 import './UsuariosScreen.css'
@@ -43,6 +44,11 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [horarioInicio, setHorarioInicio] = useState('')
   const [horarioFin, setHorarioFin] = useState('')
   const [guardandoHorario, setGuardandoHorario] = useState(false)
+  const [accionPendiente, setAccionPendiente] = useState<{
+    tipo: 'estado' | 'password'
+    usuario: EmpleadoAdmin
+  } | null>(null)
+  const [copiadoId, setCopiadoId] = useState<number | null>(null)
 
   useEffect(() => {
     Promise.all([api.empleados(), api.roles()])
@@ -100,6 +106,27 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
       setError(err instanceof ApiError ? err.message : 'No se pudo restablecer la contraseña.')
     } finally {
       setAccionandoId(null)
+    }
+  }
+
+  async function copiarCredenciales(usuario: EmpleadoAdmin, password: string) {
+    try {
+      await navigator.clipboard.writeText(`Usuario: ${usuario.numero_empleado}\nContraseña: ${password}`)
+      setCopiadoId(usuario.id_empleado)
+      setTimeout(() => setCopiadoId(null), 2000)
+    } catch {
+      setError('No se pudo copiar automáticamente; selecciona el texto a mano.')
+    }
+  }
+
+  function confirmarAccionPendiente() {
+    if (!accionPendiente) return
+    const { tipo, usuario } = accionPendiente
+    setAccionPendiente(null)
+    if (tipo === 'estado') {
+      alternarEstado(usuario.id_empleado)
+    } else {
+      restablecerContrasena(usuario.id_empleado)
     }
   }
 
@@ -351,7 +378,7 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
                         <button
                           type="button"
                           className="ufila__toggle"
-                          onClick={() => alternarEstado(usuario.id_empleado)}
+                          onClick={() => setAccionPendiente({ tipo: 'estado', usuario })}
                           disabled={accionandoId === usuario.id_empleado}
                         >
                           {usuario.estado === 'activo' ? 'Desactivar acceso' : 'Reactivar acceso'}
@@ -359,7 +386,7 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
                         <button
                           type="button"
                           className="ufila__reset"
-                          onClick={() => restablecerContrasena(usuario.id_empleado)}
+                          onClick={() => setAccionPendiente({ tipo: 'password', usuario })}
                           disabled={accionandoId === usuario.id_empleado}
                         >
                           Restablecer contraseña
@@ -372,7 +399,14 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
                           <strong>{contrasenasTemporales[usuario.id_empleado]}</strong>
                           <br />
                           Compártelos con {usuario.nombre.split(' ')[0]}; anótalos ahora, la contraseña no se
-                          puede volver a mostrar.
+                          puede volver a mostrar.{' '}
+                          <button
+                            type="button"
+                            className="ufila__copiar"
+                            onClick={() => copiarCredenciales(usuario, contrasenasTemporales[usuario.id_empleado])}
+                          >
+                            {copiadoId === usuario.id_empleado ? 'Copiado ✓' : 'Copiar'}
+                          </button>
                         </p>
                       )}
                     </div>
@@ -383,6 +417,29 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
           </section>
         )}
       </main>
+
+      <ConfirmDialog
+        open={accionPendiente !== null}
+        title={
+          accionPendiente?.tipo === 'estado'
+            ? accionPendiente.usuario.estado === 'activo'
+              ? '¿Desactivar el acceso de este usuario?'
+              : '¿Reactivar el acceso de este usuario?'
+            : '¿Restablecer la contraseña de este usuario?'
+        }
+        message={
+          accionPendiente?.tipo === 'estado'
+            ? accionPendiente.usuario.estado === 'activo'
+              ? `${accionPendiente.usuario.nombre} no podrá iniciar sesión en el punto de venta hasta que reactives su acceso.`
+              : `${accionPendiente.usuario.nombre} podrá volver a iniciar sesión en el punto de venta.`
+            : `Se genera una contraseña temporal nueva para ${accionPendiente?.usuario.nombre}. La actual dejará de funcionar de inmediato.`
+        }
+        confirmLabel={accionPendiente?.tipo === 'estado' ? 'Sí, continuar' : 'Sí, restablecer'}
+        cancelLabel="Cancelar"
+        tone={accionPendiente?.tipo === 'estado' && accionPendiente.usuario.estado === 'activo' ? 'danger' : 'default'}
+        onCancel={() => setAccionPendiente(null)}
+        onConfirm={confirmarAccionPendiente}
+      />
     </div>
   )
 }

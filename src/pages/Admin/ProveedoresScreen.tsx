@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatClock } from '../../lib/format'
 import { api, ApiError, type Proveedor } from '../../lib/api'
 import './ProveedoresScreen.css'
@@ -24,6 +25,7 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [enviando, setEnviando] = useState(false)
   const [accionandoId, setAccionandoId] = useState<number | null>(null)
   const [busqueda, setBusqueda] = useState('')
+  const [proveedorPendiente, setProveedorPendiente] = useState<Proveedor | null>(null)
 
   useEffect(() => {
     api
@@ -248,7 +250,7 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
                       <button
                         type="button"
                         className="pfila__toggle"
-                        onClick={() => alternarEstado(proveedor.id_proveedor)}
+                        onClick={() => setProveedorPendiente(proveedor)}
                         disabled={accionandoId === proveedor.id_proveedor}
                       >
                         {proveedor.estado === 'activo' ? 'Desactivar proveedor' : 'Reactivar proveedor'}
@@ -261,6 +263,28 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
           </section>
         )}
       </main>
+
+      <ConfirmDialog
+        open={proveedorPendiente !== null}
+        title={
+          proveedorPendiente?.estado === 'activo' ? '¿Desactivar este proveedor?' : '¿Reactivar este proveedor?'
+        }
+        message={
+          proveedorPendiente?.estado === 'activo'
+            ? `${proveedorPendiente?.nombre} dejará de aparecer como opción al registrar entradas de insumo.`
+            : `${proveedorPendiente?.nombre} volverá a aparecer como opción al registrar entradas de insumo.`
+        }
+        confirmLabel="Sí, continuar"
+        cancelLabel="Cancelar"
+        tone={proveedorPendiente?.estado === 'activo' ? 'danger' : 'default'}
+        onCancel={() => setProveedorPendiente(null)}
+        onConfirm={() => {
+          if (!proveedorPendiente) return
+          const id = proveedorPendiente.id_proveedor
+          setProveedorPendiente(null)
+          alternarEstado(id)
+        }}
+      />
     </div>
   )
 }

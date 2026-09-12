@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
+import ConfirmDialog from '../../components/ConfirmDialog'
+import NumericKeypad from '../../components/NumericKeypad'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
 import { api, ApiError, type ProductoDisponible, type Turno } from '../../lib/api'
 import type { Devolucion, ItemVenta, MetodoPago, Venta } from './types'
@@ -45,6 +47,7 @@ function VentaScreen({
   const [descargandoRecibo, setDescargandoRecibo] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [errorVenta, setErrorVenta] = useState('')
+  const [confirmandoCancelar, setConfirmandoCancelar] = useState(false)
 
   useEffect(() => {
     api
@@ -53,6 +56,14 @@ function VentaScreen({
       .catch((err) => setErrorCatalogo(err instanceof ApiError ? err.message : 'No se pudo cargar el catálogo.'))
       .finally(() => setCargandoCatalogo(false))
   }, [])
+
+  // No oculta la confirmacion mientras se descarga el recibo o hay un error visible;
+  // el temporizador se reprograma solo cuando ambos ya se resolvieron.
+  useEffect(() => {
+    if (!justCharged || descargandoRecibo || errorVenta) return
+    const id = setTimeout(() => setJustCharged(false), 4000)
+    return () => clearTimeout(id)
+  }, [justCharged, descargandoRecibo, errorVenta])
 
   function agregar(producto: ProductoDisponible) {
     setCarrito((actual) => {
@@ -144,7 +155,6 @@ function VentaScreen({
       setUltimaVentaId(ventaCreada.id_venta)
       // refresca el stock mostrado ya que la venta lo descuenta en el servidor
       api.productosDisponibles().then(setProductos).catch(() => {})
-      setTimeout(() => setJustCharged(false), 4000)
     } catch (err) {
       setErrorVenta(err instanceof ApiError ? err.message : 'No se pudo registrar la venta.')
     } finally {
@@ -225,6 +235,16 @@ function VentaScreen({
                   {errorVenta}
                 </p>
               )}
+              <button
+                type="button"
+                className="cuenta__nuevaventa"
+                onClick={() => {
+                  setJustCharged(false)
+                  setErrorVenta('')
+                }}
+              >
+                Nueva venta
+              </button>
             </div>
           ) : carrito.length === 0 ? (
             <p className="cuenta__vacio">Toca un paquete para agregarlo a la cuenta.</p>
@@ -291,7 +311,12 @@ function VentaScreen({
 
               {metodoPago === 'efectivo' && (
                 <div className="cuenta__recibido">
-                  <label htmlFor="recibido">Efectivo recibido</label>
+                  <div className="cuenta__recibidocabeza">
+                    <label htmlFor="recibido">Efectivo recibido</label>
+                    <button type="button" className="cuenta__exacto" onClick={() => setEfectivoRecibido(String(total))}>
+                      Cobro exacto
+                    </button>
+                  </div>
                   <input
                     id="recibido"
                     type="number"
@@ -301,6 +326,16 @@ function VentaScreen({
                     placeholder="0.00"
                     value={efectivoRecibido}
                     onChange={(event) => setEfectivoRecibido(event.target.value)}
+                  />
+                  <NumericKeypad
+                    value={efectivoRecibido}
+                    onChange={setEfectivoRecibido}
+                    quickAmounts={[50, 100, 200, 500]}
+                    onQuickAmount={(monto) =>
+                      setEfectivoRecibido((actual) =>
+                        String(Math.round(((Number.parseFloat(actual) || 0) + monto) * 100) / 100),
+                      )
+                    }
                   />
                   {hayRecibido && (
                     <div className={`cuenta__cambio ${cambio !== null && cambio < 0 ? 'is-falta' : 'is-ok'}`}>
@@ -325,13 +360,32 @@ function VentaScreen({
               <button type="button" className="cuenta__cobrar" onClick={cobrar} disabled={!puedeCobrar}>
                 {enviando ? 'Registrando…' : etiquetaCobrar}
               </button>
-              <button type="button" className="cuenta__cancelar" onClick={cancelarVenta} disabled={enviando}>
+              <button
+                type="button"
+                className="cuenta__cancelar"
+                onClick={() => setConfirmandoCancelar(true)}
+                disabled={enviando}
+              >
                 Cancelar venta
               </button>
             </>
           )}
         </aside>
       </main>
+
+      <ConfirmDialog
+        open={confirmandoCancelar}
+        title="¿Cancelar esta venta?"
+        message="Se va a vaciar la cuenta en curso. Los paquetes que ya agregaste no se guardan."
+        confirmLabel="Sí, cancelar"
+        cancelLabel="Seguir con la venta"
+        tone="danger"
+        onCancel={() => setConfirmandoCancelar(false)}
+        onConfirm={() => {
+          setConfirmandoCancelar(false)
+          cancelarVenta()
+        }}
+      />
     </div>
   )
 }

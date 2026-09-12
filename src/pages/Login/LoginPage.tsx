@@ -53,6 +53,7 @@ function LoginPage({ onIniciarSesion }: Props) {
       <section className="brand">
         <div className="brand__glow" aria-hidden="true" />
         <div className="brand__content">
+          <BearStamp className="brand__seal" />
           <h1 className="brand__mark">Oso Tostadas</h1>
           <p className="brand__tag">Punto de venta para tu tostadería</p>
         </div>

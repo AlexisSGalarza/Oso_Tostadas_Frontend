@@ -1,0 +1,127 @@
+.confirm__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 48, 31, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+  animation: confirm-fade 150ms ease-out both;
+}
+
+.confirm__card {
+  width: 100%;
+  max-width: 22rem;
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow: 0 24px 60px -20px rgba(22, 48, 31, 0.5);
+  animation: confirm-pop 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.confirm__titulo {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--tinta);
+  margin: 0 0 0.5rem;
+}
+
+.confirm__mensaje {
+  font-size: 0.9rem;
+  color: var(--tostado);
+  margin: 0 0 1.5rem;
+  line-height: 1.45;
+}
+
+.confirm__acciones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.confirm__cancelar,
+.confirm__confirmar {
+  flex: 1;
+  min-height: 44px;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.confirm__cancelar {
+  background: var(--page);
+  color: var(--tinta);
+  border: 1px solid rgba(138, 90, 52, 0.3);
+}
+
+.confirm__cancelar:hover {
+  background: rgba(138, 90, 52, 0.08);
+}
+
+.confirm__confirmar {
+  background: var(--verde-salsa);
+  color: var(--page);
+}
+
+.confirm__confirmar:hover {
+  background: var(--verde-salsa-dark);
+}
+
+.confirm__confirmar.is-peligro {
+  background: var(--chile);
+}
+
+.confirm__confirmar.is-peligro:hover {
+  background: #8f2e24;
+}
+
+.confirm__cancelar:active,
+.confirm__confirmar:active {
+  transform: scale(0.98);
+}
+
+.confirm__cancelar:disabled,
+.confirm__confirmar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.confirm__cancelar:focus-visible,
+.confirm__confirmar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+@keyframes confirm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes confirm-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm__overlay,
+  .confirm__card {
+    animation: none;
+  }
+}
