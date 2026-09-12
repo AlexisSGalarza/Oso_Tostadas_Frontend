@@ -121,6 +121,33 @@
   margin: 0.5rem 0 1.5rem;
 }
 
+.turno__monto-inicial {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.1rem;
+}
+
+.turno__monto-inicial label {
+  font-size: 0.78rem;
+  color: var(--tostado);
+}
+
+.turno__monto-inicial input {
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 0.95rem;
+}
+
+.turno__error {
+  font-size: 0.82rem;
+  color: var(--chile);
+  margin: 0 0 1rem;
+}
+
 .turno__accion {
   width: 100%;
   padding: 0.75rem;

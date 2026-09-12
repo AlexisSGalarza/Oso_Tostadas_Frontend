@@ -1,9 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
-import { PAQUETES } from './catalogo'
+import { api, ApiError, type ProductoDisponible } from '../../lib/api'
 import type { ItemVenta, MetodoPago, Venta } from './types'
 import './VentaScreen.css'
+
+// Debe coincidir con IVA_RATE en el backend (config/settings.py); solo se usa
+// para la vista previa del total antes de confirmar. El total real y
+// definitivo lo calcula el servidor al crear la venta.
+const IVA_ESTIMADO = 0.16
+
+type ItemCarrito = ItemVenta & { id_producto: number }
 
 type Props = {
   now: Date
@@ -14,33 +21,47 @@ type Props = {
 }
 
 function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistrarVenta }: Props) {
-  const [carrito, setCarrito] = useState<ItemVenta[]>([])
+  const [productos, setProductos] = useState<ProductoDisponible[]>([])
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(true)
+  const [errorCatalogo, setErrorCatalogo] = useState('')
+
+  const [carrito, setCarrito] = useState<ItemCarrito[]>([])
   const [metodoPago, setMetodoPago] = useState<MetodoPago>('efectivo')
   const [efectivoRecibido, setEfectivoRecibido] = useState('')
   const [justCharged, setJustCharged] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [errorVenta, setErrorVenta] = useState('')
 
-  function agregar(nombre: string, precio: number) {
+  useEffect(() => {
+    api
+      .productosDisponibles()
+      .then(setProductos)
+      .catch((err) => setErrorCatalogo(err instanceof ApiError ? err.message : 'No se pudo cargar el catálogo.'))
+      .finally(() => setCargandoCatalogo(false))
+  }, [])
+
+  function agregar(producto: ProductoDisponible) {
     setCarrito((actual) => {
-      const existente = actual.find((item) => item.nombre === nombre)
+      const existente = actual.find((item) => item.id_producto === producto.id_producto)
       if (existente) {
         return actual.map((item) =>
-          item.nombre === nombre ? { ...item, cantidad: item.cantidad + 1 } : item,
+          item.id_producto === producto.id_producto ? { ...item, cantidad: item.cantidad + 1 } : item,
         )
       }
-      return [...actual, { nombre, precio, cantidad: 1 }]
+      return [...actual, { id_producto: producto.id_producto, nombre: producto.nombre, precio: producto.precio, cantidad: 1 }]
     })
   }
 
-  function incrementar(nombre: string) {
+  function incrementar(idProducto: number) {
     setCarrito((actual) =>
-      actual.map((item) => (item.nombre === nombre ? { ...item, cantidad: item.cantidad + 1 } : item)),
+      actual.map((item) => (item.id_producto === idProducto ? { ...item, cantidad: item.cantidad + 1 } : item)),
     )
   }
 
-  function decrementar(nombre: string) {
+  function decrementar(idProducto: number) {
     setCarrito((actual) =>
       actual
-        .map((item) => (item.nombre === nombre ? { ...item, cantidad: item.cantidad - 1 } : item))
+        .map((item) => (item.id_producto === idProducto ? { ...item, cantidad: item.cantidad - 1 } : item))
         .filter((item) => item.cantidad > 0),
     )
   }
@@ -56,33 +77,53 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
     setCarrito([])
     setEfectivoRecibido('')
     setMetodoPago('efectivo')
+    setErrorVenta('')
   }
 
-  const total = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0)
+  const subtotal = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0)
+  const total = Math.round(subtotal * (1 + IVA_ESTIMADO) * 100) / 100
   const recibidoNumero = Number.parseFloat(efectivoRecibido)
   const hayRecibido = efectivoRecibido.trim() !== '' && !Number.isNaN(recibidoNumero)
   const cambio = metodoPago === 'efectivo' && hayRecibido ? recibidoNumero - total : null
 
   const puedeCobrar =
-    carrito.length > 0 && (metodoPago === 'tarjeta' || (hayRecibido && recibidoNumero >= total))
+    !enviando && carrito.length > 0 && (metodoPago === 'tarjeta' || (hayRecibido && recibidoNumero >= total))
 
-  function cobrar() {
+  async function cobrar() {
     if (!puedeCobrar) return
-    const venta: Venta = {
-      id: siguienteTicket,
-      hora: new Date(),
-      items: carrito,
-      total,
-      metodoPago,
-      efectivoRecibido: metodoPago === 'efectivo' ? recibidoNumero : undefined,
-      cambio: metodoPago === 'efectivo' ? (cambio ?? 0) : undefined,
+    setEnviando(true)
+    setErrorVenta('')
+    try {
+      const ventaCreada = await api.crearVenta(
+        carrito.map((item) => ({ id_producto: item.id_producto, unidades: item.cantidad })),
+      )
+      await api.registrarPago(ventaCreada.id_venta, metodoPago, ventaCreada.total)
+
+      const cambioReal = metodoPago === 'efectivo' ? recibidoNumero - ventaCreada.total : undefined
+
+      const venta: Venta = {
+        id: siguienteTicket,
+        idVenta: ventaCreada.id_venta,
+        hora: new Date(),
+        items: carrito,
+        total: ventaCreada.total,
+        metodoPago,
+        efectivoRecibido: metodoPago === 'efectivo' ? recibidoNumero : undefined,
+        cambio: cambioReal,
+      }
+      onRegistrarVenta(venta)
+      setCarrito([])
+      setEfectivoRecibido('')
+      setMetodoPago('efectivo')
+      setJustCharged(true)
+      // refresca el stock mostrado ya que la venta lo descuenta en el servidor
+      api.productosDisponibles().then(setProductos).catch(() => {})
+      setTimeout(() => setJustCharged(false), 1100)
+    } catch (err) {
+      setErrorVenta(err instanceof ApiError ? err.message : 'No se pudo registrar la venta.')
+    } finally {
+      setEnviando(false)
     }
-    onRegistrarVenta(venta)
-    setCarrito([])
-    setEfectivoRecibido('')
-    setMetodoPago('efectivo')
-    setJustCharged(true)
-    setTimeout(() => setJustCharged(false), 1100)
   }
 
   const etiquetaCobrar =
@@ -98,16 +139,25 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
         <section className="catalogo" aria-label="Paquetes de tostadas">
           <h1 className="catalogo__titulo">Paquetes de tostadas</h1>
 
+          {cargandoCatalogo && <p className="cuenta__vacio">Cargando catálogo…</p>}
+          {errorCatalogo && (
+            <p className="venta__error" role="alert">
+              {errorCatalogo}
+            </p>
+          )}
+
           <div className="catalogo__grid">
-            {PAQUETES.map((producto) => (
+            {productos.map((producto) => (
               <button
-                key={producto.nombre}
+                key={producto.id_producto}
                 type="button"
                 className="producto"
-                onClick={() => agregar(producto.nombre, producto.precio)}
+                onClick={() => agregar(producto)}
+                disabled={producto.stock <= 0}
               >
                 <span className="producto__nombre">{producto.nombre}</span>
                 <span className="producto__precio">{formatMoney(producto.precio)}</span>
+                <span className="producto__precio">{producto.stock > 0 ? `Stock: ${producto.stock}` : 'Sin stock'}</span>
               </button>
             ))}
           </div>
@@ -130,7 +180,7 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
             <>
               <ul className="cuenta__items">
                 {carrito.map((item) => (
-                  <li key={item.nombre} className="item">
+                  <li key={item.id_producto} className="item">
                     <div className="item__info">
                       <span className="item__nombre">{item.nombre}</span>
                       <span className="item__preciounidad">{formatMoney(item.precio)} c/u</span>
@@ -138,7 +188,7 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
                     <div className="item__cantidad">
                       <button
                         type="button"
-                        onClick={() => decrementar(item.nombre)}
+                        onClick={() => decrementar(item.id_producto)}
                         aria-label={`Quitar una unidad de ${item.nombre}`}
                       >
                         −
@@ -146,7 +196,7 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
                       <span aria-live="polite">{item.cantidad}</span>
                       <button
                         type="button"
-                        onClick={() => incrementar(item.nombre)}
+                        onClick={() => incrementar(item.id_producto)}
                         aria-label={`Agregar una unidad de ${item.nombre}`}
                       >
                         +
@@ -158,7 +208,7 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
               </ul>
 
               <div className="cuenta__total">
-                <span>Total</span>
+                <span>Total (con IVA est.)</span>
                 <span>{formatMoney(total)}</span>
               </div>
 
@@ -183,6 +233,10 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
                 </button>
               </div>
 
+              {metodoPago === 'tarjeta' && (
+                <p className="cuenta__vacio">Cobra en la terminal externa y confirma aquí para registrar el pago.</p>
+              )}
+
               {metodoPago === 'efectivo' && (
                 <div className="cuenta__recibido">
                   <label htmlFor="recibido">Efectivo recibido</label>
@@ -205,10 +259,16 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
                 </div>
               )}
 
+              {errorVenta && (
+                <p className="venta__error" role="alert">
+                  {errorVenta}
+                </p>
+              )}
+
               <button type="button" className="cuenta__cobrar" onClick={cobrar} disabled={!puedeCobrar}>
-                {etiquetaCobrar}
+                {enviando ? 'Registrando…' : etiquetaCobrar}
               </button>
-              <button type="button" className="cuenta__cancelar" onClick={cancelarVenta}>
+              <button type="button" className="cuenta__cancelar" onClick={cancelarVenta} disabled={enviando}>
                 Cancelar venta
               </button>
             </>

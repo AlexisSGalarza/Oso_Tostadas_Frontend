@@ -73,6 +73,12 @@
   color: var(--verde-salsa-dark);
 }
 
+.venta__error {
+  font-size: 0.82rem;
+  color: var(--chile);
+  margin: 0 0 1rem;
+}
+
 /* ---------- Cuenta (cart) ---------- */
 
 .cuenta {

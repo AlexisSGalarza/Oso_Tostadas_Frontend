@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatMoney } from '../../lib/format'
+import { api, ApiError, type Turno } from '../../lib/api'
 import type { Devolucion, Venta } from './types'
 import './CorteScreen.css'
 
-const FONDO_INICIAL = 500
-
 type Props = {
   now: Date
+  turno: Turno
   ventas: Venta[]
   devoluciones: Devolucion[]
   onVolver: () => void
@@ -15,9 +15,12 @@ type Props = {
   onConfirmarCorte: () => void
 }
 
-function CorteScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, onConfirmarCorte }: Props) {
+function CorteScreen({ now, turno, ventas, devoluciones, onVolver, onCerrarSesion, onConfirmarCorte }: Props) {
   const [efectivoContado, setEfectivoContado] = useState('')
   const [confirmado, setConfirmado] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState('')
+  const [turnoCerrado, setTurnoCerrado] = useState<Turno | null>(null)
 
   const ventasEfectivo = ventas.filter((venta) => venta.metodoPago === 'efectivo')
   const ventasTarjeta = ventas.filter((venta) => venta.metodoPago === 'tarjeta')
@@ -32,18 +35,28 @@ function CorteScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, onCo
   const netoEfectivo = totalVentasEfectivo - totalDevolucionesEfectivo
   const netoTarjeta = totalVentasTarjeta - totalDevolucionesTarjeta
   const totalTurno = netoEfectivo + netoTarjeta
-  const efectivoEsperado = FONDO_INICIAL + netoEfectivo
+  const efectivoEsperadoEstimado = turno.monto_inicial + netoEfectivo
 
   const contadoNumero = Number.parseFloat(efectivoContado)
   const hayConteo = efectivoContado.trim() !== '' && !Number.isNaN(contadoNumero)
-  const diferencia = hayConteo ? contadoNumero - efectivoEsperado : null
+  const diferenciaEstimada = hayConteo ? contadoNumero - efectivoEsperadoEstimado : null
 
-  function confirmar() {
-    if (!hayConteo) return
-    setConfirmado(true)
-    setTimeout(() => {
-      onConfirmarCorte()
-    }, 1000)
+  async function confirmar() {
+    if (!hayConteo || enviando) return
+    setError('')
+    setEnviando(true)
+    try {
+      const resultado = await api.cerrarTurno(contadoNumero)
+      setTurnoCerrado(resultado)
+      setConfirmado(true)
+      setTimeout(() => {
+        onConfirmarCorte()
+      }, 1200)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo cerrar el turno.')
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -55,10 +68,13 @@ function CorteScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, onCo
         <p className="corte__subtitulo">Cierra tu turno y concilia el efectivo en caja</p>
 
         <div className="recibo">
-          {confirmado ? (
+          {confirmado && turnoCerrado ? (
             <div className="recibo__confirmado">
               <p>Corte confirmado</p>
-              <p className="recibo__confirmado-sub">Turno cerrado</p>
+              <p className="recibo__confirmado-sub">
+                Turno cerrado · Diferencia oficial:{' '}
+                {formatMoney(turnoCerrado.diferencia ?? 0)}
+              </p>
             </div>
           ) : (
             <>
@@ -99,11 +115,11 @@ function CorteScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, onCo
 
               <div className="recibo__fila">
                 <span>Fondo inicial de caja</span>
-                <span>{formatMoney(FONDO_INICIAL)}</span>
+                <span>{formatMoney(turno.monto_inicial)}</span>
               </div>
               <div className="recibo__fila recibo__fila--total">
-                <span>Efectivo esperado</span>
-                <span>{formatMoney(efectivoEsperado)}</span>
+                <span>Efectivo esperado (estimado)</span>
+                <span>{formatMoney(efectivoEsperadoEstimado)}</span>
               </div>
 
               <div className="recibo__conteo">
@@ -121,19 +137,25 @@ function CorteScreen({ now, ventas, devoluciones, onVolver, onCerrarSesion, onCo
                 />
               </div>
 
-              {diferencia !== null && (
-                <div className={`recibo__diferencia ${diferencia === 0 ? 'is-exacto' : 'is-desajuste'}`}>
-                  <span>Diferencia</span>
+              {diferenciaEstimada !== null && (
+                <div className={`recibo__diferencia ${diferenciaEstimada === 0 ? 'is-exacto' : 'is-desajuste'}`}>
+                  <span>Diferencia estimada</span>
                   <span>
-                    {diferencia === 0
+                    {diferenciaEstimada === 0
                       ? 'Caja cuadrada'
-                      : `${diferencia > 0 ? 'Sobrante de' : 'Faltante de'} ${formatMoney(Math.abs(diferencia))}`}
+                      : `${diferenciaEstimada > 0 ? 'Sobrante de' : 'Faltante de'} ${formatMoney(Math.abs(diferenciaEstimada))}`}
                   </span>
                 </div>
               )}
 
-              <button type="button" className="recibo__confirmar" onClick={confirmar} disabled={!hayConteo}>
-                Confirmar corte y cerrar turno
+              {error && (
+                <p className="recibo__fila recibo__fila--negativo" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <button type="button" className="recibo__confirmar" onClick={confirmar} disabled={!hayConteo || enviando}>
+                {enviando ? 'Cerrando…' : 'Confirmar corte y cerrar turno'}
               </button>
             </>
           )}
