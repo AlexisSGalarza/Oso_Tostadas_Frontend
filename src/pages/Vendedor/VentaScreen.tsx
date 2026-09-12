@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
-import { api, ApiError, type ProductoDisponible } from '../../lib/api'
-import type { ItemVenta, MetodoPago, Venta } from './types'
+import { api, ApiError, type ProductoDisponible, type Turno } from '../../lib/api'
+import type { Devolucion, ItemVenta, MetodoPago, Venta } from './types'
 import './VentaScreen.css'
 
 // Debe coincidir con IVA_RATE en el backend (config/settings.py); solo se usa
@@ -14,13 +14,25 @@ type ItemCarrito = ItemVenta & { id_producto: number }
 
 type Props = {
   now: Date
+  turno: Turno
+  ventasTurno: Venta[]
+  devolucionesTurno: Devolucion[]
   siguienteTicket: number
   onVolver: () => void
   onCerrarSesion: () => void
   onRegistrarVenta: (venta: Venta) => void
 }
 
-function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistrarVenta }: Props) {
+function VentaScreen({
+  now,
+  turno,
+  ventasTurno,
+  devolucionesTurno,
+  siguienteTicket,
+  onVolver,
+  onCerrarSesion,
+  onRegistrarVenta,
+}: Props) {
   const [productos, setProductos] = useState<ProductoDisponible[]>([])
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true)
   const [errorCatalogo, setErrorCatalogo] = useState('')
@@ -80,14 +92,25 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
     setErrorVenta('')
   }
 
+  // Efectivo fisico disponible en la caja: el fondo inicial mas lo que ya entro en
+  // ventas en efectivo, menos lo que ya se devolvio en efectivo, en este turno.
+  // Las de tarjeta no mueven el efectivo fisico.
+  const efectivoEnCaja =
+    turno.monto_inicial +
+    ventasTurno.filter((v) => v.metodoPago === 'efectivo').reduce((s, v) => s + v.total, 0) -
+    devolucionesTurno.filter((d) => d.metodoPago === 'efectivo').reduce((s, d) => s + d.total, 0)
+
   const subtotal = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0)
   const total = Math.round(subtotal * (1 + IVA_ESTIMADO) * 100) / 100
   const recibidoNumero = Number.parseFloat(efectivoRecibido)
   const hayRecibido = efectivoRecibido.trim() !== '' && !Number.isNaN(recibidoNumero)
   const cambio = metodoPago === 'efectivo' && hayRecibido ? recibidoNumero - total : null
+  const alcanzaElCambio = cambio === null || cambio <= efectivoEnCaja
 
   const puedeCobrar =
-    !enviando && carrito.length > 0 && (metodoPago === 'tarjeta' || (hayRecibido && recibidoNumero >= total))
+    !enviando &&
+    carrito.length > 0 &&
+    (metodoPago === 'tarjeta' || (hayRecibido && recibidoNumero >= total && alcanzaElCambio))
 
   async function cobrar() {
     if (!puedeCobrar) return
@@ -255,6 +278,11 @@ function VentaScreen({ now, siguienteTicket, onVolver, onCerrarSesion, onRegistr
                       <span>{cambio !== null && cambio < 0 ? 'Falta' : 'Cambio'}</span>
                       <span>{formatMoney(Math.abs(cambio ?? 0))}</span>
                     </div>
+                  )}
+                  {hayRecibido && !alcanzaElCambio && (
+                    <p className="venta__error" role="alert">
+                      No hay suficiente efectivo en caja para dar ese cambio (disponible: {formatMoney(efectivoEnCaja)}).
+                    </p>
                   )}
                 </div>
               )}

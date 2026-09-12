@@ -1,34 +1,39 @@
 import { useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
+import { api, ApiError } from '../../lib/api'
 import type { Devolucion, Venta } from './types'
 import './DevolucionScreen.css'
+
+// Debe coincidir con IVA_RATE en el backend (config/settings.py); solo se usa
+// para la vista previa del total antes de confirmar. El monto real lo calcula
+// el servidor al registrar la devolucion.
+const IVA_ESTIMADO = 0.16
 
 type Props = {
   now: Date
   ventas: Venta[]
   devoluciones: Devolucion[]
-  siguienteTicket: number
   onVolver: () => void
   onCerrarSesion: () => void
   onRegistrarDevolucion: (devolucion: Devolucion) => void
 }
 
-function disponible(venta: Venta, devoluciones: Devolucion[], nombre: string) {
-  const original = venta.items.find((item) => item.nombre === nombre)?.cantidad ?? 0
+function disponible(venta: Venta, devoluciones: Devolucion[], idProducto: number) {
+  const original = venta.items.find((item) => item.id_producto === idProducto)?.cantidad ?? 0
   const yaDevuelto = devoluciones
-    .filter((devolucion) => devolucion.ventaId === venta.id)
+    .filter((devolucion) => devolucion.ventaId === venta.idVenta)
     .flatMap((devolucion) => devolucion.items)
-    .filter((item) => item.nombre === nombre)
+    .filter((item) => item.id_producto === idProducto)
     .reduce((suma, item) => suma + item.cantidad, 0)
   return Math.max(0, original - yaDevuelto)
 }
 
 function ventaTieneDisponible(venta: Venta, devoluciones: Devolucion[]) {
-  return venta.items.some((item) => disponible(venta, devoluciones, item.nombre) > 0)
+  return venta.items.some((item) => item.id_producto !== undefined && disponible(venta, devoluciones, item.id_producto) > 0)
 }
 
-function resumenItems(venta: Venta) {
+function resumenItems(venta: { items: { nombre: string; cantidad: number }[] }) {
   return venta.items.map((item) => `${item.cantidad}× ${item.nombre}`).join(', ')
 }
 
@@ -36,14 +41,15 @@ function DevolucionScreen({
   now,
   ventas,
   devoluciones,
-  siguienteTicket,
   onVolver,
   onCerrarSesion,
   onRegistrarDevolucion,
 }: Props) {
   const [ventaId, setVentaId] = useState<number | null>(null)
-  const [cantidades, setCantidades] = useState<Record<string, number>>({})
+  const [cantidades, setCantidades] = useState<Record<number, number>>({})
   const [confirmado, setConfirmado] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState('')
 
   const disponibles = [...ventas].reverse().filter((venta) => ventaTieneDisponible(venta, devoluciones))
   const venta = ventaId !== null ? ventas.find((v) => v.id === ventaId) ?? null : null
@@ -51,41 +57,61 @@ function DevolucionScreen({
   function elegirVenta(seleccionada: Venta) {
     setVentaId(seleccionada.id)
     setCantidades({})
+    setError('')
   }
 
-  function ajustarCantidad(nombre: string, maximo: number, delta: number) {
+  function ajustarCantidad(idProducto: number, maximo: number, delta: number) {
     setCantidades((actual) => {
-      const siguiente = Math.min(maximo, Math.max(0, (actual[nombre] ?? 0) + delta))
-      return { ...actual, [nombre]: siguiente }
+      const siguiente = Math.min(maximo, Math.max(0, (actual[idProducto] ?? 0) + delta))
+      return { ...actual, [idProducto]: siguiente }
     })
   }
 
-  const total = venta
-    ? venta.items.reduce((suma, item) => suma + item.precio * (cantidades[item.nombre] ?? 0), 0)
+  const subtotal = venta
+    ? venta.items.reduce(
+        (suma, item) => suma + item.precio * (item.id_producto !== undefined ? cantidades[item.id_producto] ?? 0 : 0),
+        0,
+      )
     : 0
+  const total = Math.round(subtotal * (1 + IVA_ESTIMADO) * 100) / 100
   const hayCantidad = total > 0
 
-  function confirmar() {
-    if (!venta || !hayCantidad) return
-    const itemsDevueltos = venta.items
-      .filter((item) => (cantidades[item.nombre] ?? 0) > 0)
-      .map((item) => ({ nombre: item.nombre, precio: item.precio, cantidad: cantidades[item.nombre] }))
+  async function confirmar() {
+    if (!venta || !venta.idVenta || !hayCantidad || enviando) return
+    setEnviando(true)
+    setError('')
+    try {
+      const detalles = venta.items
+        .filter((item) => item.id_producto !== undefined && (cantidades[item.id_producto] ?? 0) > 0)
+        .map((item) => ({ id_producto: item.id_producto as number, cantidad: cantidades[item.id_producto as number] }))
 
-    onRegistrarDevolucion({
-      id: siguienteTicket,
-      ventaId: venta.id,
-      hora: new Date(),
-      items: itemsDevueltos,
-      total,
-      metodoPago: venta.metodoPago,
-    })
+      const devolucionCreada = await api.registrarDevolucion(venta.idVenta, detalles)
 
-    setConfirmado(true)
-    setTimeout(() => {
-      setConfirmado(false)
-      setVentaId(null)
-      setCantidades({})
-    }, 1100)
+      onRegistrarDevolucion({
+        id: devolucionCreada.id_devolucion,
+        ventaId: venta.idVenta,
+        hora: new Date(),
+        items: devolucionCreada.detalles.map((det) => ({
+          id_producto: det.id_producto,
+          nombre: det.producto,
+          precio: venta.items.find((it) => it.id_producto === det.id_producto)?.precio ?? 0,
+          cantidad: det.cantidad,
+        })),
+        total: devolucionCreada.monto,
+        metodoPago: venta.metodoPago,
+      })
+
+      setConfirmado(true)
+      setTimeout(() => {
+        setConfirmado(false)
+        setVentaId(null)
+        setCantidades({})
+      }, 1100)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudo registrar la devolución.')
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -115,10 +141,10 @@ function DevolucionScreen({
 
             <ul className="detalle__items">
               {venta.items.map((item) => {
-                const maximo = disponible(venta, devoluciones, item.nombre)
-                const cantidad = cantidades[item.nombre] ?? 0
+                const maximo = item.id_producto !== undefined ? disponible(venta, devoluciones, item.id_producto) : 0
+                const cantidad = item.id_producto !== undefined ? cantidades[item.id_producto] ?? 0 : 0
                 return (
-                  <li key={item.nombre} className={`renglon ${maximo === 0 ? 'is-agotado' : ''}`}>
+                  <li key={item.id_producto ?? item.nombre} className={`renglon ${maximo === 0 ? 'is-agotado' : ''}`}>
                     <div className="renglon__info">
                       <span className="renglon__nombre">{item.nombre}</span>
                       <span className="renglon__disponible">
@@ -128,7 +154,7 @@ function DevolucionScreen({
                     <div className="renglon__cantidad">
                       <button
                         type="button"
-                        onClick={() => ajustarCantidad(item.nombre, maximo, -1)}
+                        onClick={() => item.id_producto !== undefined && ajustarCantidad(item.id_producto, maximo, -1)}
                         disabled={cantidad === 0}
                         aria-label={`Quitar una unidad de ${item.nombre} de la devolución`}
                       >
@@ -137,7 +163,7 @@ function DevolucionScreen({
                       <span aria-live="polite">{cantidad}</span>
                       <button
                         type="button"
-                        onClick={() => ajustarCantidad(item.nombre, maximo, 1)}
+                        onClick={() => item.id_producto !== undefined && ajustarCantidad(item.id_producto, maximo, 1)}
                         disabled={cantidad >= maximo}
                         aria-label={`Agregar una unidad de ${item.nombre} a la devolución`}
                       >
@@ -151,12 +177,18 @@ function DevolucionScreen({
             </ul>
 
             <div className="detalle__total">
-              <span>Total a devolver</span>
+              <span>Total a devolver (con IVA est.)</span>
               <span>{formatMoney(total)}</span>
             </div>
 
-            <button type="button" className="detalle__confirmar" onClick={confirmar} disabled={!hayCantidad}>
-              Confirmar devolución de {formatMoney(total)}
+            {error && (
+              <p className="devolucion__error" role="alert">
+                {error}
+              </p>
+            )}
+
+            <button type="button" className="detalle__confirmar" onClick={confirmar} disabled={!hayCantidad || enviando}>
+              {enviando ? 'Registrando…' : `Confirmar devolución de ${formatMoney(total)}`}
             </button>
           </div>
         ) : disponibles.length === 0 ? (

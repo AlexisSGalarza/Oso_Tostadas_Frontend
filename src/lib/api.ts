@@ -114,17 +114,6 @@ export type DetalleVentaDto = {
   subtotal: number
 }
 
-export type Venta = {
-  id_venta: number
-  fecha: string
-  subtotal: number
-  impuesto: number
-  total: number
-  estado: string
-  turno: number
-  detalles: DetalleVentaDto[]
-}
-
 export type Pago = {
   id_pago: number
   metodo_pago: string
@@ -132,6 +121,35 @@ export type Pago = {
   fecha: string
   referencia: string
   venta: number
+}
+
+export type DevolucionDetalleDto = {
+  id_producto: number
+  producto: string
+  cantidad: number
+}
+
+export type DevolucionApi = {
+  id_devolucion: number
+  fecha: string
+  creado_en: string | null
+  monto: number
+  venta: number
+  detalles: DevolucionDetalleDto[]
+}
+
+export type VentaApi = {
+  id_venta: number
+  fecha: string
+  creado_en: string | null
+  subtotal: number
+  impuesto: number
+  total: number
+  estado: string
+  turno: number
+  detalles: DetalleVentaDto[]
+  pagos: Pago[]
+  devoluciones: DevolucionApi[]
 }
 
 export const api = {
@@ -156,6 +174,11 @@ export const api = {
     return request<ProductoDisponible[]>('/productos/')
   },
 
+  async turnoActual() {
+    const turno = await request<Turno | undefined>('/turnos/actual/')
+    return turno ?? null
+  },
+
   abrirTurno(montoInicial: number) {
     return request<Turno>('/turnos/abrir/', {
       method: 'POST',
@@ -170,8 +193,12 @@ export const api = {
     })
   },
 
+  listarVentasTurno() {
+    return request<VentaApi[]>('/ventas/')
+  },
+
   crearVenta(detalles: { id_producto: number; unidades: number }[]) {
-    return request<Venta>('/ventas/', {
+    return request<VentaApi>('/ventas/', {
       method: 'POST',
       body: JSON.stringify({ detalles }),
     })
@@ -181,6 +208,13 @@ export const api = {
     return request<Pago>(`/ventas/${idVenta}/pagos/`, {
       method: 'POST',
       body: JSON.stringify({ metodo_pago: metodoPago, monto }),
+    })
+  },
+
+  registrarDevolucion(idVenta: number, detalles: { id_producto: number; cantidad: number }[]) {
+    return request<DevolucionApi>(`/ventas/${idVenta}/devoluciones/`, {
+      method: 'POST',
+      body: JSON.stringify({ detalles }),
     })
   },
 }

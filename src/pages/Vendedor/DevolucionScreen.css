@@ -286,6 +286,12 @@
   text-align: right;
 }
 
+.devolucion__error {
+  font-size: 0.82rem;
+  color: var(--chile);
+  margin: 0 0 1rem;
+}
+
 .detalle__total {
   display: flex;
   justify-content: space-between;
