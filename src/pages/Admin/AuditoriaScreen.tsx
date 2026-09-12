@@ -10,6 +10,7 @@ const ACCION_LABEL: Record<string, string> = {
   'empleado.restablecer_password': 'Contraseña restablecida',
   'empleado.horario': 'Horario asignado',
   'proveedor.alternar_estado': 'Proveedor',
+  'insumo.crear': 'Insumo creado',
 }
 
 function formatFechaHora(iso: string) {

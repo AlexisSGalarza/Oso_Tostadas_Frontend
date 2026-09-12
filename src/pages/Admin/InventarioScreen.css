@@ -22,6 +22,103 @@
   font-size: 0.82rem;
 }
 
+.inventario__accion {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.inventario__nuevo {
+  padding: 0.65rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-salsa);
+  color: var(--page);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+  white-space: nowrap;
+}
+
+.inventario__nuevo:hover {
+  background: var(--verde-salsa-dark);
+}
+
+.inventario__nuevo:active {
+  transform: scale(0.98);
+}
+
+.inventario__nuevo:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.alta {
+  background: var(--masa);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+}
+
+.alta__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 12rem;
+}
+
+.alta__campo label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tostado);
+}
+
+.alta__campo input,
+.alta__campo select {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.alta__campo input:focus-visible,
+.alta__campo select:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+}
+
+.alta__guardar {
+  padding: 0.65rem 1.1rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--verde-tinta);
+  color: var(--page);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.alta__guardar:hover {
+  background: var(--verde-tinta-2);
+}
+
+.alta__guardar:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
 .inventario__main h1 {
   font-family: var(--font-display);
   font-optical-sizing: auto;

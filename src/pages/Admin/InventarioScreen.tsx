@@ -38,6 +38,15 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [cantidadEntrada, setCantidadEntrada] = useState('')
   const [proveedorEntrada, setProveedorEntrada] = useState<number | ''>('')
 
+  const [mostrarNuevoInsumo, setMostrarNuevoInsumo] = useState(false)
+  const [nombreInsumo, setNombreInsumo] = useState('')
+  const [unidadInsumo, setUnidadInsumo] = useState('')
+  const [proveedorInsumo, setProveedorInsumo] = useState<number | ''>('')
+  const [stockMinimoInsumo, setStockMinimoInsumo] = useState('')
+  const [stockInicialInsumo, setStockInicialInsumo] = useState('')
+  const [errorInsumo, setErrorInsumo] = useState('')
+  const [guardandoInsumo, setGuardandoInsumo] = useState(false)
+
   const [produccionId, setProduccionId] = useState<number | null>(null)
   const [cantidadProduccion, setCantidadProduccion] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -79,6 +88,36 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
       setError(err instanceof ApiError ? err.message : 'No se pudo registrar la entrada.')
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function crearInsumoNuevo(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!nombreInsumo.trim() || !unidadInsumo.trim()) {
+      setErrorInsumo('Escribe el nombre del insumo y su unidad de medida.')
+      return
+    }
+    setErrorInsumo('')
+    setGuardandoInsumo(true)
+    try {
+      const nuevo = await api.crearInsumo({
+        nombre: nombreInsumo.trim(),
+        unidad_medida: unidadInsumo.trim(),
+        id_proveedor: proveedorInsumo || null,
+        stock_minimo: Number.parseFloat(stockMinimoInsumo) || 0,
+        stock_inicial: Number.parseFloat(stockInicialInsumo) || 0,
+      })
+      setInsumos((actual) => [...actual, nuevo])
+      setNombreInsumo('')
+      setUnidadInsumo('')
+      setProveedorInsumo('')
+      setStockMinimoInsumo('')
+      setStockInicialInsumo('')
+      setMostrarNuevoInsumo(false)
+    } catch (err) {
+      setErrorInsumo(err instanceof ApiError ? err.message : 'No se pudo crear el insumo.')
+    } finally {
+      setGuardandoInsumo(false)
     }
   }
 
@@ -146,6 +185,96 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
             </div>
 
             {tab === 'insumos' && (
+              <>
+                <div className="inventario__accion">
+                  <button
+                    type="button"
+                    className="inventario__nuevo"
+                    onClick={() => setMostrarNuevoInsumo((valor) => !valor)}
+                  >
+                    {mostrarNuevoInsumo ? 'Cancelar' : '+ Nuevo insumo'}
+                  </button>
+                </div>
+
+                {mostrarNuevoInsumo && (
+                  <form className="alta" onSubmit={crearInsumoNuevo}>
+                    <div className="alta__campo">
+                      <label htmlFor="i-nombre">Insumo</label>
+                      <input
+                        id="i-nombre"
+                        type="text"
+                        placeholder="Ej. Queso"
+                        value={nombreInsumo}
+                        onChange={(event) => setNombreInsumo(event.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="alta__campo">
+                      <label htmlFor="i-unidad">Unidad de medida</label>
+                      <input
+                        id="i-unidad"
+                        type="text"
+                        placeholder="Ej. kg"
+                        value={unidadInsumo}
+                        onChange={(event) => setUnidadInsumo(event.target.value)}
+                      />
+                    </div>
+                    <div className="alta__campo">
+                      <label htmlFor="i-proveedor">Proveedor principal</label>
+                      <select
+                        id="i-proveedor"
+                        value={proveedorInsumo}
+                        onChange={(event) =>
+                          setProveedorInsumo(event.target.value ? Number(event.target.value) : '')
+                        }
+                      >
+                        <option value="">Sin especificar</option>
+                        {proveedores
+                          .filter((proveedor) => proveedor.estado === 'activo')
+                          .map((proveedor) => (
+                            <option key={proveedor.id_proveedor} value={proveedor.id_proveedor}>
+                              {proveedor.nombre}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    <div className="alta__campo">
+                      <label htmlFor="i-minimo">Existencia mínima</label>
+                      <input
+                        id="i-minimo"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="1"
+                        placeholder="0"
+                        value={stockMinimoInsumo}
+                        onChange={(event) => setStockMinimoInsumo(event.target.value)}
+                      />
+                    </div>
+                    <div className="alta__campo">
+                      <label htmlFor="i-inicial">Existencia inicial</label>
+                      <input
+                        id="i-inicial"
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="1"
+                        placeholder="0"
+                        value={stockInicialInsumo}
+                        onChange={(event) => setStockInicialInsumo(event.target.value)}
+                      />
+                    </div>
+                    {errorInsumo && (
+                      <p className="alta__error" role="alert">
+                        {errorInsumo}
+                      </p>
+                    )}
+                    <button type="submit" className="alta__guardar" disabled={guardandoInsumo}>
+                      {guardandoInsumo ? 'Guardando…' : 'Guardar insumo'}
+                    </button>
+                  </form>
+                )}
+
               <section className="lista" aria-label="Insumos">
                 <div className="lista__cabecera lista__cabecera--insumos" aria-hidden="true">
                   <span>Insumo</span>
@@ -233,6 +362,7 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
                   })}
                 </ul>
               </section>
+              </>
             )}
 
             {tab === 'productos' && (

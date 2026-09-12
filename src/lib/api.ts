@@ -442,6 +442,19 @@ export const api = {
     return request<InsumoAdmin[]>('/admin/insumos/')
   },
 
+  crearInsumo(datos: {
+    nombre: string
+    unidad_medida: string
+    id_proveedor: number | null
+    stock_minimo: number
+    stock_inicial: number
+  }) {
+    return request<InsumoAdmin>('/admin/insumos/', {
+      method: 'POST',
+      body: JSON.stringify(datos),
+    })
+  },
+
   registrarEntradaInsumo(idInsumo: number, cantidad: number, idProveedor: number | null) {
     return request<InsumoAdmin>(`/admin/insumos/${idInsumo}/entrada/`, {
       method: 'POST',
