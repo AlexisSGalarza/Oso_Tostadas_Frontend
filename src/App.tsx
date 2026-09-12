@@ -11,8 +11,8 @@ import ReportesScreen from './pages/Admin/ReportesScreen'
 import InventarioScreen from './pages/Admin/InventarioScreen'
 import ProveedoresScreen from './pages/Admin/ProveedoresScreen'
 import ConfiguracionScreen from './pages/Admin/ConfiguracionScreen'
-import type { Devolucion, Venta } from './pages/Vendedor/types'
-import { api, ApiError, getAccessToken, type EmpleadoMe, type Turno } from './lib/api'
+import type { Devolucion, MetodoPago, Venta } from './pages/Vendedor/types'
+import { api, ApiError, getAccessToken, type EmpleadoMe, type Turno, type VentaApi } from './lib/api'
 
 type Screen =
   | 'login'
@@ -30,6 +30,43 @@ type Screen =
 
 const BASE_TICKET = 428
 const ROLES_VENDEDOR = ['vendedor', 'cajero']
+
+// Reconstruye una Venta (para Historial/Corte) a partir de lo que ya quedo guardado
+// en el servidor; se usa al recuperar un turno abierto en un relogin.
+function mapVentaApi(v: VentaApi): Venta {
+  const pago = v.pagos[0]
+  const metodoPago: MetodoPago = pago?.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
+  return {
+    id: v.id_venta,
+    idVenta: v.id_venta,
+    hora: v.creado_en ? new Date(v.creado_en) : new Date(`${v.fecha}T00:00:00`),
+    items: v.detalles.map((d) => ({
+      id_producto: d.id_producto,
+      nombre: d.producto,
+      precio: d.precio_unitario,
+      cantidad: d.unidades,
+    })),
+    total: v.total,
+    metodoPago,
+  }
+}
+
+function mapDevolucionesDeVenta(v: VentaApi): Devolucion[] {
+  const metodoPago: MetodoPago = v.pagos[0]?.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
+  return v.devoluciones.map((d) => ({
+    id: d.id_devolucion,
+    ventaId: v.id_venta,
+    hora: d.creado_en ? new Date(d.creado_en) : new Date(`${d.fecha}T00:00:00`),
+    items: d.detalles.map((det) => ({
+      id_producto: det.id_producto,
+      nombre: det.producto,
+      precio: v.detalles.find((dv) => dv.id_producto === det.id_producto)?.precio_unitario ?? 0,
+      cantidad: det.cantidad,
+    })),
+    total: d.monto,
+    metodoPago,
+  }))
+}
 
 function App() {
   const [screen, setScreen] = useState<Screen>('login')
@@ -49,12 +86,26 @@ function App() {
     if (!getAccessToken()) return
     api
       .me()
-      .then((datos) => {
+      .then(async (datos) => {
         setEmpleado(datos)
         setScreen(ROLES_VENDEDOR.includes(datos.rol.toLowerCase()) ? 'perfil' : 'perfil-admin')
+        await recuperarTurnoYVentas()
       })
       .catch(() => api.logout())
   }, [])
+
+  async function recuperarTurnoYVentas() {
+    const turnoActual = await api.turnoActual()
+    setTurno(turnoActual)
+    if (!turnoActual) {
+      setVentas([])
+      setDevoluciones([])
+      return
+    }
+    const ventasApi = await api.listarVentasTurno()
+    setVentas(ventasApi.map(mapVentaApi))
+    setDevoluciones(ventasApi.flatMap(mapDevolucionesDeVenta))
+  }
 
   const siguienteTicket = BASE_TICKET + ventas.length + devoluciones.length + 1
 
@@ -66,9 +117,12 @@ function App() {
     setDevoluciones((actual) => [...actual, devolucion])
   }
 
-  function handleIniciarSesion(datosEmpleado: EmpleadoMe) {
+  async function handleIniciarSesion(datosEmpleado: EmpleadoMe) {
     setEmpleado(datosEmpleado)
     setScreen(ROLES_VENDEDOR.includes(datosEmpleado.rol.toLowerCase()) ? 'perfil' : 'perfil-admin')
+    // si la sesion anterior se cerro sin cerrar turno, lo recuperamos junto con su historial
+    // en vez de bloquear "Iniciar turno" y perder las ventas ya registradas
+    await recuperarTurnoYVentas()
   }
 
   function handleCerrarSesion() {
@@ -87,6 +141,7 @@ function App() {
       const nuevoTurno = await api.abrirTurno(montoInicial)
       setTurno(nuevoTurno)
       setVentas([])
+      setDevoluciones([])
     } catch (err) {
       setTurnoError(err instanceof ApiError ? err.message : 'No se pudo abrir el turno.')
     }
@@ -151,6 +206,9 @@ function App() {
     return (
       <VentaScreen
         now={now}
+        turno={turno}
+        ventasTurno={ventas}
+        devolucionesTurno={devoluciones}
         siguienteTicket={siguienteTicket}
         onVolver={() => setScreen('perfil')}
         onCerrarSesion={handleCerrarSesion}
@@ -192,7 +250,6 @@ function App() {
         now={now}
         ventas={ventas}
         devoluciones={devoluciones}
-        siguienteTicket={siguienteTicket}
         onVolver={() => setScreen('perfil')}
         onCerrarSesion={handleCerrarSesion}
         onRegistrarDevolucion={registrarDevolucion}
