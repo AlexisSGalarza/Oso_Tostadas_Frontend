@@ -220,7 +220,7 @@
 .pfila__estado {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.22rem 0.55rem;

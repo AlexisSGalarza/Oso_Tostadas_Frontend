@@ -1,0 +1,77 @@
+.keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.keypad__rapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.keypad__rapido {
+  flex: 1;
+  min-width: 3.6rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid rgba(138, 90, 52, 0.3);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.keypad__rapido:hover {
+  border-color: var(--verde-salsa);
+  background: rgba(163, 202, 74, 0.12);
+}
+
+.keypad__rapido:active {
+  transform: scale(0.97);
+}
+
+.keypad__rapido:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.keypad__teclas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.keypad__tecla {
+  min-height: 3rem;
+  border: 1px solid rgba(138, 90, 52, 0.25);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--tinta);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.keypad__tecla:hover {
+  background: rgba(138, 90, 52, 0.08);
+}
+
+.keypad__tecla:active {
+  transform: scale(0.96);
+}
+
+.keypad__tecla:focus-visible {
+  outline: 2px solid var(--verde-brote);
+  outline-offset: 2px;
+}
+
+.keypad__tecla--borrar {
+  color: var(--chile);
+  font-size: 1rem;
+}

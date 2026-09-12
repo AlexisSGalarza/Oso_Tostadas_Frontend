@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import TopBar from '../../components/TopBar'
+import NumericKeypad from '../../components/NumericKeypad'
 import { formatClock, formatMoney } from '../../lib/format'
 import { api, ApiError, type Turno } from '../../lib/api'
 import type { Devolucion, Venta } from './types'
@@ -134,6 +135,16 @@ function CorteScreen({ now, turno, ventas, devoluciones, onVolver, onCerrarSesio
                   value={efectivoContado}
                   onChange={(event) => setEfectivoContado(event.target.value)}
                   autoFocus
+                />
+                <NumericKeypad
+                  value={efectivoContado}
+                  onChange={setEfectivoContado}
+                  quickAmounts={[50, 100, 200, 500]}
+                  onQuickAmount={(monto) =>
+                    setEfectivoContado((actual) =>
+                      String(Math.round(((Number.parseFloat(actual) || 0) + monto) * 100) / 100),
+                    )
+                  }
                 />
               </div>
 
