@@ -46,6 +46,7 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
   const [busqueda, setBusqueda] = useState('')
+  const [busquedaCompras, setBusquedaCompras] = useState('')
 
   // Compra elegida para facturar y su formulario
   const [venta, setVenta] = useState<VentaPorFacturar | null>(null)
@@ -131,6 +132,20 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
     }
   }
 
+  // Busca por numero de ticket, producto, cajero, forma de pago o total.
+  const terminoCompras = busquedaCompras.trim().toLowerCase().replace(/^#/, '')
+  const compras = pendientes.filter((p) => {
+    if (!terminoCompras) return true
+    const pago = p.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
+    return (
+      String(p.id_venta).includes(terminoCompras) ||
+      resumenDe(p).toLowerCase().includes(terminoCompras) ||
+      p.cajero.toLowerCase().includes(terminoCompras) ||
+      pago.includes(terminoCompras) ||
+      p.total.toFixed(2).includes(terminoCompras.replace('$', ''))
+    )
+  })
+
   const termino = busqueda.trim().toLowerCase()
   const facturas = (datos?.facturas ?? []).filter(
     (f) =>
@@ -141,7 +156,6 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
       String(f.id_venta) === termino ||
       `${f.serie}-${f.folio}`.toLowerCase() === termino,
   )
-  const enPruebas = datos?.configuracion.modo === 'pruebas'
 
   return (
     <div className="facturas">
@@ -162,15 +176,6 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
 
         {datos && (
           <>
-            {enPruebas && (
-              <div className="facturas__aviso" role="note">
-                <strong>Modo de prueba.</strong>{' '}
-                {datos.configuracion.pac === 'finkok'
-                  ? 'Se está timbrando en el ambiente de pruebas de Finkok: estas facturas no tienen validez fiscal.'
-                  : 'El timbrado es simulado: estas facturas no llegan al SAT ni tienen validez fiscal.'}
-              </div>
-            )}
-
             <section aria-labelledby="titulo-pendientes">
               <div className="facturas__seccion">
                 <h2 id="titulo-pendientes">Compras por facturar</h2>
@@ -181,13 +186,25 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
                   No hay compras pendientes de factura en los últimos {datos.configuracion.dias_para_facturar} días.
                 </p>
               ) : (
+                <>
+                <input
+                  type="search"
+                  className="facturas__buscador"
+                  placeholder="Buscar por ticket, producto, cajero o total"
+                  aria-label="Buscar compras por facturar"
+                  value={busquedaCompras}
+                  onChange={(event) => setBusquedaCompras(event.target.value)}
+                />
+                {compras.length === 0 && (
+                  <p className="facturas__vacio">Ninguna compra coincide con “{busquedaCompras.trim()}”.</p>
+                )}
                 <ul className="compras">
-                  {pendientes.map((p, indice) => (
+                  {compras.map((p, indice) => (
                     <li key={p.id_venta}>
                       <button
                         type="button"
                         className="compra entra"
-                        style={{ '--i': Math.min(indice, 12) } as CSSProperties}
+                        style={{ '--i': terminoCompras ? 0 : Math.min(indice, 12) } as CSSProperties}
                         onClick={() => elegir(p)}
                       >
                         <Tostadas nombre={p.detalles[0]?.producto ?? ''} className="compra__foto" />
@@ -205,6 +222,7 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
                     </li>
                   ))}
                 </ul>
+                </>
               )}
             </section>
 
@@ -312,9 +330,6 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
                   Factura {emitida.serie}-{emitida.folio}
                   <span>{emitida.folio_fiscal}</span>
                 </p>
-                {emitida.modo === 'pruebas' && (
-                  <p className="facturas__aviso">Factura de prueba, sin validez fiscal.</p>
-                )}
                 <p className="fdialogo__nota">
                   {emitida.correo_enviado
                     ? `También se envió a ${emitida.correo}.`
