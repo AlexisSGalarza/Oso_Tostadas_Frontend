@@ -1,0 +1,272 @@
+/*
+ * Resalte: una sola forma de responder al cursor, al toque y a la seleccion
+ * en toda la app. Se carga al final y solo anima transform, opacity y box-shadow.
+ *
+ *   1. Mosaicos   botones con forma de tarjeta (producto, compra, accion...)
+ *   2. Pildoras   opciones que se eligen entre varias (filtros, pago, pestañas, menu)
+ *   3. Tarjetas   bloques de informacion que no se pulsan (cifras, paneles)
+ *   4. Renglones  filas de listas y tablas
+ *   5. Controles  botones y campos
+ */
+
+:root {
+  --resalte-sube: -3px;
+  --resalte-sombra: 0 18px 32px -22px rgba(22, 48, 31, 0.5);
+  --resalte-anillo: rgba(169, 209, 79, 0.55);
+  --resalte-halo: rgba(169, 209, 79, 0.6);
+  --resalte-dura: 520ms;
+}
+
+/* Al quedar elegido: un pulso corto y un halo que se abre y se desvanece.
+   --anillo-fijo es el borde que permanece mientras siga elegido (0 en pildoras). */
+@keyframes resalta {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 var(--anillo-fijo, 0px) var(--resalte-anillo), 0 0 0 0 var(--resalte-halo);
+  }
+  40% {
+    transform: scale(1.035);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 var(--anillo-fijo, 0px) var(--resalte-anillo), 0 0 0 14px rgba(169, 209, 79, 0);
+  }
+}
+
+/* Version sin escala, para elementos anchos donde crecer se veria brusco. */
+@keyframes resalta-halo {
+  from {
+    box-shadow: 0 0 0 var(--anillo-fijo, 0px) var(--resalte-anillo), 0 0 0 0 var(--resalte-halo);
+  }
+  to {
+    box-shadow: 0 0 0 var(--anillo-fijo, 0px) var(--resalte-anillo), 0 0 0 12px rgba(169, 209, 79, 0);
+  }
+}
+
+/* ---------- 1. Mosaicos ---------- */
+
+:is(.producto, .compra, .accion, .keypad__tecla, .keypad__rapido, .turno__accion) {
+  transition:
+    transform var(--medio) var(--sale),
+    box-shadow var(--medio) var(--sale),
+    border-color var(--rapido) ease,
+    background-color var(--rapido) ease,
+    color var(--rapido) ease;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  :is(.producto, .compra, .accion, .keypad__rapido):hover:not(:disabled) {
+    transform: translateY(var(--resalte-sube));
+    border-color: var(--verde-salsa);
+    box-shadow: var(--resalte-sombra);
+  }
+
+  .keypad__tecla:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: var(--verde-salsa);
+    box-shadow: 0 10px 18px -14px rgba(22, 48, 31, 0.5);
+  }
+}
+
+/* Con teclado se ve igual que con el cursor, mas el anillo de foco. */
+:is(.producto, .compra, .accion, .keypad__tecla, .keypad__rapido):focus-visible {
+  transform: translateY(var(--resalte-sube));
+  border-color: var(--verde-salsa);
+  box-shadow: var(--resalte-sombra);
+}
+
+/* Presion: se hunde un poco y enciende el anillo; al soltar regresa con rebote suave. */
+:is(.producto, .compra, .accion, .keypad__tecla, .keypad__rapido, .turno__accion):active:not(:disabled) {
+  transform: scale(0.965);
+  box-shadow: 0 0 0 4px var(--resalte-anillo);
+  transition-duration: 90ms;
+}
+
+/* Producto que ya esta en la cuenta: conserva el anillo y pulsa al entrar. */
+.producto.is-en-cuenta {
+  --anillo-fijo: 3px;
+  border-color: var(--verde-salsa);
+  box-shadow: 0 0 0 3px var(--resalte-anillo);
+  animation: resalta var(--resalte-dura) var(--sale);
+}
+
+@media (hover: hover) {
+  .producto.is-en-cuenta:hover:not(:disabled) {
+    box-shadow: 0 0 0 3px var(--resalte-anillo), var(--resalte-sombra);
+  }
+}
+
+/* El contador rebota cada vez que cambia (React lo vuelve a montar con cada cifra). */
+.producto__encuenta {
+  animation: salta var(--medio) var(--rebota);
+}
+
+.compra:hover .compra__accion,
+.compra:focus-visible .compra__accion {
+  transition: background-color var(--rapido) ease, transform var(--medio) var(--sale);
+  transform: translateX(2px);
+}
+
+/* ---------- 2. Pildoras y opciones ---------- */
+
+:is(.filtro, .pago, .tab, .menu__item, .fc__paso, .tventa__boton, .ifila__entrada, .tarjeta__enlace) {
+  transition:
+    transform var(--medio) var(--sale),
+    box-shadow var(--medio) var(--sale),
+    background-color var(--medio) var(--sale),
+    border-color var(--rapido) ease,
+    color var(--rapido) ease;
+}
+
+@media (hover: hover) {
+  :is(.filtro, .pago):hover:not(:disabled):not(.is-activo):not(.is-active) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px -14px rgba(22, 48, 31, 0.45);
+  }
+
+  .menu__item:hover:not(:disabled):not([aria-current]) {
+    transform: translateX(3px);
+  }
+}
+
+:is(.filtro, .pago, .tab, .menu__item):active:not(:disabled) {
+  transform: scale(0.96);
+  transition-duration: 90ms;
+}
+
+:is(.filtro.is-activo, .pago.is-active, .tab.is-activo) {
+  animation: resalta var(--resalte-dura) var(--sale);
+}
+
+.menu__item[aria-current='page'] {
+  animation: resalta-halo var(--resalte-dura) var(--sale);
+}
+
+.menu__item[aria-current='page'] svg {
+  animation: salta var(--medio) var(--rebota);
+}
+
+.fc__paso.is-activo .fc__paso-punta {
+  animation: resalta var(--resalte-dura) var(--sale);
+}
+
+/* Barra de la grafica que se elige para cambiar de dia. */
+.grafica__columna.is-activa .grafica__barra {
+  box-shadow: 0 0 0 3px var(--resalte-anillo);
+}
+
+.grafica__barra {
+  transition: background-color var(--medio) var(--sale), box-shadow var(--medio) var(--sale);
+}
+
+/* ---------- 3. Tarjetas de informacion ---------- */
+
+:is(.kpi, .tarjeta, .turno, .resumen-turno, .aregistro, .item, .tventa) {
+  transition:
+    transform var(--medio) var(--sale),
+    box-shadow var(--medio) var(--sale),
+    border-color var(--medio) ease,
+    background-color var(--rapido) ease;
+}
+
+@media (hover: hover) {
+  .kpi:hover {
+    transform: translateY(var(--resalte-sube));
+    border-color: rgba(47, 107, 58, 0.35);
+    box-shadow: var(--resalte-sombra);
+  }
+
+  /* Los paneles grandes no se mueven: solo ganan presencia. */
+  .tarjeta:hover {
+    border-color: rgba(47, 107, 58, 0.22);
+    box-shadow: 0 1px 2px rgba(22, 48, 31, 0.05), 0 22px 40px -28px rgba(22, 48, 31, 0.42);
+  }
+
+  .item:hover {
+    border-color: var(--verde-salsa);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px -18px rgba(22, 48, 31, 0.5);
+  }
+}
+
+/* ---------- 4. Renglones ---------- */
+
+:is(.ifila__fila, .ufila__fila, .pfila__fila, .fila--clic, .ticket-fila, .lista__fila, .existencia, .aregistro, .tventa, .pendiente, .dona__leyenda li) {
+  transition:
+    background-color var(--medio) var(--sale),
+    box-shadow var(--medio) var(--sale),
+    transform var(--medio) var(--sale);
+}
+
+.tabla tbody tr,
+.facturas__tabla tbody tr {
+  transition: background-color var(--medio) var(--sale), box-shadow var(--medio) var(--sale);
+}
+
+@media (hover: hover) {
+  /* Una marca verde entra por la izquierda y el renglon se aclara. */
+  :is(.ifila__fila, .ufila__fila, .pfila__fila, .fila--clic, .ticket-fila, .lista__fila):hover {
+    background-color: var(--hover-verde);
+    box-shadow: inset 3px 0 0 var(--verde-salsa);
+  }
+
+  :is(.tabla, .facturas__tabla) tbody tr:hover {
+    background-color: var(--hover-verde);
+    box-shadow: inset 3px 0 0 var(--verde-salsa);
+  }
+
+  :is(.existencia, .aregistro, .tventa, .pendiente):hover {
+    transform: translateX(3px);
+  }
+}
+
+.fila--clic:active {
+  background-color: var(--brote-suave);
+  box-shadow: inset 3px 0 0 var(--verde-salsa);
+}
+
+/* ---------- 5. Botones y campos ---------- */
+
+:is(.ticket__submit, .cuenta__cobrar, .cuenta__nuevaventa, .recibo__cta, .recibo__confirmar, .detalle__confirmar, .config__guardar, .alta__guardar, .ifila__confirmar, .tventa__confirmar, .fdialogo__principal, .usuarios__nuevo, .proveedores__nuevo, .inventario__nuevo, .accion--principal) {
+  transition:
+    transform var(--medio) var(--sale),
+    box-shadow var(--medio) var(--sale),
+    background-color var(--rapido) ease,
+    opacity var(--rapido) ease;
+}
+
+@media (hover: hover) {
+  :is(.ticket__submit, .cuenta__cobrar, .cuenta__nuevaventa, .recibo__cta, .recibo__confirmar, .detalle__confirmar, .config__guardar, .alta__guardar, .ifila__confirmar, .tventa__confirmar, .fdialogo__principal, .usuarios__nuevo, .proveedores__nuevo, .inventario__nuevo):hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 24px -16px rgba(22, 48, 31, 0.6);
+  }
+}
+
+:is(.ticket__submit, .cuenta__cobrar, .cuenta__nuevaventa, .recibo__cta, .recibo__confirmar, .detalle__confirmar, .config__guardar, .alta__guardar, .ifila__confirmar, .tventa__confirmar, .fdialogo__principal, .usuarios__nuevo, .proveedores__nuevo, .inventario__nuevo):active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: 0 0 0 4px var(--resalte-anillo);
+  transition-duration: 90ms;
+}
+
+/* El anillo de los campos aparece con suavidad en vez de de golpe. */
+:is(input, select, textarea) {
+  transition: border-color var(--rapido) ease, box-shadow var(--medio) var(--sale), background-color var(--rapido) ease;
+}
+
+/* ---------- Reducir movimiento ---------- */
+
+/* Sin desplazamientos ni pulsos: quedan el cambio de color y el anillo, al instante. */
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.producto, .compra, .accion, .keypad__tecla, .keypad__rapido, .turno__accion, .filtro, .pago, .tab, .menu__item, .kpi, .item, .existencia, .aregistro, .tventa, .pendiente, .ticket__submit, .cuenta__cobrar, .cuenta__nuevaventa, .recibo__cta, .recibo__confirmar, .detalle__confirmar, .config__guardar, .alta__guardar, .ifila__confirmar, .tventa__confirmar, .fdialogo__principal, .usuarios__nuevo, .proveedores__nuevo, .inventario__nuevo):is(:hover, :focus-visible, :active) {
+    transform: none;
+  }
+
+  :is(.producto.is-en-cuenta, .filtro.is-activo, .pago.is-active, .tab.is-activo, .menu__item[aria-current='page'], .menu__item[aria-current='page'] svg, .fc__paso.is-activo .fc__paso-punta, .producto__encuenta) {
+    animation: none;
+  }
+
+  :root .compra:is(:hover, :focus-visible) .compra__accion {
+    transform: none;
+  }
+}
