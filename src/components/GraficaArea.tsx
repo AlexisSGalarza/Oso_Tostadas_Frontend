@@ -56,11 +56,16 @@ function GraficaArea({ puntos, formatear, descripcion, vacio = 'Sin datos todav√
       </div>
 
       <div className="area__lienzo" role="group" aria-label={descripcion} onMouseLeave={() => setActivo(null)}>
+        <span className="area__rejilla" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id={idDegradado} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--verde-brote)" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="var(--verde-brote)" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--verde-salsa)" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="var(--verde-salsa)" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path className="area__relleno" d={`${linea} L 100 100 L 0 100 Z`} fill={`url(#${idDegradado})`} />

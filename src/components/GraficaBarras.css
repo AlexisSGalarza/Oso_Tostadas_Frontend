@@ -153,3 +153,64 @@ button.grafica__columna {
 .grafica__globo {
   background: var(--verde-tinta);
 }
+
+/* ---------- Dashboard moderno: barras rectas y discretas ---------- */
+
+.grafica__lienzo {
+  gap: 0;
+  height: 12rem;
+  border-bottom: 1px solid var(--linea-fuerte);
+}
+
+.grafica__eje {
+  gap: 0;
+}
+
+.grafica__barra {
+  max-width: 2.75rem;
+  border-radius: 8px 8px 0 0;
+  background: color-mix(in srgb, var(--verde-salsa) 26%, var(--surface));
+}
+
+.grafica__columna.is-cero .grafica__barra {
+  height: 0 !important;
+}
+
+.grafica__columna:hover .grafica__barra,
+.grafica__columna:focus-visible .grafica__barra {
+  background: color-mix(in srgb, var(--verde-salsa) 55%, var(--surface));
+}
+
+.grafica__columna.is-activa .grafica__barra {
+  background: var(--verde-salsa);
+}
+
+button.grafica__columna:active {
+  transform: none !important;
+}
+
+.grafica__valor {
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.grafica__eje span {
+  padding-top: 0.15rem;
+  color: var(--texto-suave);
+}
+
+.grafica__eje span.is-activa {
+  font-weight: 600;
+}
+
+/* La cifra flota sobre su barra sin quitarle altura (el lienzo reserva ese espacio arriba). */
+.grafica__lienzo {
+  padding-top: 1.6rem;
+}
+
+.grafica__valor {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}

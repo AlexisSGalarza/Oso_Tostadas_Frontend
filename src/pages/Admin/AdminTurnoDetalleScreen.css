@@ -250,3 +250,59 @@
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
+
+/* ---------- Dashboard moderno: resumen en cifras y ventas en una sola lista ---------- */
+
+.turnodetalle__subtitulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+}
+
+.turnodetalle__lista {
+  gap: 0;
+  padding: 0.35rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--borde-tarjeta);
+  border-radius: var(--radio-m);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.tventa {
+  padding: 1rem 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.tventa + .tventa {
+  border-top: 1px solid var(--linea);
+}
+
+.tventa__cabeza {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--texto-suave);
+}
+
+.tventa__numero {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.tventa__total {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.tventa__form {
+  border-top: 1px solid var(--linea);
+}
+
+@media (max-width: 720px) {
+  .turnodetalle__lista {
+    padding-inline: 1.1rem;
+  }
+}

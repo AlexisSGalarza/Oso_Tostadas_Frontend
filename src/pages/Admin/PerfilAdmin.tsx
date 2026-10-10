@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import TopBar from '../../components/TopBar'
 import GraficaBarras from '../../components/GraficaBarras'
 import GraficaArea from '../../components/GraficaArea'
 import GraficaDona from '../../components/GraficaDona'
 import Tostadas from '../../components/Tostadas'
-import Icono, { type NombreIcono } from '../../components/Icono'
-import { useConteo } from '../../lib/conteo'
+import Icono from '../../components/Icono'
+import Kpi from '../../components/Kpi'
+import EstadoVacio from '../../components/EstadoVacio'
+import { Esqueleto, EsqueletoKpis } from '../../components/Esqueleto'
 import { formatClock, formatMoney, ZONA_HORARIA_MX } from '../../lib/format'
 import { api, ApiError, type AdminDashboard, type EmpleadoMe } from '../../lib/api'
 import './PerfilAdmin.css'
@@ -56,37 +58,28 @@ function plural(cantidad: number, uno: string, varios: string) {
 // Paleta categorica validada (daltonismo y contraste) para distinguir productos en la dona.
 const COLORES_PRODUCTO = ['#1f8a3b', '#dd9a00', '#d1492f', '#1a9a94', '#b0632a', '#7a56c2']
 
-type CifraProps = {
-  etiqueta: string
-  valor: number | null
-  formato: (valor: number) => string
-  icono: NombreIcono
-  nota: React.ReactNode
-  cambio?: number | null
-  principal?: boolean
-  indice: number
-}
+// La cobertura se dibuja contra un mes: mas de 30 dias ya es "de sobra".
+const DIAS_TOPE = 30
 
-function Cifra({ etiqueta, valor, formato, icono, nota, cambio, principal, indice }: CifraProps) {
-  const animado = useConteo(valor ?? 0)
+function PanelEsqueleto() {
   return (
-    <div className={`cifra entra ${principal ? 'cifra--principal' : ''}`} style={{ '--i': indice } as React.CSSProperties}>
-      <div className="cifra__texto">
-        <span className="cifra__etiqueta">{etiqueta}</span>
-        <span className="cifra__valor">
-          {valor === null ? '—' : formato(animado)}
-          {cambio !== null && cambio !== undefined && (
-            <span className={`cifra__cambio ${cambio >= 0 ? 'is-sube' : 'is-baja'}`}>
-              <Icono nombre={cambio >= 0 ? 'flecha-sube' : 'flecha-baja'} />
-              {Math.abs(cambio).toFixed(0)}%
-            </span>
-          )}
-        </span>
-        <span className="cifra__nota">{nota}</span>
+    <div className="panel-cuerpo" role="status">
+      <span className="solo-lectores">Cargando el panel…</span>
+      <EsqueletoKpis />
+      <div className="panel-rejilla" aria-hidden="true">
+        <div className="tarjeta tarjeta--ancha">
+          <Esqueleto ancho="9rem" alto="1.1rem" />
+          <Esqueleto alto="13rem" className="panel-esq__bloque" />
+        </div>
+        <div className="tarjeta">
+          <Esqueleto ancho="10rem" alto="1.1rem" />
+          <Esqueleto alto="13rem" className="panel-esq__bloque" />
+        </div>
+        <div className="tarjeta tarjeta--completa">
+          <Esqueleto ancho="8rem" alto="1.1rem" />
+          <Esqueleto alto="5rem" className="panel-esq__bloque" />
+        </div>
       </div>
-      <span className="cifra__icono" aria-hidden="true">
-        <Icono nombre={icono} />
-      </span>
     </div>
   )
 }
@@ -149,6 +142,17 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
       : []),
   ]
 
+  const sinVentas = esHoy ? 'Todavía no hay ventas hoy' : 'No hubo ventas ese día'
+  const diaComparado = resumen ? formatDia(resumen.comparacion.fecha, { weekday: 'long' }) : ''
+  const semana = dashboard?.semana ?? []
+  const pagos = resumen
+    ? [
+        { nombre: 'Efectivo', clase: 'is-efectivo', monto: resumen.efectivo },
+        { nombre: 'Tarjeta', clase: 'is-tarjeta', monto: resumen.tarjeta },
+      ]
+    : []
+  const urgentes = dashboard?.pendientes.filter((p) => p.severidad === 'urgente').length ?? 0
+
   return (
     <div className="admin">
       <TopBar clock={formatClock(now)} sucursal={empleado.sucursal} onCerrarSesion={onCerrarSesion} />
@@ -160,89 +164,98 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
             <p className="panel-cabeza__dia">{tituloDia}</p>
           </div>
           <div className="panel-fecha" role="group" aria-label="Cambiar de día">
-            <button
-              type="button"
-              className="panel-fecha__boton"
-              onClick={() => setFechaSeleccionada((f) => sumarDias(f, -1))}
-              aria-label="Día anterior"
-            >
-              ←
-            </button>
-            <input
-              type="date"
-              className="panel-fecha__campo"
-              aria-label="Elegir día"
-              value={fechaSeleccionada}
-              max={hoyMexicoISO()}
-              onChange={(event) => event.target.value && setFechaSeleccionada(event.target.value)}
-            />
-            <button
-              type="button"
-              className="panel-fecha__boton"
-              onClick={() => setFechaSeleccionada((f) => sumarDias(f, 1))}
-              disabled={esHoy}
-              aria-label="Día siguiente"
-            >
-              →
-            </button>
             {!esHoy && (
               <button type="button" className="panel-fecha__hoy" onClick={() => setFechaSeleccionada(hoyMexicoISO())}>
                 Ir a hoy
               </button>
             )}
+            <div className="panel-fecha__grupo">
+              <button
+                type="button"
+                className="panel-fecha__boton"
+                onClick={() => setFechaSeleccionada((f) => sumarDias(f, -1))}
+                aria-label="Día anterior"
+              >
+                <Icono nombre="anterior" />
+              </button>
+              <input
+                type="date"
+                className="panel-fecha__campo"
+                aria-label="Elegir día"
+                value={fechaSeleccionada}
+                max={hoyMexicoISO()}
+                onChange={(event) => event.target.value && setFechaSeleccionada(event.target.value)}
+              />
+              <button
+                type="button"
+                className="panel-fecha__boton"
+                onClick={() => setFechaSeleccionada((f) => sumarDias(f, 1))}
+                disabled={esHoy}
+                aria-label="Día siguiente"
+              >
+                <Icono nombre="siguiente" />
+              </button>
+            </div>
           </div>
         </header>
 
         {error && (
           <p className="panel-error" role="alert">
+            <Icono nombre="alerta" />
             {error}
           </p>
         )}
-        {cargando && !dashboard && <p className="panel-nota">Cargando…</p>}
+        {cargando && !dashboard && <PanelEsqueleto />}
 
         {dashboard && resumen && (
           <div className={`panel-cuerpo ${cargando ? 'is-cargando' : ''}`} aria-busy={cargando}>
-            <section className="cifras" aria-label="Cifras del día">
-              <Cifra
+            <section className="kpis" aria-label="Cifras del día">
+              <Kpi
                 indice={0}
-                principal
                 etiqueta="Ventas netas"
                 valor={resumen.ventas_netas}
                 formato={(v) => formatMoney(Math.round(v * 100) / 100)}
-                icono="corte"
                 cambio={cambio}
+                serie={semana.map((d) => d.ventas)}
+                seriePeriodo="7 días"
                 nota={
                   cambio === null
-                    ? `Sin ventas el ${formatDia(resumen.comparacion.fecha, { weekday: 'long' })} pasado para comparar`
-                    : `Contra el ${formatDia(resumen.comparacion.fecha, { weekday: 'long' })} pasado (${formatMoney(anterior)})`
+                    ? `Sin ventas el ${diaComparado} pasado para comparar`
+                    : `Contra el ${diaComparado} pasado (${formatMoney(anterior)})`
                 }
               />
-              <Cifra
+              <Kpi
                 indice={1}
                 etiqueta="Tickets"
                 valor={resumen.tickets}
                 formato={(v) => String(Math.round(v))}
-                icono="historial"
-                nota={`Promedio de ${formatMoney(resumen.ticket_promedio)} por ticket`}
-              />
-              <Cifra
-                indice={2}
-                etiqueta="Paquetes vendidos"
-                valor={resumen.paquetes}
-                formato={(v) => String(Math.round(v))}
-                icono="inventario"
+                serie={semana.map((d) => d.tickets)}
+                seriePeriodo="7 días"
                 nota={
                   resumen.devoluciones_dia > 0
-                    ? `Ya descontando ${formatMoney(resumen.devoluciones_dia)} en devoluciones`
-                    : 'Sin devoluciones'
+                    ? `${plural(resumen.paquetes, 'paquete', 'paquetes')}, ya sin ${formatMoney(resumen.devoluciones_dia)} devueltos`
+                    : `${plural(resumen.paquetes, 'paquete vendido', 'paquetes vendidos')}, sin devoluciones`
                 }
               />
-              <Cifra
+              <Kpi
+                indice={2}
+                etiqueta="Ticket promedio"
+                valor={resumen.ticket_promedio}
+                formato={(v) => formatMoney(Math.round(v * 100) / 100)}
+                serie={semana.map((d) => (d.tickets > 0 ? d.ventas / d.tickets : 0))}
+                seriePeriodo="7 días"
+                nota={
+                  resumen.tickets > 0
+                    ? `${(resumen.paquetes / resumen.tickets).toFixed(1)} paquetes por ticket`
+                    : 'Sin tickets para promediar'
+                }
+              />
+              <Kpi
                 indice={3}
                 etiqueta="Utilidad bruta estimada"
                 valor={resumen.utilidad_estimada}
                 formato={(v) => formatMoney(Math.round(v * 100) / 100)}
-                icono="reportes"
+                avance={margen}
                 nota={
                   margen === null
                     ? resumen.tickets === 0
@@ -254,13 +267,13 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
             </section>
 
             <div className="panel-rejilla">
-              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 4 } as React.CSSProperties}>
+              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 4 } as CSSProperties}>
                 <h2 className="tarjeta__titulo">Ventas por hora</h2>
                 <GraficaArea
                   key={fechaSeleccionada}
                   descripcion="Ventas por hora del día"
                   formatear={formatMoney}
-                  vacio={esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}
+                  vacio={`${sinVentas}.`}
                   puntos={dashboard.ventas_por_hora.map((h, indice) => ({
                     clave: String(h.hora),
                     eje: dashboard.ventas_por_hora.length > 10 && indice % 2 === 1 ? '' : formatHora(h.hora),
@@ -271,81 +284,65 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                 />
               </section>
 
-              <section className="tarjeta entra" style={{ '--i': 5 } as React.CSSProperties}>
+              <section className="tarjeta entra" style={{ '--i': 5 } as CSSProperties}>
                 <h2 className="tarjeta__titulo">Ingreso por producto</h2>
                 <GraficaDona
                   key={fechaSeleccionada}
                   descripcion="Ingreso del día repartido por producto"
                   etiquetaTotal="sin IVA"
                   formatear={formatMoney}
-                  vacio={esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}
+                  vacio={`${sinVentas}.`}
                   rebanadas={rebanadas}
                 />
               </section>
 
-              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 6 } as React.CSSProperties}>
+              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 6 } as CSSProperties}>
                 <div className="tarjeta__cabeza">
-                  <h2 className="tarjeta__titulo">Lo más vendido</h2>
-                  <button type="button" className="tarjeta__enlace" onClick={onReportes}>
-                    Ver reportes
-                  </button>
+                  <div>
+                    <h2 className="tarjeta__titulo">Últimos 7 días</h2>
+                    <p className="tarjeta__sub">Elige una barra para ver ese día</p>
+                  </div>
                 </div>
-                {dashboard.productos_top.length === 0 ? (
-                  <p className="panel-nota">{esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}</p>
-                ) : (
-                  <table className="tabla">
-                    <thead>
-                      <tr>
-                        <th scope="col">Producto</th>
-                        <th scope="col" className="es-numero">
-                          Paquetes
-                        </th>
-                        <th scope="col" className="es-numero">
-                          Ingreso
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dashboard.productos_top.slice(0, 5).map((producto) => (
-                        <tr key={producto.nombre}>
-                          <td>
-                            <span className="tabla__producto">
-                              <Tostadas nombre={producto.nombre} className="tabla__foto" />
-                              {producto.nombre}
-                            </span>
-                          </td>
-                          <td className="es-numero">{producto.cantidad}</td>
-                          <td className="es-numero">{formatMoney(producto.ingresos)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                <GraficaBarras
+                  descripcion="Ventas de los últimos 7 días; elige una barra para ver ese día"
+                  formatear={formatMoney}
+                  vacio="Sin ventas en estos 7 días."
+                  puntos={semana.map((d) => ({
+                    clave: d.fecha,
+                    eje: capitalizar(formatDia(d.fecha, { weekday: 'short' })),
+                    titulo: capitalizar(formatDia(d.fecha, { weekday: 'long', day: 'numeric', month: 'short' })),
+                    detalle: [formatMoney(d.ventas), plural(d.tickets, 'ticket', 'tickets')],
+                    valor: d.ventas,
+                    activo: d.fecha === fechaSeleccionada,
+                    onClick: () => setFechaSeleccionada(d.fecha),
+                  }))}
+                />
               </section>
 
-              <section className="tarjeta entra" style={{ '--i': 7 } as React.CSSProperties}>
+              <section className="tarjeta entra" style={{ '--i': 7 } as CSSProperties}>
                 <h2 className="tarjeta__titulo">Cómo pagaron</h2>
                 {cobrado <= 0 ? (
-                  <p className="panel-nota">Sin cobros registrados.</p>
+                  <EstadoVacio compacto icono="corte" titulo="Sin cobros registrados" />
                 ) : (
-                  <ul className="pagos">
-                    {[
-                      { nombre: 'Efectivo', monto: resumen.efectivo },
-                      { nombre: 'Tarjeta', monto: resumen.tarjeta },
-                    ].map((pago) => (
-                      <li key={pago.nombre}>
-                        <div className="pagos__fila">
-                          <span>{pago.nombre}</span>
-                          <span className="pagos__monto">
-                            {formatMoney(pago.monto)} · {((pago.monto / cobrado) * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        <span className="medidor">
-                          <span style={{ width: `${(pago.monto / cobrado) * 100}%` }} />
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <span className="reparto" aria-hidden="true">
+                      {pagos
+                        .filter((pago) => pago.monto > 0)
+                        .map((pago) => (
+                          <span key={pago.nombre} className={pago.clase} style={{ flexGrow: pago.monto }} />
+                        ))}
+                    </span>
+                    <ul className="pagos">
+                      {pagos.map((pago) => (
+                        <li key={pago.nombre}>
+                          <span className={`pagos__color ${pago.clase}`} aria-hidden="true" />
+                          <span className="pagos__nombre">{pago.nombre}</span>
+                          <span className="pagos__parte">{((pago.monto / cobrado) * 100).toFixed(0)}%</span>
+                          <span className="pagos__monto">{formatMoney(pago.monto)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
                 <dl className="caja">
                   <div>
@@ -359,34 +356,76 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                 </dl>
               </section>
 
-              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 8 } as React.CSSProperties}>
-                <h2 className="tarjeta__titulo">Últimos 7 días</h2>
-                <GraficaBarras
-                  descripcion="Ventas de los últimos 7 días; elige una barra para ver ese día"
-                  formatear={formatMoney}
-                  vacio="Sin ventas en estos 7 días."
-                  puntos={dashboard.semana.map((d) => ({
-                    clave: d.fecha,
-                    eje: capitalizar(formatDia(d.fecha, { weekday: 'short' })),
-                    titulo: capitalizar(formatDia(d.fecha, { weekday: 'long', day: 'numeric', month: 'short' })),
-                    detalle: [formatMoney(d.ventas), plural(d.tickets, 'ticket', 'tickets')],
-                    valor: d.ventas,
-                    activo: d.fecha === fechaSeleccionada,
-                    onClick: () => setFechaSeleccionada(d.fecha),
-                  }))}
-                />
+              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 8 } as CSSProperties}>
+                <div className="tarjeta__cabeza">
+                  <h2 className="tarjeta__titulo">Lo más vendido</h2>
+                  <button type="button" className="tarjeta__enlace" onClick={onReportes}>
+                    Ver reportes <Icono nombre="siguiente" />
+                  </button>
+                </div>
+                {top.length === 0 ? (
+                  <EstadoVacio compacto icono="venta" titulo={sinVentas}>
+                    Aquí verás los productos que más se llevan.
+                  </EstadoVacio>
+                ) : (
+                  <table className="tabla">
+                    <thead>
+                      <tr>
+                        <th scope="col">Producto</th>
+                        <th scope="col" className="tabla__col-barra">
+                          <span className="solo-lectores">Parte del ingreso</span>
+                        </th>
+                        <th scope="col" className="es-numero">
+                          Paquetes
+                        </th>
+                        <th scope="col" className="es-numero">
+                          Ingreso
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {top.slice(0, 5).map((producto) => (
+                        <tr key={producto.nombre}>
+                          <td>
+                            <span className="tabla__producto">
+                              <Tostadas nombre={producto.nombre} className="tabla__foto" />
+                              {producto.nombre}
+                            </span>
+                          </td>
+                          <td className="tabla__col-barra">
+                            <span className="tabla__barra" aria-hidden="true">
+                              <span style={{ width: `${(producto.ingresos / Math.max(top[0].ingresos, 0.01)) * 100}%` }} />
+                            </span>
+                          </td>
+                          <td className="es-numero">{producto.cantidad}</td>
+                          <td className="es-numero es-fuerte">{formatMoney(producto.ingresos)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </section>
 
-              <section className="tarjeta entra" style={{ '--i': 9 } as React.CSSProperties}>
-                <h2 className="tarjeta__titulo">Pendientes</h2>
+              <section className="tarjeta entra" style={{ '--i': 9 } as CSSProperties}>
+                <div className="tarjeta__cabeza">
+                  <h2 className="tarjeta__titulo">Pendientes</h2>
+                  {urgentes > 0 && <span className="estado is-alerta">{plural(urgentes, 'urgente', 'urgentes')}</span>}
+                </div>
                 {dashboard.pendientes.length === 0 ? (
-                  <p className="panel-nota">Sin pendientes por ahora.</p>
+                  <EstadoVacio compacto icono="palomita" titulo="Todo en orden">
+                    No hay pendientes por ahora.
+                  </EstadoVacio>
                 ) : (
                   <ul className="pendientes__lista">
                     {dashboard.pendientes.map((pendiente, index) => (
                       <li key={index} className={`pendiente is-${pendiente.severidad}`}>
-                        <span className="pendiente__tipo">{pendiente.severidad === 'urgente' ? 'Urgente' : 'Aviso'}</span>
-                        {pendiente.texto}
+                        <span className="pendiente__icono" aria-hidden="true">
+                          <Icono nombre={pendiente.severidad === 'urgente' ? 'alerta' : 'reloj'} />
+                        </span>
+                        <span>
+                          <span className="pendiente__tipo">{pendiente.severidad === 'urgente' ? 'Urgente' : 'Aviso'}</span>
+                          {pendiente.texto}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -396,15 +435,18 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
               <section className="tarjeta tarjeta--completa" aria-label="Libro de turnos">
                 <h2 className="tarjeta__titulo">Turnos del día</h2>
                 {dashboard.turnos.length === 0 ? (
-                  <p className="panel-nota">{esHoy ? 'Todavía no hay turnos hoy.' : 'No hubo turnos ese día.'}</p>
+                  <EstadoVacio compacto icono="reloj" titulo={esHoy ? 'Todavía no hay turnos hoy' : 'No hubo turnos ese día'}>
+                    Los turnos aparecen aquí cuando un cajero abre caja.
+                  </EstadoVacio>
                 ) : (
                   <>
                     <div className="libro__cabecera" aria-hidden="true">
                       <span>Cajero</span>
                       <span>Horario</span>
                       <span>Estado</span>
-                      <span>Ventas</span>
+                      <span className="es-numero">Ventas</span>
                       <span>Corte</span>
+                      <span />
                     </div>
                     <ul className="libro__filas">
                       {dashboard.turnos.map((turno) => {
@@ -415,12 +457,12 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                               <span className="fila__celda fila__celda--nombre" data-label="Cajero">
                                 {turno.empleado}
                               </span>
-                              <span className="fila__celda" data-label="Horario">
+                              <span className="fila__celda fila__celda--hora" data-label="Horario">
                                 {turno.hora_inicio.slice(0, 5)}
                                 {turno.hora_fin ? ` a ${turno.hora_fin.slice(0, 5)}` : ' (en curso)'}
                               </span>
                               <span className="fila__celda" data-label="Estado">
-                                <span className={`fila__estado ${turno.estado === 'abierto' ? 'is-abierto' : 'is-cerrado'}`}>
+                                <span className={`estado ${turno.estado === 'abierto' ? 'is-bien' : 'is-neutro'}`}>
                                   {turno.estado === 'abierto' ? 'Abierto' : 'Cerrado'}
                                 </span>
                               </span>
@@ -434,6 +476,9 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                                 {corte === 'faltante' && turno.diferencia
                                   ? `${turno.diferencia < 0 ? 'Faltante' : 'Sobrante'} de ${formatMoney(Math.abs(turno.diferencia))}`
                                   : CORTE_LABEL[corte]}
+                              </span>
+                              <span className="fila__ir" aria-hidden="true">
+                                <Icono nombre="siguiente" />
                               </span>
                             </button>
                           </li>
@@ -451,11 +496,11 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                     <p className="tarjeta__sub">Existencia actual entre la venta diaria promedio de los últimos 7 días</p>
                   </div>
                   <button type="button" className="tarjeta__enlace" onClick={onInventario}>
-                    Ir a inventario
+                    Ir a inventario <Icono nombre="siguiente" />
                   </button>
                 </div>
                 {dashboard.existencias.length === 0 ? (
-                  <p className="panel-nota">No hay productos activos.</p>
+                  <EstadoVacio compacto icono="inventario" titulo="No hay productos activos" />
                 ) : (
                   <ul className="existencias">
                     {dashboard.existencias.map((e) => {
@@ -465,9 +510,14 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                           : e.stock < e.stock_minimo || (e.dias_restantes !== null && e.dias_restantes < 5)
                             ? 'bajo'
                             : 'bien'
+                      const cobertura =
+                        e.stock <= 0 ? 0 : e.dias_restantes === null ? 100 : Math.min((e.dias_restantes / DIAS_TOPE) * 100, 100)
                       return (
                         <li key={e.nombre} className={`existencia is-${nivel}`}>
                           <span className="existencia__nombre">{e.nombre}</span>
+                          <span className="existencia__medidor" aria-hidden="true">
+                            <span style={{ width: `${Math.max(cobertura, e.stock > 0 ? 3 : 0)}%` }} />
+                          </span>
                           <span className="existencia__dias">
                             {e.stock <= 0
                               ? 'Agotado'
@@ -479,7 +529,7 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                           </span>
                           <span className="existencia__detalle">
                             {plural(e.stock, 'paquete', 'paquetes')}
-                            {e.venta_diaria > 0 ? ` · se venden ${e.venta_diaria} al día` : ''}
+                            {e.venta_diaria > 0 ? ` · ${e.venta_diaria} al día` : ''}
                           </span>
                         </li>
                       )

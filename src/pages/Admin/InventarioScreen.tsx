@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import { formatClock, formatMoney } from '../../lib/format'
 import { api, ApiError, type InsumoAdmin, type ProductoAdmin, type Proveedor } from '../../lib/api'
 import './InventarioScreen.css'
@@ -197,7 +198,7 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
         <h1>Inventario</h1>
         <p className="inventario__subtitulo">Insumos de producción y paquetes listos para vender</p>
 
-        {cargando && <p className="inventario__subtitulo">Cargando…</p>}
+        {cargando && <EsqueletoLista filas={6} etiqueta="Cargando el inventario…" />}
         {error && (
           <p className="alta__error" role="alert">
             {error}

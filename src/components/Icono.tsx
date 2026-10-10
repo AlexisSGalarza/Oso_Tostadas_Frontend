@@ -24,6 +24,10 @@ export type NombreIcono =
   | 'palomita'
   | 'flecha-sube'
   | 'flecha-baja'
+  | 'anterior'
+  | 'siguiente'
+  | 'alerta'
+  | 'reloj'
 
 const TRAZOS: Record<NombreIcono, ReactNode> = {
   inicio: <path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" />,
@@ -113,6 +117,15 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
   palomita: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   'flecha-sube': <path d="M7 17 17 7M9 7h8v8" />,
   'flecha-baja': <path d="M7 7l10 10M17 9v8H9" />,
+  anterior: <path d="m14.5 6-6 6 6 6" />,
+  siguiente: <path d="m9.5 6 6 6-6 6" />,
+  alerta: <path d="M12 4.5 3.5 19h17zM12 10v4.5M12 16.8v.2" />,
+  reloj: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
   codigo: <path d="M4 6v12M7 6v12M10.5 6v12M13 6v12M16.5 6v12M20 6v12" />,
 }
 

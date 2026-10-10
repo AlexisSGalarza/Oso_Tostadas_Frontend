@@ -25,7 +25,9 @@ function GraficaBarras({ puntos, formatear, descripcion, vacio = 'Sin datos toda
   if (maximo <= 0) {
     return <p className="grafica__vacio">{vacio}</p>
   }
-  const indiceMaximo = puntos.findIndex((p) => p.valor === maximo)
+  // La cifra se muestra sobre el dia elegido; si no hay ninguno, sobre el mas alto.
+  const indiceActivo = puntos.findIndex((p) => p.activo && p.valor > 0)
+  const indiceEtiqueta = indiceActivo >= 0 ? indiceActivo : puntos.findIndex((p) => p.valor === maximo)
 
   return (
     <div className="grafica">
@@ -41,8 +43,8 @@ function GraficaBarras({ puntos, formatear, descripcion, vacio = 'Sin datos toda
                   <span key={linea}>{linea}</span>
                 ))}
               </span>
-              {indice === indiceMaximo && (
-                <span className="grafica__valor" aria-hidden="true">
+              {indice === indiceEtiqueta && (
+                <span className="grafica__valor" style={{ bottom: alto }} aria-hidden="true">
                   {formatear(punto.valor)}
                 </span>
               )}

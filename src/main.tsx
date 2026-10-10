@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import FacturaClienteScreen from './pages/Cliente/FacturaClienteScreen'
 import './styles/index.css'
+import './styles/admin.css'
 
 // El cliente llega a /factura desde el ticket impreso (QR o URL corta), sin
 // pasar por el login del personal, asi que se resuelve por ruta antes del

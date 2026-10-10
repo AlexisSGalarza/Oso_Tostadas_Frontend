@@ -166,7 +166,7 @@
 .proveedores .lista__cabecera,
 .pfila__fila {
   display: grid;
-  grid-template-columns: 1.2fr 1.3fr 1fr 1fr 0.8fr auto;
+  grid-template-columns: 1.2fr 1.3fr 1fr 1fr 0.8fr 6.5rem;
   gap: 0.75rem;
   align-items: center;
 }

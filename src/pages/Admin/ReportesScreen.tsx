@@ -1,5 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import TopBar from '../../components/TopBar'
+import GraficaBarras from '../../components/GraficaBarras'
+import Kpi from '../../components/Kpi'
+import EstadoVacio from '../../components/EstadoVacio'
+import Tostadas from '../../components/Tostadas'
+import { EsqueletoKpis, EsqueletoLista } from '../../components/Esqueleto'
 import { formatClock, formatFecha, formatMoney, ZONA_HORARIA_MX } from '../../lib/format'
 import { api, ApiError, type ReporteSemana } from '../../lib/api'
 import './ReportesScreen.css'
@@ -41,7 +46,19 @@ function ReportesScreen({ now, onVolver, onCerrarSesion }: Props) {
         <TopBar clock={formatClock(now)} onVolver={onVolver} volverLabel="Admin" onCerrarSesion={onCerrarSesion} />
         <main className="reportes__main">
           <h1>Reportes de ventas</h1>
-          <p className="reportes__subtitulo">{error || 'Cargando…'}</p>
+          <p className="reportes__subtitulo">Últimos 7 días</p>
+          {error ? (
+            <div className="tarjeta">
+              <EstadoVacio icono="alerta" titulo="No se pudo cargar el reporte">
+                {error}
+              </EstadoVacio>
+            </div>
+          ) : (
+            <>
+              <EsqueletoKpis />
+              <EsqueletoLista filas={4} etiqueta="Cargando el reporte…" />
+            </>
+          )}
         </main>
       </div>
     )
@@ -52,8 +69,9 @@ function ReportesScreen({ now, onVolver, onCerrarSesion }: Props) {
   const ticketsSemana = semana.reduce((suma, dia) => suma + dia.tickets, 0)
   const ticketPromedio = ticketsSemana > 0 ? ventasSemana / ticketsSemana : 0
   const mejorDia = semana.reduce((mejor, dia) => (dia.ventas > mejor.ventas ? dia : mejor), semana[0])
-  const maxVentas = Math.max(1, ...semana.map((dia) => dia.ventas))
+  const diasConVenta = semana.filter((dia) => dia.ventas > 0).length
   const maxIngresos = Math.max(1, ...reporte.productos.map((producto) => producto.ingresos))
+  const paquetes = (cantidad: number) => `${cantidad} ${cantidad === 1 ? 'paquete' : 'paquetes'}`
 
   return (
     <div className="reportes">
@@ -61,64 +79,105 @@ function ReportesScreen({ now, onVolver, onCerrarSesion }: Props) {
 
       <main className="reportes__main">
         <h1>Reportes de ventas</h1>
-        <p className="reportes__subtitulo">Últimos 7 días</p>
+        <p className="reportes__subtitulo">
+          Últimos 7 días, del {semana[0].fecha} al {semana[semana.length - 1].fecha}
+        </p>
 
-        <section className="resumen" aria-label="Resumen de la semana">
-          <div className="resumen__item resumen__item--principal">
-            <span className="resumen__valor">{formatMoney(ventasSemana)}</span>
-            <span className="resumen__etiqueta">Ventas de la semana</span>
-          </div>
-          <div className="resumen__item">
-            <span className="resumen__valor">{formatMoney(ticketPromedio)}</span>
-            <span className="resumen__etiqueta">Ticket promedio</span>
-          </div>
-          <div className="resumen__item">
-            <span className="resumen__valor">{mejorDia.dia}</span>
-            <span className="resumen__etiqueta">Mejor día · {formatMoney(mejorDia.ventas)}</span>
-          </div>
+        <section className="kpis" aria-label="Resumen de la semana">
+          <Kpi
+            indice={0}
+            etiqueta="Ventas de la semana"
+            valor={ventasSemana}
+            formato={(v) => formatMoney(Math.round(v * 100) / 100)}
+            serie={semana.map((dia) => dia.ventas)}
+            seriePeriodo="por día"
+            nota={`${diasConVenta} de ${semana.length} días con venta`}
+          />
+          <Kpi
+            indice={1}
+            etiqueta="Tickets"
+            valor={ticketsSemana}
+            formato={(v) => String(Math.round(v))}
+            serie={semana.map((dia) => dia.tickets)}
+            seriePeriodo="por día"
+            nota={`${(ticketsSemana / semana.length).toFixed(1)} al día en promedio`}
+          />
+          <Kpi
+            indice={2}
+            etiqueta="Ticket promedio"
+            valor={ticketPromedio}
+            formato={(v) => formatMoney(Math.round(v * 100) / 100)}
+            nota="Venta de la semana entre sus tickets"
+          />
+          <Kpi
+            indice={3}
+            etiqueta="Mejor día"
+            valor={mejorDia.ventas > 0 ? `${mejorDia.dia} ${mejorDia.fecha}` : null}
+            nota={mejorDia.ventas > 0 ? `${formatMoney(mejorDia.ventas)} en ${mejorDia.tickets} ${mejorDia.tickets === 1 ? 'ticket' : 'tickets'}` : 'Sin ventas en el periodo'}
+          />
         </section>
 
         <div className="paneles-reporte">
-          <section className="semana" aria-label="Ventas por día">
-            <h2 className="panel__titulo">Ventas por día</h2>
-            <ul className="barras">
-              {semana.map((dia) => (
-                <li className="barra" key={dia.fecha + dia.dia}>
-                  <span className="barra__dia">
-                    {dia.dia}
-                    <span className="barra__fecha">{dia.fecha}</span>
-                  </span>
-                  <span className="barra__pista">
-                    <span className="barra__relleno" style={{ width: `${(dia.ventas / maxVentas) * 100}%` }} />
-                  </span>
-                  <span className="barra__valor">{formatMoney(dia.ventas)}</span>
-                </li>
-              ))}
-            </ul>
+          <section className="tarjeta entra" style={{ '--i': 4 } as CSSProperties} aria-label="Ventas por día">
+            <h2 className="tarjeta__titulo">Ventas por día</h2>
+            <GraficaBarras
+              descripcion="Ventas de cada día de la semana"
+              formatear={formatMoney}
+              vacio="Sin ventas en estos 7 días."
+              puntos={semana.map((dia) => ({
+                clave: dia.fecha + dia.dia,
+                eje: dia.dia,
+                titulo: `${dia.dia} ${dia.fecha}`,
+                detalle: [formatMoney(dia.ventas), `${dia.tickets} ${dia.tickets === 1 ? 'ticket' : 'tickets'}`],
+                valor: dia.ventas,
+              }))}
+            />
           </section>
 
-          <section className="productos" aria-label="Productos más vendidos">
-            <h2 className="panel__titulo">Productos más vendidos</h2>
+          <section className="tarjeta entra" style={{ '--i': 5 } as CSSProperties} aria-label="Productos más vendidos">
+            <h2 className="tarjeta__titulo">Productos más vendidos</h2>
             {reporte.productos.length === 0 ? (
-              <p className="reportes__subtitulo">Sin ventas todavía en este periodo.</p>
+              <EstadoVacio compacto icono="venta" titulo="Sin ventas en este periodo">
+                Cuando haya ventas verás aquí qué producto deja más ingreso.
+              </EstadoVacio>
             ) : (
-              <ul className="producto-lista">
-                {reporte.productos.map((producto) => (
-                  <li className="producto-fila" key={producto.nombre}>
-                    <div className="producto-fila__cabeza">
-                      <span className="producto-fila__nombre">{producto.nombre}</span>
-                      <span className="producto-fila__cantidad">{producto.cantidad} {producto.cantidad === 1 ? 'paquete' : 'paquetes'}</span>
-                    </div>
-                    <span className="producto-fila__pista">
-                      <span
-                        className="producto-fila__relleno"
-                        style={{ width: `${(producto.ingresos / maxIngresos) * 100}%` }}
-                      />
-                    </span>
-                    <span className="producto-fila__ingresos">{formatMoney(producto.ingresos)}</span>
-                  </li>
-                ))}
-              </ul>
+              <table className="tabla">
+                <thead>
+                  <tr>
+                    <th scope="col">Producto</th>
+                    <th scope="col" className="tabla__col-barra">
+                      <span className="solo-lectores">Parte del ingreso</span>
+                    </th>
+                    <th scope="col" className="es-numero">
+                      Paquetes
+                    </th>
+                    <th scope="col" className="es-numero">
+                      Ingreso
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reporte.productos.map((producto) => (
+                    <tr key={producto.nombre}>
+                      <td>
+                        <span className="tabla__producto">
+                          <Tostadas nombre={producto.nombre} className="tabla__foto" />
+                          {producto.nombre}
+                        </span>
+                      </td>
+                      <td className="tabla__col-barra">
+                        <span className="tabla__barra" aria-hidden="true">
+                          <span style={{ width: `${(producto.ingresos / maxIngresos) * 100}%` }} />
+                        </span>
+                      </td>
+                      <td className="es-numero" aria-label={paquetes(producto.cantidad)}>
+                        {producto.cantidad}
+                      </td>
+                      <td className="es-numero es-fuerte">{formatMoney(producto.ingresos)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </section>
         </div>

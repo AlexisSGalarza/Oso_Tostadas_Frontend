@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
+import Kpi from '../../components/Kpi'
+import EstadoVacio from '../../components/EstadoVacio'
+import { EsqueletoKpis, EsqueletoLista } from '../../components/Esqueleto'
 import { formatClock, formatFecha, formatMoney, ZONA_HORARIA_MX } from '../../lib/format'
 import { api, ApiError, type TurnoDetalleAdmin, type VentaApi } from '../../lib/api'
 import './AdminTurnoDetalleScreen.css'
@@ -85,12 +88,23 @@ function AdminTurnoDetalleScreen({ now, idTurno, onVolver, onCerrarSesion }: Pro
     }
   }
 
+  const vendido = turno ? turno.ventas.reduce((suma, v) => suma + v.total, 0) : 0
+  const devuelto = turno ? turno.ventas.flatMap((v) => v.devoluciones).reduce((suma, d) => suma + d.monto, 0) : 0
+  const enEfectivo = turno
+    ? turno.ventas.filter((v) => metodoPagoDe(v) === 'efectivo').reduce((suma, v) => suma + v.total, 0)
+    : 0
+
   return (
     <div className="turnodetalle">
       <TopBar clock={formatClock(now)} onVolver={onVolver} volverLabel="Panel" esDetalle onCerrarSesion={onCerrarSesion} />
 
       <main className="turnodetalle__main">
-        {cargando && <p className="turnodetalle__subtitulo">Cargando…</p>}
+        {cargando && !turno && (
+          <>
+            <EsqueletoKpis />
+            <EsqueletoLista filas={4} etiqueta="Cargando el turno…" />
+          </>
+        )}
         {error && (
           <p className="turnodetalle__error" role="alert">
             {error}
@@ -103,23 +117,51 @@ function AdminTurnoDetalleScreen({ now, idTurno, onVolver, onCerrarSesion }: Pro
             <p className="turnodetalle__subtitulo">
               {formatFecha(new Date(`${turno.fecha}T12:00:00Z`), { day: 'numeric', month: 'long', year: 'numeric' })} ·{' '}
               {turno.hora_inicio.slice(0, 5)}
-              {turno.hora_fin ? `–${turno.hora_fin.slice(0, 5)}` : ' (en curso)'} ·{' '}
-              {turno.estado === 'abierto' ? 'Abierto' : 'Cerrado'}
+              {turno.hora_fin ? `–${turno.hora_fin.slice(0, 5)}` : ' (en curso)'}
+              <span className={`estado ${turno.estado === 'abierto' ? 'is-bien' : 'is-neutro'}`}>
+                {turno.estado === 'abierto' ? 'Abierto' : 'Cerrado'}
+              </span>
             </p>
 
-            {turno.estado === 'cerrado' && (
-              <div className="turnodetalle__resumen">
-                <span>Fondo inicial: {formatMoney(turno.monto_inicial)}</span>
-                <span>Efectivo esperado: {turno.monto_esperado !== null ? formatMoney(turno.monto_esperado) : '—'}</span>
-                <span>Efectivo contado: {turno.monto_contado !== null ? formatMoney(turno.monto_contado) : '—'}</span>
-                <span className={turno.diferencia ? 'is-desajuste' : 'is-exacto'}>
-                  Diferencia: {turno.diferencia !== null ? formatMoney(turno.diferencia) : '—'}
-                </span>
-              </div>
-            )}
+            <section className="kpis" aria-label="Resumen del turno">
+              <Kpi
+                indice={0}
+                etiqueta="Ventas del turno"
+                valor={vendido}
+                formato={(v) => formatMoney(Math.round(v * 100) / 100)}
+                nota={`${turno.ventas.length} ${turno.ventas.length === 1 ? 'ticket' : 'tickets'}${devuelto > 0 ? `, ${formatMoney(devuelto)} devueltos` : ''}`}
+              />
+              <Kpi indice={1} etiqueta="Fondo inicial" valor={turno.monto_inicial} formato={formatMoney} nota="Efectivo con el que abrió caja" />
+              {turno.estado === 'cerrado' ? (
+                <>
+                  <Kpi
+                    indice={2}
+                    etiqueta="Efectivo contado"
+                    valor={turno.monto_contado}
+                    formato={formatMoney}
+                    nota={`Se esperaban ${turno.monto_esperado !== null ? formatMoney(turno.monto_esperado) : '—'}`}
+                  />
+                  <Kpi
+                    indice={3}
+                    etiqueta="Diferencia"
+                    valor={turno.diferencia}
+                    formato={formatMoney}
+                    tono={turno.diferencia ? 'alerta' : 'normal'}
+                    nota={!turno.diferencia ? 'Caja cuadrada' : turno.diferencia < 0 ? 'Faltante en caja' : 'Sobrante en caja'}
+                  />
+                </>
+              ) : (
+                <>
+                  <Kpi indice={2} etiqueta="Cobrado en efectivo" valor={enEfectivo} formato={formatMoney} nota="Sin contar el fondo inicial" />
+                  <Kpi indice={3} etiqueta="Cobrado con tarjeta" valor={vendido - enEfectivo} formato={formatMoney} nota="El corte se hace al cerrar el turno" />
+                </>
+              )}
+            </section>
 
             {turno.ventas.length === 0 ? (
-              <p className="turnodetalle__subtitulo">Este turno no tiene ventas registradas.</p>
+              <div className="tarjeta">
+                <EstadoVacio icono="venta" titulo="Este turno no tiene ventas registradas" />
+              </div>
             ) : (
               <ul className="turnodetalle__lista">
                 {turno.ventas.map((venta) => {

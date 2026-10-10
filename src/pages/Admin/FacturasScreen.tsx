@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import Icono from '../../components/Icono'
 import Tostadas from '../../components/Tostadas'
 import { formatClock, formatFecha, formatMoney, formatTicket, ZONA_HORARIA_MX } from '../../lib/format'
@@ -268,7 +269,7 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
           <p className="facturas__subtitulo">Elige una compra y llena los datos de quien la factura</p>
         </div>
 
-        {cargando && <p className="facturas__subtitulo">Cargando…</p>}
+        {cargando && <EsqueletoLista filas={5} etiqueta="Cargando compras y facturas…" />}
         {error && (
           <p className="facturas__error" role="alert">
             {error}

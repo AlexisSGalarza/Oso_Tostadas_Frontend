@@ -11,9 +11,10 @@
   flex-direction: column;
   justify-content: space-between;
   text-align: right;
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--tostado);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+  color: var(--texto-suave);
 }
 
 .area__lienzo {
@@ -31,7 +32,7 @@
 .area__linea {
   fill: none;
   stroke: var(--verde-salsa);
-  stroke-width: 3;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -81,7 +82,7 @@
   top: 0;
   bottom: 0;
   width: 0;
-  border-left: 1.5px dashed var(--linea-fuerte);
+  border-left: 1px solid var(--linea-fuerte);
   pointer-events: none;
 }
 
@@ -129,8 +130,9 @@
   grid-column: 2;
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--tostado);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--texto-suave);
 }
 
 .area__ejex span {
@@ -156,5 +158,85 @@
 @media (max-width: 560px) {
   .area {
     grid-template-rows: 10.5rem auto;
+  }
+}
+
+/* ---------- Dashboard moderno: rejilla tenue y globo compacto ---------- */
+
+/* Tres lineas de referencia (tope, mitad y cero) alineadas con las etiquetas del eje. */
+.area__rejilla {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.area__rejilla span {
+  height: 0;
+  border-top: 1px dashed var(--linea);
+}
+
+.area__rejilla span:last-child {
+  border-top-style: solid;
+  border-top-color: var(--linea-fuerte);
+}
+
+/* Fuera del flujo: asi el dibujo se adapta al alto disponible en vez de imponer el suyo. */
+.area__lienzo svg {
+  position: absolute;
+  inset: 0;
+}
+
+.area__marca {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-width: 2.5px;
+  box-shadow: 0 0 0 1px var(--verde-salsa);
+}
+
+.area__globo,
+.grafica__globo {
+  gap: 0.05rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.area__globo strong,
+.grafica__globo strong {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.area__globo strong + span,
+.grafica__globo strong + span {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.area__vacio,
+.dona__vacio,
+.grafica__vacio {
+  color: var(--texto-suave);
+}
+
+/* La grafica ocupa el alto que le deje la tarjeta cuando su vecina es mas alta. */
+.tarjeta:has(> .area) {
+  display: flex;
+  flex-direction: column;
+}
+
+.area {
+  flex: 1;
+  grid-template-rows: minmax(13rem, 1fr) auto;
+}
+
+@media (max-width: 560px) {
+  .area {
+    grid-template-rows: minmax(10.5rem, 1fr) auto;
   }
 }
