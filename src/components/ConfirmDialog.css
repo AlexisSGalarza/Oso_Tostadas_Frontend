@@ -23,7 +23,6 @@
 
 .confirm__titulo {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.25rem;
   color: var(--tinta);

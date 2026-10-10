@@ -102,7 +102,12 @@ function AppShell({ items, activo, nombre, rol, sucursal, onNavegar, onCerrarSes
           </div>
         </aside>
 
-        <div className="shell__contenido">{children}</div>
+        <div className="shell__contenido">
+          {/* La clave reinicia la animacion de entrada al cambiar de seccion */}
+          <div className="shell__pantalla" key={activo}>
+            {children}
+          </div>
+        </div>
 
         <ConfirmDialog
           open={confirmandoSalida}

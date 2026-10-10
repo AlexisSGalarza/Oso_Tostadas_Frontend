@@ -18,7 +18,6 @@
 
 .turnodetalle__main h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.5rem, 2.8vw, 1.9rem);
   margin: 0;

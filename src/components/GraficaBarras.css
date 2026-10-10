@@ -11,9 +11,7 @@
   gap: 2px;
   height: 11rem;
   padding-top: 1.4rem;
-  border-bottom: 1px solid var(--linea-fuerte);
-  /* linea de referencia del valor mas alto */
-  background: linear-gradient(var(--linea), var(--linea)) left 1.4rem / 100% 1px no-repeat;
+
 }
 
 .grafica__columna {
@@ -38,16 +36,17 @@ button.grafica__columna {
 .grafica__barra {
   display: block;
   width: 100%;
-  max-width: 2.75rem;
-  border-radius: 4px 4px 0 0;
-  background: var(--verde-salsa);
-  transition: background 120ms ease;
+  max-width: 2.5rem;
+  border-radius: 999px;
+  background: var(--verde-brote);
+  transform-origin: bottom;
+  animation: barra-crece var(--lento) var(--sale) both;
+  transition: background var(--rapido) ease;
 }
 
 .grafica__columna.is-cero .grafica__barra {
-  height: 2px !important;
-  border-radius: 0;
-  background: var(--linea-fuerte);
+  height: 8px !important;
+  background: var(--linea);
 }
 
 .grafica__columna:hover .grafica__barra,
@@ -136,4 +135,21 @@ button.grafica__columna {
   text-align: center;
   font-size: 0.9rem;
   color: var(--tostado);
+}
+
+@keyframes barra-crece {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.grafica__columna:nth-child(2) .grafica__barra { animation-delay: 40ms; }
+.grafica__columna:nth-child(3) .grafica__barra { animation-delay: 80ms; }
+.grafica__columna:nth-child(4) .grafica__barra { animation-delay: 120ms; }
+.grafica__columna:nth-child(5) .grafica__barra { animation-delay: 160ms; }
+.grafica__columna:nth-child(6) .grafica__barra { animation-delay: 200ms; }
+.grafica__columna:nth-child(7) .grafica__barra { animation-delay: 240ms; }
+
+.grafica__globo {
+  background: var(--verde-tinta);
 }

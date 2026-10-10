@@ -126,19 +126,11 @@
 }
 
 .fc .recibo__perforado {
-  position: absolute;
-  top: -1px;
-  left: 0;
-  right: 0;
-  height: 16px;
-  background: radial-gradient(circle at 16px 0, var(--page) 15px, transparent 16px) repeat-x left top;
-  background-size: 32px 32px;
-  transform: translateY(-50%);
+  display: none;
 }
 
 .fc .recibo__titulo {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.6rem;
   color: var(--tinta);

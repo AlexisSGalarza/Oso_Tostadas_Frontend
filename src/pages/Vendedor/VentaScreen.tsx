@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import NumericKeypad from '../../components/NumericKeypad'
 import EscanerCamara from '../../components/EscanerCamara'
 import Icono from '../../components/Icono'
+import Tostadas, { tonoDe } from '../../components/Tostadas'
 import { mismoCodigo, sonarLectura, useLectorCodigos } from '../../lib/escaner'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
 import { api, ApiError, type ProductoDisponible, type Turno } from '../../lib/api'
@@ -55,6 +56,7 @@ function VentaScreen({
   const [codigoManual, setCodigoManual] = useState('')
   const [avisoCodigo, setAvisoCodigo] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
   const [camaraAbierta, setCamaraAbierta] = useState(false)
+  const [filtro, setFiltro] = useState<'todos' | 'amarilla' | 'roja'>('todos')
 
   // En telefono la cuenta queda debajo del catalogo: una barra fija muestra el
   // total y lleva a la cuenta, y se oculta cuando la cuenta ya esta a la vista.
@@ -100,9 +102,9 @@ function VentaScreen({
   }
 
   // Entrada unica para lector fisico, camara y codigo escrito a mano.
-  function registrarCodigo(leido: string) {
+  function registrarCodigo(leido: string): boolean {
     const codigo = leido.trim()
-    if (!codigo) return
+    if (!codigo) return false
     const producto = productos.find((p) => mismoCodigo(p.codigo_barras, codigo))
     const enCuenta = producto
       ? (carrito.find((item) => item.id_producto === producto.id_producto)?.cantidad ?? 0)
@@ -119,15 +121,34 @@ function VentaScreen({
       agregar(producto)
       setAvisoCodigo({ tipo: 'ok', texto: `${producto.nombre} agregado (${enCuenta + 1} en la cuenta).` })
       sonarLectura(true)
-      return
+      return true
     }
     sonarLectura(false)
+    return false
   }
 
+  // Enter en el buscador: si el texto es un codigo se agrega ese producto; si la
+  // busqueda dejo un solo paquete, se agrega ese; si no, solo se queda filtrado.
   function enviarCodigoManual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    registrarCodigo(codigoManual)
+    const texto = codigoManual.trim()
+    if (!texto) return
+    const porCodigo = productos.some((p) => mismoCodigo(p.codigo_barras, texto))
+    if (porCodigo) {
+      registrarCodigo(texto)
+    } else if (visibles.length === 1) {
+      if (!registrarCodigo(visibles[0].codigo_barras ?? '')) agregarSiHay(visibles[0])
+    } else if (visibles.length === 0) {
+      registrarCodigo(texto)
+    } else {
+      return
+    }
     setCodigoManual('')
+  }
+
+  function agregarSiHay(producto: ProductoDisponible) {
+    const enCuenta = carrito.find((item) => item.id_producto === producto.id_producto)?.cantidad ?? 0
+    if (producto.stock - enCuenta > 0) agregar(producto)
   }
 
   useLectorCodigos(registrarCodigo, !camaraAbierta && !confirmandoCancelar && !enviando)
@@ -168,6 +189,18 @@ function VentaScreen({
     turno.monto_inicial +
     ventasTurno.filter((v) => v.metodoPago === 'efectivo').reduce((s, v) => s + v.total, 0) -
     devolucionesTurno.filter((d) => d.metodoPago === 'efectivo').reduce((s, d) => s + d.total, 0)
+
+  const termino = codigoManual.trim().toLowerCase()
+  const visibles = productos.filter(
+    (p) =>
+      (filtro === 'todos' || tonoDe(p.nombre) === filtro) &&
+      (!termino || p.nombre.toLowerCase().includes(termino) || mismoCodigo(p.codigo_barras, termino)),
+  )
+  const filtros = [
+    { id: 'todos' as const, etiqueta: 'Todos', cantidad: productos.length },
+    { id: 'amarilla' as const, etiqueta: 'Amarillas', cantidad: productos.filter((p) => tonoDe(p.nombre) === 'amarilla').length },
+    { id: 'roja' as const, etiqueta: 'Rojas', cantidad: productos.filter((p) => tonoDe(p.nombre) === 'roja').length },
+  ].filter((f) => f.cantidad > 0)
 
   const unidades = carrito.reduce((suma, item) => suma + item.cantidad, 0)
   const subtotal = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0)
@@ -241,39 +274,55 @@ function VentaScreen({
 
       <main className="venta__main">
         <section className="catalogo" aria-label="Paquetes de tostadas">
-          <h1 className="catalogo__titulo">Paquetes de tostadas</h1>
-
-          <form className="lector" onSubmit={enviarCodigoManual}>
-            <label htmlFor="codigo-barras" className="solo-lectores">
-              Código de barras
+          <form className="buscador" onSubmit={enviarCodigoManual}>
+            <label htmlFor="buscador" className="solo-lectores">
+              Buscar por nombre o código de barras
             </label>
-            <div className="lector__campo">
-              <Icono nombre="codigo" />
-              <input
-                id="codigo-barras"
-                type="text"
-                inputMode="text"
-                autoComplete="off"
-                autoCapitalize="characters"
-                spellCheck={false}
-                placeholder="Escanea o escribe el código"
-                value={codigoManual}
-                onChange={(event) => setCodigoManual(event.target.value)}
-              />
-            </div>
-            <button type="submit" className="lector__agregar" disabled={!codigoManual.trim()}>
-              Agregar
-            </button>
-            <button type="button" className="lector__camara" onClick={() => setCamaraAbierta(true)}>
+            <Icono nombre="buscar" className="buscador__lupa" />
+            <input
+              id="buscador"
+              type="search"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="Busca un paquete o escanea su código"
+              value={codigoManual}
+              onChange={(event) => setCodigoManual(event.target.value)}
+            />
+            <button
+              type="button"
+              className="buscador__camara"
+              onClick={() => setCamaraAbierta(true)}
+              aria-label="Escanear con la cámara"
+              title="Escanear con la cámara"
+            >
               <Icono nombre="camara" />
-              <span>Usar cámara</span>
             </button>
           </form>
+
+          {filtros.length > 1 && (
+            <div className="filtros" role="group" aria-label="Filtrar paquetes">
+              {filtros.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className={`filtro ${filtro === f.id ? 'is-activo' : ''}`}
+                  aria-pressed={filtro === f.id}
+                  onClick={() => setFiltro(f.id)}
+                >
+                  <span className="filtro__nombre">{f.etiqueta}</span>
+                  <span className="filtro__cuenta">
+                    {f.cantidad} {f.cantidad === 1 ? 'paquete' : 'paquetes'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
           <p className={`lector__aviso ${avisoCodigo ? `is-${avisoCodigo.tipo}` : ''}`} role="status" aria-live="polite">
             {avisoCodigo?.texto ??
               (!cargandoCatalogo && productos.length > 0 && !productos.some((p) => p.codigo_barras)
                 ? 'Ningún producto tiene código de barras todavía. Se asignan en Inventario, desde una cuenta de administrador.'
-                : 'Con un lector conectado, solo escanea: no hace falta tocar el campo.')}
+                : 'Con un lector conectado, solo escanea: no hace falta tocar el buscador.')}
           </p>
 
           {cargandoCatalogo && <p className="cuenta__vacio">Cargando catálogo…</p>}
@@ -282,28 +331,41 @@ function VentaScreen({
               {errorCatalogo}
             </p>
           )}
+          {!cargandoCatalogo && !errorCatalogo && visibles.length === 0 && (
+            <p className="cuenta__vacio">Ningún paquete coincide con “{codigoManual.trim()}”.</p>
+          )}
 
           <div className="catalogo__grid">
-            {productos.map((producto) => {
+            {visibles.map((producto, indice) => {
               const enCuenta = carrito.find((item) => item.id_producto === producto.id_producto)?.cantidad ?? 0
+              const agotado = producto.stock - enCuenta <= 0
               return (
                 <button
                   key={producto.id_producto}
                   type="button"
-                  className={`producto ${enCuenta > 0 ? 'is-en-cuenta' : ''}`}
+                  className={`producto entra ${enCuenta > 0 ? 'is-en-cuenta' : ''}`}
+                  style={{ '--i': indice } as CSSProperties}
                   onClick={() => agregar(producto)}
-                  disabled={producto.stock <= 0}
+                  disabled={agotado}
                 >
-                  <span className="producto__nombre">{producto.nombre}</span>
-                  <span className="producto__precio">{formatMoney(producto.precio)}</span>
-                  <span className={`producto__stock ${producto.stock <= 0 ? 'is-agotado' : ''}`}>
-                    {producto.stock > 0 ? `${producto.stock} en existencia` : 'Agotado'}
-                  </span>
+                  <Tostadas nombre={producto.nombre} className="producto__foto" />
                   {enCuenta > 0 && (
-                    <span className="producto__encuenta" aria-label={`${enCuenta} en la cuenta`}>
+                    <span key={enCuenta} className="producto__encuenta" aria-label={`${enCuenta} en la cuenta`}>
                       {enCuenta}
                     </span>
                   )}
+                  <span className="producto__pie">
+                    <span className="producto__texto">
+                      <span className="producto__nombre">{producto.nombre}</span>
+                      <span className="producto__precio">{formatMoney(producto.precio)}</span>
+                      <span className={`producto__stock ${producto.stock <= 0 ? 'is-agotado' : ''}`}>
+                        {producto.stock > 0 ? `${producto.stock} en existencia` : 'Agotado'}
+                      </span>
+                    </span>
+                    <span className="producto__mas" aria-hidden="true">
+                      <Icono nombre="mas" />
+                    </span>
+                  </span>
                 </button>
               )
             })}
@@ -318,6 +380,9 @@ function VentaScreen({
 
           {justCharged ? (
             <div className="cuenta__confirmado">
+              <span className="cuenta__palomita" aria-hidden="true">
+                <Icono nombre="palomita" />
+              </span>
               <p>Venta registrada</p>
               <p className="cuenta__confirmado-sub">Ticket #{ultimaVentaId}</p>
               {ultimaVentaId !== null && (
@@ -347,12 +412,17 @@ function VentaScreen({
               </button>
             </div>
           ) : carrito.length === 0 ? (
-            <p className="cuenta__vacio">Toca un paquete para agregarlo a la cuenta.</p>
+            <div className="cuenta__vacio cuenta__vacio--inicio">
+              <Icono nombre="venta" />
+              <p>La cuenta está vacía.</p>
+              <p>Toca un paquete o escanea su código para empezar.</p>
+            </div>
           ) : (
             <>
               <ul className="cuenta__items">
                 {carrito.map((item) => (
                   <li key={item.id_producto} className="item">
+                    <Tostadas nombre={item.nombre} className="item__foto" />
                     <div className="item__info">
                       <span className="item__nombre">{item.nombre}</span>
                       <span className="item__preciounidad">{formatMoney(item.precio)} c/u</span>

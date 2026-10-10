@@ -15,7 +15,6 @@
 
 .devolucion__main h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   margin: 0;
@@ -136,22 +135,14 @@
 .detalle {
   position: relative;
   background: var(--masa);
-  border-radius: 0 0 var(--radio-m) var(--radio-m);
+  border-radius: var(--radio-l);
+  border: 1px solid var(--linea);
   padding: 1.75rem 1.5rem 1.5rem;
   box-shadow: var(--sombra-card);
 }
 
 .detalle::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 0;
-  right: 0;
-  height: 18px;
-  background: radial-gradient(circle at 18px 0, var(--masa) 17px, transparent 18px) repeat-x
-    left top;
-  background-size: 36px 36px;
-  transform: translateY(-50%);
+  display: none;
 }
 
 .detalle__head {
@@ -363,7 +354,6 @@
 .devolucion__confirmado p {
   margin: 0;
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.3rem;
   color: var(--chile);

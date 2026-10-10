@@ -31,7 +31,6 @@
 .escaner__cabeza h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.15rem;
 }

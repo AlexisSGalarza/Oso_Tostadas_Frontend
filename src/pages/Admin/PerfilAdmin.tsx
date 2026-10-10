@@ -1,6 +1,11 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 import GraficaBarras from '../../components/GraficaBarras'
+import GraficaArea from '../../components/GraficaArea'
+import GraficaDona from '../../components/GraficaDona'
+import Tostadas from '../../components/Tostadas'
+import Icono, { type NombreIcono } from '../../components/Icono'
+import { useConteo } from '../../lib/conteo'
 import { formatClock, formatMoney, ZONA_HORARIA_MX } from '../../lib/format'
 import { api, ApiError, type AdminDashboard, type EmpleadoMe } from '../../lib/api'
 import './PerfilAdmin.css'
@@ -48,6 +53,44 @@ function plural(cantidad: number, uno: string, varios: string) {
   return `${cantidad} ${cantidad === 1 ? uno : varios}`
 }
 
+// Paleta categorica validada (daltonismo y contraste) para distinguir productos en la dona.
+const COLORES_PRODUCTO = ['#1f8a3b', '#dd9a00', '#d1492f', '#1a9a94', '#b0632a', '#7a56c2']
+
+type CifraProps = {
+  etiqueta: string
+  valor: number | null
+  formato: (valor: number) => string
+  icono: NombreIcono
+  nota: React.ReactNode
+  cambio?: number | null
+  principal?: boolean
+  indice: number
+}
+
+function Cifra({ etiqueta, valor, formato, icono, nota, cambio, principal, indice }: CifraProps) {
+  const animado = useConteo(valor ?? 0)
+  return (
+    <div className={`cifra entra ${principal ? 'cifra--principal' : ''}`} style={{ '--i': indice } as React.CSSProperties}>
+      <div className="cifra__texto">
+        <span className="cifra__etiqueta">{etiqueta}</span>
+        <span className="cifra__valor">
+          {valor === null ? '—' : formato(animado)}
+          {cambio !== null && cambio !== undefined && (
+            <span className={`cifra__cambio ${cambio >= 0 ? 'is-sube' : 'is-baja'}`}>
+              <Icono nombre={cambio >= 0 ? 'flecha-sube' : 'flecha-baja'} />
+              {Math.abs(cambio).toFixed(0)}%
+            </span>
+          )}
+        </span>
+        <span className="cifra__nota">{nota}</span>
+      </div>
+      <span className="cifra__icono" aria-hidden="true">
+        <Icono nombre={icono} />
+      </span>
+    </div>
+  )
+}
+
 type Props = {
   now: Date
   empleado: EmpleadoMe
@@ -90,7 +133,21 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
     resumen && resumen.utilidad_estimada !== null && resumen.costo_estimado !== null
       ? (resumen.utilidad_estimada / Math.max(resumen.utilidad_estimada + resumen.costo_estimado, 0.01)) * 100
       : null
-  const maxUnidades = Math.max(1, ...(dashboard?.productos_top.map((p) => p.cantidad) ?? []))
+  // El color sigue al producto (orden alfabetico fijo), no a su lugar en el ranking del dia.
+  const ordenProductos = [...(dashboard?.existencias ?? [])].map((e) => e.nombre).sort()
+  const top = dashboard?.productos_top ?? []
+  const directos = top.length > COLORES_PRODUCTO.length ? COLORES_PRODUCTO.length - 1 : top.length
+  const rebanadas = [
+    ...top.slice(0, directos).map((p) => ({
+      clave: p.nombre,
+      nombre: p.nombre,
+      valor: p.ingresos,
+      color: COLORES_PRODUCTO[Math.max(ordenProductos.indexOf(p.nombre), 0) % COLORES_PRODUCTO.length],
+    })),
+    ...(top.length > directos
+      ? [{ clave: 'otros', nombre: 'Otros', valor: top.slice(directos).reduce((s, p) => s + p.ingresos, 0), color: '#8c9488' }]
+      : []),
+  ]
 
   return (
     <div className="admin">
@@ -146,61 +203,67 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
         {dashboard && resumen && (
           <div className={`panel-cuerpo ${cargando ? 'is-cargando' : ''}`} aria-busy={cargando}>
             <section className="cifras" aria-label="Cifras del día">
-              <div className="cifra cifra--principal">
-                <span className="cifra__etiqueta">Ventas netas</span>
-                <span className="cifra__valor">{formatMoney(resumen.ventas_netas)}</span>
-                <span className="cifra__nota">
-                  {cambio === null ? (
-                    `Sin ventas el ${formatDia(resumen.comparacion.fecha, { weekday: 'long' })} pasado para comparar`
-                  ) : (
-                    <>
-                      <span className={`cifra__cambio ${cambio >= 0 ? 'is-sube' : 'is-baja'}`}>
-                        {cambio >= 0 ? '▲' : '▼'} {Math.abs(cambio).toFixed(0)}%
-                      </span>{' '}
-                      contra el {formatDia(resumen.comparacion.fecha, { weekday: 'long' })} pasado ({formatMoney(anterior)})
-                    </>
-                  )}
-                </span>
-              </div>
-              <div className="cifra">
-                <span className="cifra__etiqueta">Tickets</span>
-                <span className="cifra__valor">{resumen.tickets}</span>
-                <span className="cifra__nota">Promedio de {formatMoney(resumen.ticket_promedio)} por ticket</span>
-              </div>
-              <div className="cifra">
-                <span className="cifra__etiqueta">Paquetes vendidos</span>
-                <span className="cifra__valor">{resumen.paquetes}</span>
-                <span className="cifra__nota">
-                  {resumen.devoluciones_dia > 0
+              <Cifra
+                indice={0}
+                principal
+                etiqueta="Ventas netas"
+                valor={resumen.ventas_netas}
+                formato={(v) => formatMoney(Math.round(v * 100) / 100)}
+                icono="corte"
+                cambio={cambio}
+                nota={
+                  cambio === null
+                    ? `Sin ventas el ${formatDia(resumen.comparacion.fecha, { weekday: 'long' })} pasado para comparar`
+                    : `Contra el ${formatDia(resumen.comparacion.fecha, { weekday: 'long' })} pasado (${formatMoney(anterior)})`
+                }
+              />
+              <Cifra
+                indice={1}
+                etiqueta="Tickets"
+                valor={resumen.tickets}
+                formato={(v) => String(Math.round(v))}
+                icono="historial"
+                nota={`Promedio de ${formatMoney(resumen.ticket_promedio)} por ticket`}
+              />
+              <Cifra
+                indice={2}
+                etiqueta="Paquetes vendidos"
+                valor={resumen.paquetes}
+                formato={(v) => String(Math.round(v))}
+                icono="inventario"
+                nota={
+                  resumen.devoluciones_dia > 0
                     ? `Ya descontando ${formatMoney(resumen.devoluciones_dia)} en devoluciones`
-                    : 'Sin devoluciones'}
-                </span>
-              </div>
-              <div className="cifra">
-                <span className="cifra__etiqueta">Utilidad bruta estimada</span>
-                <span className="cifra__valor">
-                  {resumen.utilidad_estimada === null ? '—' : formatMoney(resumen.utilidad_estimada)}
-                </span>
-                <span className="cifra__nota">
-                  {margen === null
+                    : 'Sin devoluciones'
+                }
+              />
+              <Cifra
+                indice={3}
+                etiqueta="Utilidad bruta estimada"
+                valor={resumen.utilidad_estimada}
+                formato={(v) => formatMoney(Math.round(v * 100) / 100)}
+                icono="reportes"
+                nota={
+                  margen === null
                     ? resumen.tickets === 0
                       ? 'Se calcula con las recetas y el costo de los insumos'
                       : 'Falta la receta o el costo de algún producto vendido'
-                    : `Margen de ${margen.toFixed(0)}% sobre la venta sin IVA, según recetas`}
-                </span>
-              </div>
+                    : `Margen de ${margen.toFixed(0)}% sobre la venta sin IVA`
+                }
+              />
             </section>
 
             <div className="panel-rejilla">
-              <section className="tarjeta tarjeta--ancha">
+              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 4 } as React.CSSProperties}>
                 <h2 className="tarjeta__titulo">Ventas por hora</h2>
-                <GraficaBarras
+                <GraficaArea
+                  key={fechaSeleccionada}
                   descripcion="Ventas por hora del día"
                   formatear={formatMoney}
                   vacio={esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}
                   puntos={dashboard.ventas_por_hora.map((h, indice) => ({
                     clave: String(h.hora),
-                    eje: dashboard.ventas_por_hora.length > 10 && indice % 2 === 1 ? '' : String(h.hora),
+                    eje: dashboard.ventas_por_hora.length > 10 && indice % 2 === 1 ? '' : formatHora(h.hora),
                     titulo: `${formatHora(h.hora)} a ${formatHora(h.hora + 1)}`,
                     detalle: [formatMoney(h.ventas), plural(h.tickets, 'ticket', 'tickets')],
                     valor: h.ventas,
@@ -208,7 +271,59 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                 />
               </section>
 
-              <section className="tarjeta">
+              <section className="tarjeta entra" style={{ '--i': 5 } as React.CSSProperties}>
+                <h2 className="tarjeta__titulo">Ingreso por producto</h2>
+                <GraficaDona
+                  key={fechaSeleccionada}
+                  descripcion="Ingreso del día repartido por producto"
+                  etiquetaTotal="sin IVA"
+                  formatear={formatMoney}
+                  vacio={esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}
+                  rebanadas={rebanadas}
+                />
+              </section>
+
+              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 6 } as React.CSSProperties}>
+                <div className="tarjeta__cabeza">
+                  <h2 className="tarjeta__titulo">Lo más vendido</h2>
+                  <button type="button" className="tarjeta__enlace" onClick={onReportes}>
+                    Ver reportes
+                  </button>
+                </div>
+                {dashboard.productos_top.length === 0 ? (
+                  <p className="panel-nota">{esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}</p>
+                ) : (
+                  <table className="tabla">
+                    <thead>
+                      <tr>
+                        <th scope="col">Producto</th>
+                        <th scope="col" className="es-numero">
+                          Paquetes
+                        </th>
+                        <th scope="col" className="es-numero">
+                          Ingreso
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboard.productos_top.slice(0, 5).map((producto) => (
+                        <tr key={producto.nombre}>
+                          <td>
+                            <span className="tabla__producto">
+                              <Tostadas nombre={producto.nombre} className="tabla__foto" />
+                              {producto.nombre}
+                            </span>
+                          </td>
+                          <td className="es-numero">{producto.cantidad}</td>
+                          <td className="es-numero">{formatMoney(producto.ingresos)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </section>
+
+              <section className="tarjeta entra" style={{ '--i': 7 } as React.CSSProperties}>
                 <h2 className="tarjeta__titulo">Cómo pagaron</h2>
                 {cobrado <= 0 ? (
                   <p className="panel-nota">Sin cobros registrados.</p>
@@ -244,13 +359,8 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                 </dl>
               </section>
 
-              <section className="tarjeta tarjeta--ancha">
-                <div className="tarjeta__cabeza">
-                  <h2 className="tarjeta__titulo">Últimos 7 días</h2>
-                  <button type="button" className="tarjeta__enlace" onClick={onReportes}>
-                    Ver reportes
-                  </button>
-                </div>
+              <section className="tarjeta tarjeta--ancha entra" style={{ '--i': 8 } as React.CSSProperties}>
+                <h2 className="tarjeta__titulo">Últimos 7 días</h2>
                 <GraficaBarras
                   descripcion="Ventas de los últimos 7 días; elige una barra para ver ese día"
                   formatear={formatMoney}
@@ -267,28 +377,23 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                 />
               </section>
 
-              <section className="tarjeta">
-                <h2 className="tarjeta__titulo">Lo más vendido</h2>
-                {dashboard.productos_top.length === 0 ? (
-                  <p className="panel-nota">{esHoy ? 'Todavía no hay ventas hoy.' : 'No hubo ventas ese día.'}</p>
+              <section className="tarjeta entra" style={{ '--i': 9 } as React.CSSProperties}>
+                <h2 className="tarjeta__titulo">Pendientes</h2>
+                {dashboard.pendientes.length === 0 ? (
+                  <p className="panel-nota">Sin pendientes por ahora.</p>
                 ) : (
-                  <ol className="top">
-                    {dashboard.productos_top.slice(0, 5).map((producto) => (
-                      <li key={producto.nombre}>
-                        <div className="pagos__fila">
-                          <span>{producto.nombre}</span>
-                          <span className="pagos__monto">{plural(producto.cantidad, 'paquete', 'paquetes')}</span>
-                        </div>
-                        <span className="medidor">
-                          <span style={{ width: `${(producto.cantidad / maxUnidades) * 100}%` }} />
-                        </span>
+                  <ul className="pendientes__lista">
+                    {dashboard.pendientes.map((pendiente, index) => (
+                      <li key={index} className={`pendiente is-${pendiente.severidad}`}>
+                        <span className="pendiente__tipo">{pendiente.severidad === 'urgente' ? 'Urgente' : 'Aviso'}</span>
+                        {pendiente.texto}
                       </li>
                     ))}
-                  </ol>
+                  </ul>
                 )}
               </section>
 
-              <section className="tarjeta tarjeta--ancha" aria-label="Libro de turnos">
+              <section className="tarjeta tarjeta--completa" aria-label="Libro de turnos">
                 <h2 className="tarjeta__titulo">Turnos del día</h2>
                 {dashboard.turnos.length === 0 ? (
                   <p className="panel-nota">{esHoy ? 'Todavía no hay turnos hoy.' : 'No hubo turnos ese día.'}</p>
@@ -336,22 +441,6 @@ function PerfilAdmin({ now, empleado, onCerrarSesion, onVerTurno, onReportes, on
                       })}
                     </ul>
                   </>
-                )}
-              </section>
-
-              <section className="tarjeta">
-                <h2 className="tarjeta__titulo">Pendientes</h2>
-                {dashboard.pendientes.length === 0 ? (
-                  <p className="panel-nota">Sin pendientes por ahora.</p>
-                ) : (
-                  <ul className="pendientes__lista">
-                    {dashboard.pendientes.map((pendiente, index) => (
-                      <li key={index} className={`pendiente is-${pendiente.severidad}`}>
-                        <span className="pendiente__tipo">{pendiente.severidad === 'urgente' ? 'Urgente' : 'Aviso'}</span>
-                        {pendiente.texto}
-                      </li>
-                    ))}
-                  </ul>
                 )}
               </section>
 

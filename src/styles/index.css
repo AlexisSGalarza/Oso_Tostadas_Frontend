@@ -1,39 +1,48 @@
 :root {
   /* Marca */
   --verde-tinta: #16301f;
-  --verde-tinta-2: #1e3f28;
-  --verde-salsa: #44733a;
-  --verde-salsa-dark: #345a2c;
-  --verde-brote: #a3ca4a;
-  --masa: #f4ecd8;
-  --tostado: #7a4f2c;
-  --tinta: #1f1c15;
-  --chile: #b23a2e;
-  --chile-dark: #8f2e24;
+  --verde-tinta-2: #1e4029;
+  --verde-salsa: #2f6b3a;
+  --verde-salsa-dark: #24552d;
+  --verde-brote: #a9d14f;
+  --tostado: #6c5a45;
+  --tinta: #17201a;
+  --chile: #c2412f;
+  --chile-dark: #99301f;
+  --maiz: #e7b53c;
 
   /* Superficies y lineas */
-  --page: #f6f3ea;
-  --surface: #fffdf8;
-  --linea: #e7dfcc;
-  --linea-fuerte: #d3c7ac;
-  --hover: rgba(122, 79, 44, 0.08);
-  --hover-verde: rgba(68, 115, 58, 0.08);
-  --brote-suave: rgba(163, 202, 74, 0.22);
-  --chile-suave: rgba(178, 58, 46, 0.1);
+  --page: #f2f1e6;
+  --surface: #ffffff;
+  --masa: #ffffff;
+  --linea: #dfe4d3;
+  --linea-fuerte: #b7c6a8;
+  --hover: rgba(22, 48, 31, 0.06);
+  --hover-verde: rgba(47, 107, 58, 0.09);
+  --brote-suave: #e6f2c9;
+  --chile-suave: #fbe4df;
 
   /* Forma */
-  --radio-s: 6px;
-  --radio-m: 10px;
-  --radio-l: 14px;
-  --sombra-card: 0 1px 2px rgba(22, 48, 31, 0.06), 0 8px 24px -16px rgba(22, 48, 31, 0.28);
-  --sombra-flotante: 0 24px 60px -24px rgba(22, 48, 31, 0.45);
-  --anillo: 0 0 0 3px rgba(163, 202, 74, 0.45);
+  --radio-s: 14px;
+  --radio-m: 20px;
+  --radio-l: 28px;
+  --sombra-card: 0 1px 0 rgba(22, 48, 31, 0.03);
+  --sombra-flotante: 0 24px 60px -24px rgba(22, 48, 31, 0.4);
+  --anillo: 0 0 0 4px rgba(169, 209, 79, 0.45);
 
-  --ancho-menu: 15rem;
+  /* Movimiento: una sola familia de curvas y duraciones para toda la app */
+  --sale: cubic-bezier(0.22, 1, 0.36, 1);
+  --rebota: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --rapido: 140ms;
+  --medio: 260ms;
+  --lento: 480ms;
 
-  --font-display: 'Fraunces', ui-serif, Georgia, serif;
-  --font-body: 'Public Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ancho-menu: 16.5rem;
+
+  --font-display: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body: 'Work Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Los montos usan la misma familia geometrica, con cifras de ancho fijo */
+  --font-mono: 'Outfit', ui-sans-serif, system-ui, sans-serif;
 
   color-scheme: light;
 }
@@ -93,6 +102,50 @@ button {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* ---------- Movimiento compartido ---------- */
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes aparece {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes salta {
+  0% {
+    transform: scale(0.4);
+  }
+  70% {
+    transform: scale(1.18);
+  }
+}
+
+/* Entrada escalonada: cada elemento define --i con su posicion en la lista. */
+.entra {
+  animation: entra var(--lento) var(--sale) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 @media (prefers-reduced-motion: reduce) {

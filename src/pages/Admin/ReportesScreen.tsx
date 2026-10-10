@@ -107,7 +107,7 @@ function ReportesScreen({ now, onVolver, onCerrarSesion }: Props) {
                   <li className="producto-fila" key={producto.nombre}>
                     <div className="producto-fila__cabeza">
                       <span className="producto-fila__nombre">{producto.nombre}</span>
-                      <span className="producto-fila__cantidad">{producto.cantidad} paquetes</span>
+                      <span className="producto-fila__cantidad">{producto.cantidad} {producto.cantidad === 1 ? 'paquete' : 'paquetes'}</span>
                     </div>
                     <span className="producto-fila__pista">
                       <span

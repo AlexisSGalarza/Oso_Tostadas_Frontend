@@ -18,7 +18,6 @@
 
 .reportes__main h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   margin: 0;
@@ -78,7 +77,6 @@
 
 .panel__titulo {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.1rem;
   margin: 0 0 1.1rem;
@@ -239,5 +237,40 @@
   .semana,
   .productos {
     padding: 1.25rem 1.1rem 1rem;
+  }
+}
+
+/* ---------- Rediseño ---------- */
+
+.resumen__item,
+.semana,
+.productos {
+  border-radius: var(--radio-l);
+}
+
+.resumen__valor {
+  font-weight: 600;
+}
+
+.barra__pista,
+.producto-fila__pista {
+  height: 0.65rem;
+  background: var(--page);
+}
+
+.barra__relleno,
+.producto-fila__relleno {
+  background: var(--verde-tinta);
+  transform-origin: left;
+  animation: reporte-crece var(--lento) var(--sale) both;
+}
+
+.barra__relleno {
+  background: var(--verde-brote);
+}
+
+@keyframes reporte-crece {
+  from {
+    transform: scaleX(0);
   }
 }

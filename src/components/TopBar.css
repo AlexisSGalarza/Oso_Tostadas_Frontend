@@ -32,7 +32,6 @@
 
 .topbar__name {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: -0.01em;
@@ -109,9 +108,30 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--surface);
+  padding-block: 0.75rem;
+  background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(10px);
   color: var(--tinta);
-  border-bottom: 1px solid var(--linea);
+}
+
+.topbar--shell .topbar__sucursal,
+.topbar--shell .topbar__clock {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--linea);
+  font-weight: 500;
+}
+
+.topbar--shell .topbar__meta {
+  gap: 0.5rem;
+}
+
+.topbar--shell .topbar__menu {
+  background: var(--surface);
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  margin-left: 0;
 }
 
 .topbar--shell .topbar__meta {

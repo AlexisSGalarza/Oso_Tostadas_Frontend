@@ -28,7 +28,6 @@
 
 .panel-cabeza h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   margin: 0;
@@ -210,7 +209,6 @@
 
 .tarjeta__titulo {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1.1rem;
   margin: 0 0 1rem;
@@ -563,5 +561,202 @@
 
   .panel-fecha__campo {
     flex: 1;
+  }
+}
+
+/* ---------- Rediseño: cifras con icono, tablas limpias ---------- */
+
+.panel-cabeza h1 {
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+}
+
+.cifras {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cifra {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: var(--radio-l);
+}
+
+.cifra__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.cifra__valor {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 600;
+}
+
+.cifra--principal .cifra__valor {
+  font-size: 1.85rem;
+}
+
+.cifra__icono {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brote-suave);
+  color: var(--verde-salsa-dark);
+}
+
+.cifra__icono svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.cifra--principal .cifra__icono {
+  background: var(--verde-brote);
+  color: var(--verde-tinta);
+}
+
+.cifra__cambio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.3rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cifra__cambio svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke-width: 2.2;
+}
+
+.cifra__cambio.is-sube {
+  background: var(--verde-brote);
+  color: var(--verde-tinta);
+}
+
+.cifra__cambio.is-baja {
+  background: var(--chile-suave);
+  color: var(--chile-dark);
+}
+
+.tarjeta {
+  padding: 1.4rem;
+  border-radius: var(--radio-l);
+}
+
+.tarjeta__titulo {
+  font-size: 1.2rem;
+}
+
+.tarjeta__enlace,
+.panel-fecha__boton,
+.panel-fecha__hoy,
+.panel-fecha__campo {
+  border-radius: 999px;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.tabla th {
+  padding: 0 0 0.6rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tostado);
+  border-bottom: 1px solid var(--linea);
+}
+
+.tabla td {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla .es-numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla__producto {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.tabla__foto {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: var(--radio-s);
+}
+
+.tabla__foto .tostadas__piezas {
+  display: none;
+}
+
+.medidor {
+  height: 0.65rem;
+}
+
+.medidor span {
+  background: var(--verde-tinta);
+  transform-origin: left;
+  animation: medidor-crece var(--lento) var(--sale) both;
+}
+
+@keyframes medidor-crece {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.caja dd {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.existencia {
+  border-radius: var(--radio-m);
+  border-left-width: 6px;
+}
+
+.existencia__dias {
+  font-family: var(--font-display);
+}
+
+@media (max-width: 1180px) {
+  .cifras {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .cifras {
+    grid-template-columns: 1fr;
+  }
+
+  .tabla__foto {
+    display: none;
   }
 }

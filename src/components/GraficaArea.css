@@ -1,0 +1,160 @@
+.area {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 13rem auto;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
+}
+
+.area__ejey {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--tostado);
+}
+
+.area__lienzo {
+  position: relative;
+  min-width: 0;
+}
+
+.area__lienzo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.area__linea {
+  fill: none;
+  stroke: var(--verde-salsa);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* La curva se descubre de izquierda a derecha, como si se dibujara. */
+.area__lienzo svg {
+  animation: area-traza 900ms var(--sale) both;
+}
+
+@keyframes area-traza {
+  from {
+    clip-path: inset(-10% 100% -10% 0);
+  }
+  to {
+    clip-path: inset(-10% -2% -10% 0);
+  }
+}
+
+.area__zonas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.area__zona {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: crosshair;
+}
+
+.area__zona:active {
+  transform: none !important;
+}
+
+.area__zona:focus-visible {
+  outline: 2px solid var(--verde-salsa);
+  outline-offset: -2px;
+  border-radius: var(--radio-s);
+}
+
+.area__guia {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1.5px dashed var(--linea-fuerte);
+  pointer-events: none;
+}
+
+.area__marca {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--verde-salsa);
+  box-shadow: 0 0 0 1.5px var(--verde-salsa);
+  pointer-events: none;
+  transition: left var(--rapido) var(--sale), top var(--rapido) var(--sale);
+}
+
+.area__globo {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 16px));
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radio-s);
+  background: var(--verde-tinta);
+  color: var(--surface);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--sombra-flotante);
+  transition: left var(--rapido) var(--sale), top var(--rapido) var(--sale);
+}
+
+.area__globo.is-izq {
+  transform: translate(-12%, calc(-100% - 16px));
+}
+
+.area__globo.is-der {
+  transform: translate(-88%, calc(-100% - 16px));
+}
+
+.area__ejex {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--tostado);
+}
+
+.area__ejex span {
+  width: 0;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.area__ejex span.is-activa {
+  color: var(--tinta);
+  font-weight: 700;
+}
+
+.area__vacio {
+  margin: 0;
+  padding: 4rem 1rem;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--tostado);
+}
+
+@media (max-width: 560px) {
+  .area {
+    grid-template-rows: 10.5rem auto;
+  }
+}
