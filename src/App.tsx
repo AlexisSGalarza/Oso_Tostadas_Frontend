@@ -12,6 +12,7 @@ import InventarioScreen from './pages/Admin/InventarioScreen'
 import ProveedoresScreen from './pages/Admin/ProveedoresScreen'
 import ConfiguracionScreen from './pages/Admin/ConfiguracionScreen'
 import AuditoriaScreen from './pages/Admin/AuditoriaScreen'
+import FacturasScreen from './pages/Admin/FacturasScreen'
 import AdminTurnoDetalleScreen from './pages/Admin/AdminTurnoDetalleScreen'
 import AppShell, { type ItemMenu } from './components/AppShell'
 import type { Devolucion, MetodoPago, Venta } from './pages/Vendedor/types'
@@ -31,6 +32,7 @@ type Screen =
   | 'proveedores'
   | 'configuracion'
   | 'auditoria'
+  | 'facturas'
   | 'turno-detalle'
 
 const BASE_TICKET = 428
@@ -38,6 +40,7 @@ const BASE_TICKET = 428
 const MENU_ADMIN: ItemMenu[] = [
   { id: 'perfil-admin', etiqueta: 'Panel', icono: 'inicio' },
   { id: 'reportes', etiqueta: 'Reportes', icono: 'reportes' },
+  { id: 'facturas', etiqueta: 'Facturas', icono: 'facturas' },
   { id: 'inventario', etiqueta: 'Inventario', icono: 'inventario' },
   { id: 'proveedores', etiqueta: 'Proveedores', icono: 'proveedores' },
   { id: 'usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
@@ -223,6 +226,8 @@ function App() {
         return <ProveedoresScreen {...comunes} onVolver={volverAdmin} />
       case 'configuracion':
         return <ConfiguracionScreen {...comunes} onVolver={volverAdmin} />
+      case 'facturas':
+        return <FacturasScreen {...comunes} onVolver={volverAdmin} />
       case 'auditoria':
         return <AuditoriaScreen {...comunes} onVolver={volverAdmin} />
       case 'turno-detalle':

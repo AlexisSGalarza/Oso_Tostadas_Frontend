@@ -264,13 +264,17 @@ export type TicketPublico = {
   folio: number
   fecha: string
   creado_en: string | null
+  subtotal: number
+  impuesto: number
   total: number
   detalles: DetalleVentaDto[]
   facturado: boolean
+  // Texto listo para mostrar cuando el ticket no se puede facturar (plazo vencido, sin pago, etc.)
+  motivo_no_facturable: string | null
 }
 
-export type UsoCfdi = 'G01' | 'G03' | 'P01'
-export type RegimenFiscal = '616' | '621' | '612' | '601'
+export type UsoCfdi = 'G01' | 'G03' | 'S01'
+export type RegimenFiscal = '601' | '603' | '605' | '606' | '612' | '616' | '621' | '625' | '626'
 
 export type DatosFiscales = {
   rfc: string
@@ -281,11 +285,48 @@ export type DatosFiscales = {
   uso_cfdi: UsoCfdi
 }
 
+export type ModoFactura = 'pruebas' | 'produccion'
+
 export type FacturaGenerada = {
   folio_fiscal: string
+  serie: string
+  folio: number
   correo: string
+  correo_enviado: boolean
   fecha_emision: string
+  modo: ModoFactura
   url_pdf: string
+  url_xml: string
+}
+
+export type FacturaAdmin = {
+  id_factura: number
+  serie: string
+  folio: number
+  folio_fiscal: string
+  id_venta: number
+  razon_social: string
+  rfc_receptor: string
+  correo: string
+  uso_cfdi: string
+  subtotal: number
+  impuesto: number
+  total: number
+  estado: string
+  modo: ModoFactura
+  fecha_emision: string
+  correo_enviado: boolean
+}
+
+export type FacturasAdmin = {
+  configuracion: {
+    pac: string
+    modo: ModoFactura
+    emisor_rfc: string
+    emisor_nombre: string
+    dias_para_facturar: number
+  }
+  facturas: FacturaAdmin[]
 }
 
 export const api = {
@@ -497,16 +538,26 @@ export const api = {
     return request<TurnoDetalleAdmin>(`/admin/turnos/${idTurno}/`)
   },
 
-  // --- Cliente ---
+  // --- Facturacion ---
 
-  buscarTicketPublico(folio: string) {
-    return request<TicketPublico>(`/publico/tickets/${folio}/`)
+  facturasAdmin() {
+    return request<FacturasAdmin>('/admin/facturas/')
   },
 
-  generarFacturaPublica(idVenta: number, datos: DatosFiscales) {
+  // El total impreso en el ticket hace de segunda llave: sin el, no se muestra la compra.
+  buscarTicketPublico(folio: string, total: string) {
+    return request<TicketPublico>(`/publico/tickets/${folio}/?total=${encodeURIComponent(total)}`)
+  },
+
+  generarFacturaPublica(idVenta: number, datos: DatosFiscales, total: number) {
     return request<FacturaGenerada>(`/publico/tickets/${idVenta}/factura/`, {
       method: 'POST',
-      body: JSON.stringify(datos),
+      body: JSON.stringify({ ...datos, total }),
     })
+  },
+
+  // Enlace directo al PDF o XML; el folio fiscal es la llave, no requiere sesion.
+  urlArchivoFactura(folioFiscal: string, formato: 'pdf' | 'xml') {
+    return `${API_URL}/publico/facturas/${folioFiscal}/${formato}/`
   },
 }
