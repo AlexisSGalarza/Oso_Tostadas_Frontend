@@ -688,3 +688,76 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Buscador, fechas y orden ---------- */
+
+.filtros-f {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.filtros-f .facturas__buscador {
+  flex: 1 1 16rem;
+  max-width: none;
+  min-height: 48px;
+  margin-bottom: 0;
+}
+
+.filtros-f__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.filtros-f__campo label {
+  padding-left: 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tostado);
+}
+
+.filtros-f__campo input,
+.filtros-f__campo select {
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--tinta);
+  font-size: 0.9rem;
+}
+
+.filtros-f__campo input:focus-visible,
+.filtros-f__campo select:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: var(--anillo);
+}
+
+.filtros-f__limpiar {
+  min-height: 48px;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--verde-salsa-dark);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.filtros-f__limpiar:hover {
+  background: var(--hover-verde);
+}
+
+@media (max-width: 560px) {
+  .filtros-f__campo {
+    flex: 1 1 8rem;
+  }
+
+  .filtros-f__campo:has(select) {
+    flex-basis: 100%;
+  }
+}

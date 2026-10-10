@@ -34,6 +34,95 @@ function resumenDe(venta: VentaPorFacturar) {
   return venta.detalles.map((d) => `${d.unidades}× ${d.producto}`).join(', ')
 }
 
+type Orden = 'recientes' | 'antiguas' | 'mayor' | 'menor'
+
+type Filtros = { texto: string; desde: string; hasta: string; orden: Orden }
+
+const FILTROS_VACIOS: Filtros = { texto: '', desde: '', hasta: '', orden: 'recientes' }
+
+// Dia en horario de Mexico (AAAA-MM-DD), para comparar contra los campos de fecha.
+function diaDe(iso: string) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ZONA_HORARIA_MX }).format(new Date(iso))
+}
+
+// Filtra por rango de fechas y ordena por fecha o por total.
+function filtrarYOrdenar<T>(filas: T[], filtros: Filtros, fechaDe: (fila: T) => string, totalDe: (fila: T) => number) {
+  const enRango = filas.filter((fila) => {
+    const dia = diaDe(fechaDe(fila))
+    return (!filtros.desde || dia >= filtros.desde) && (!filtros.hasta || dia <= filtros.hasta)
+  })
+  const porFecha = (a: T, b: T) => new Date(fechaDe(a)).getTime() - new Date(fechaDe(b)).getTime()
+  const comparar: Record<Orden, (a: T, b: T) => number> = {
+    recientes: (a, b) => porFecha(b, a),
+    antiguas: porFecha,
+    mayor: (a, b) => totalDe(b) - totalDe(a),
+    menor: (a, b) => totalDe(a) - totalDe(b),
+  }
+  return [...enRango].sort(comparar[filtros.orden])
+}
+
+type BarraFiltrosProps = {
+  id: string
+  filtros: Filtros
+  onCambiar: (filtros: Filtros) => void
+  placeholder: string
+  etiquetaBusqueda: string
+}
+
+function BarraFiltros({ id, filtros, onCambiar, placeholder, etiquetaBusqueda }: BarraFiltrosProps) {
+  const activos = filtros.texto || filtros.desde || filtros.hasta || filtros.orden !== 'recientes'
+  return (
+    <div className="filtros-f">
+      <input
+        type="search"
+        className="facturas__buscador"
+        placeholder={placeholder}
+        aria-label={etiquetaBusqueda}
+        value={filtros.texto}
+        onChange={(event) => onCambiar({ ...filtros, texto: event.target.value })}
+      />
+      <div className="filtros-f__campo">
+        <label htmlFor={`${id}-desde`}>Desde</label>
+        <input
+          id={`${id}-desde`}
+          type="date"
+          value={filtros.desde}
+          max={filtros.hasta || undefined}
+          onChange={(event) => onCambiar({ ...filtros, desde: event.target.value })}
+        />
+      </div>
+      <div className="filtros-f__campo">
+        <label htmlFor={`${id}-hasta`}>Hasta</label>
+        <input
+          id={`${id}-hasta`}
+          type="date"
+          value={filtros.hasta}
+          min={filtros.desde || undefined}
+          onChange={(event) => onCambiar({ ...filtros, hasta: event.target.value })}
+        />
+      </div>
+      <div className="filtros-f__campo">
+        <label htmlFor={`${id}-orden`}>Ordenar por</label>
+        <select
+          id={`${id}-orden`}
+          value={filtros.orden}
+          onChange={(event) => onCambiar({ ...filtros, orden: event.target.value as Orden })}
+        >
+          <option value="recientes">Más recientes primero</option>
+          <option value="antiguas">Más antiguas primero</option>
+          <option value="mayor">Total: de mayor a menor</option>
+          <option value="menor">Total: de menor a mayor</option>
+        </select>
+      </div>
+      {activos && (
+        <button type="button" className="filtros-f__limpiar" onClick={() => onCambiar(FILTROS_VACIOS)}>
+          Quitar filtros
+        </button>
+      )}
+    </div>
+  )
+}
+
 type Props = {
   now: Date
   onVolver: () => void
@@ -45,8 +134,8 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [pendientes, setPendientes] = useState<VentaPorFacturar[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
-  const [busqueda, setBusqueda] = useState('')
-  const [busquedaCompras, setBusquedaCompras] = useState('')
+  const [filtrosFacturas, setFiltrosFacturas] = useState<Filtros>(FILTROS_VACIOS)
+  const [filtrosCompras, setFiltrosCompras] = useState<Filtros>(FILTROS_VACIOS)
 
   // Compra elegida para facturar y su formulario
   const [venta, setVenta] = useState<VentaPorFacturar | null>(null)
@@ -133,28 +222,40 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
   }
 
   // Busca por numero de ticket, producto, cajero, forma de pago o total.
-  const terminoCompras = busquedaCompras.trim().toLowerCase().replace(/^#/, '')
-  const compras = pendientes.filter((p) => {
-    if (!terminoCompras) return true
-    const pago = p.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
-    return (
-      String(p.id_venta).includes(terminoCompras) ||
-      resumenDe(p).toLowerCase().includes(terminoCompras) ||
-      p.cajero.toLowerCase().includes(terminoCompras) ||
-      pago.includes(terminoCompras) ||
-      p.total.toFixed(2).includes(terminoCompras.replace('$', ''))
-    )
-  })
+  const terminoCompras = filtrosCompras.texto.trim().toLowerCase().replace(/^#/, '')
+  const compras = filtrarYOrdenar(
+    pendientes.filter((p) => {
+      if (!terminoCompras) return true
+      const pago = p.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo'
+      return (
+        String(p.id_venta).includes(terminoCompras) ||
+        resumenDe(p).toLowerCase().includes(terminoCompras) ||
+        p.cajero.toLowerCase().includes(terminoCompras) ||
+        pago.includes(terminoCompras) ||
+        p.total.toFixed(2).includes(terminoCompras.replace('$', ''))
+      )
+    }),
+    filtrosCompras,
+    (p) => p.creado_en ?? `${p.fecha}T12:00:00`,
+    (p) => p.total,
+  )
+  const comprasFiltradas =
+    terminoCompras || filtrosCompras.desde || filtrosCompras.hasta || filtrosCompras.orden !== 'recientes'
 
-  const termino = busqueda.trim().toLowerCase()
-  const facturas = (datos?.facturas ?? []).filter(
-    (f) =>
-      !termino ||
-      f.razon_social.toLowerCase().includes(termino) ||
-      f.rfc_receptor.toLowerCase().includes(termino) ||
-      f.folio_fiscal.toLowerCase().includes(termino) ||
-      String(f.id_venta) === termino ||
-      `${f.serie}-${f.folio}`.toLowerCase() === termino,
+  const termino = filtrosFacturas.texto.trim().toLowerCase()
+  const facturas = filtrarYOrdenar(
+    (datos?.facturas ?? []).filter(
+      (f) =>
+        !termino ||
+        f.razon_social.toLowerCase().includes(termino) ||
+        f.rfc_receptor.toLowerCase().includes(termino) ||
+        f.folio_fiscal.toLowerCase().includes(termino) ||
+        String(f.id_venta) === termino ||
+        `${f.serie}-${f.folio}`.toLowerCase() === termino,
+    ),
+    filtrosFacturas,
+    (f) => f.fecha_emision,
+    (f) => f.total,
   )
 
   return (
@@ -187,24 +288,21 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
                 </p>
               ) : (
                 <>
-                <input
-                  type="search"
-                  className="facturas__buscador"
+                <BarraFiltros
+                  id="compras"
+                  filtros={filtrosCompras}
+                  onCambiar={setFiltrosCompras}
                   placeholder="Buscar por ticket, producto, cajero o total"
-                  aria-label="Buscar compras por facturar"
-                  value={busquedaCompras}
-                  onChange={(event) => setBusquedaCompras(event.target.value)}
+                  etiquetaBusqueda="Buscar compras por facturar"
                 />
-                {compras.length === 0 && (
-                  <p className="facturas__vacio">Ninguna compra coincide con “{busquedaCompras.trim()}”.</p>
-                )}
+                {compras.length === 0 && <p className="facturas__vacio">Ninguna compra coincide con los filtros.</p>}
                 <ul className="compras">
                   {compras.map((p, indice) => (
                     <li key={p.id_venta}>
                       <button
                         type="button"
                         className="compra entra"
-                        style={{ '--i': terminoCompras ? 0 : Math.min(indice, 12) } as CSSProperties}
+                        style={{ '--i': comprasFiltradas ? 0 : Math.min(indice, 12) } as CSSProperties}
                         onClick={() => elegir(p)}
                       >
                         <Tostadas nombre={p.detalles[0]?.producto ?? ''} className="compra__foto" />
@@ -235,13 +333,12 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
                 <p className="facturas__vacio">Todavía no se ha emitido ninguna factura.</p>
               ) : (
                 <>
-                  <input
-                    type="search"
-                    className="facturas__buscador"
+                  <BarraFiltros
+                    id="emitidas"
+                    filtros={filtrosFacturas}
+                    onCambiar={setFiltrosFacturas}
                     placeholder="Buscar por cliente, RFC, folio o número de ticket"
-                    aria-label="Buscar facturas"
-                    value={busqueda}
-                    onChange={(event) => setBusqueda(event.target.value)}
+                    etiquetaBusqueda="Buscar facturas emitidas"
                   />
 
                   <div className="facturas__tabla-caja">
@@ -287,7 +384,7 @@ function FacturasScreen({ now, onVolver, onCerrarSesion }: Props) {
                       </tbody>
                     </table>
                   </div>
-                  {facturas.length === 0 && <p className="facturas__pie">Ninguna factura coincide con la búsqueda.</p>}
+                  {facturas.length === 0 && <p className="facturas__pie">Ninguna factura coincide con los filtros.</p>}
                 </>
               )}
             </section>
