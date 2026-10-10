@@ -287,6 +287,13 @@ function VentaScreen({
               placeholder="Busca un paquete o escanea su código"
               value={codigoManual}
               onChange={(event) => setCodigoManual(event.target.value)}
+              onKeyDown={(event) => {
+                // Lectores que terminan con Tab en lugar de Enter: si lo escrito es un codigo, se agrega igual.
+                if (event.key === 'Tab' && productos.some((p) => mismoCodigo(p.codigo_barras, codigoManual))) {
+                  event.preventDefault()
+                  event.currentTarget.form?.requestSubmit()
+                }
+              }}
             />
             <button
               type="button"

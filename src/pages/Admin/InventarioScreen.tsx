@@ -3,6 +3,7 @@ import TopBar from '../../components/TopBar'
 import { EsqueletoLista } from '../../components/Esqueleto'
 import { formatClock, formatMoney } from '../../lib/format'
 import { api, ApiError, type InsumoAdmin, type ProductoAdmin, type Proveedor } from '../../lib/api'
+import { generarEan13Interno } from '../../lib/escaner'
 import './InventarioScreen.css'
 
 type Estado = 'bien' | 'bajo' | 'agotado'
@@ -510,7 +511,7 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
                             <button
                               type="button"
                               className="ifila__entrada"
-                              onClick={() => setCodigoValor(`OSO-${String(producto.id_producto).padStart(4, '0')}`)}
+                              onClick={() => setCodigoValor(generarEan13Interno(producto.id_producto))}
                             >
                               Generar uno
                             </button>

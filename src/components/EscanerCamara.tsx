@@ -12,16 +12,14 @@ type Props = {
   onCerrar: () => void
 }
 
-// La API nativa aun no viene en los tipos de TypeScript.
-type DetectorNativo = { detect: (fuente: HTMLVideoElement) => Promise<{ rawValue: string }[]> }
-type ConstructorDetector = {
-  new (opciones?: { formats: string[] }): DetectorNativo
-  getSupportedFormats?: () => Promise<string[]>
-}
-
-const FORMATOS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'codabar', 'qr_code']
+// Formatos que puede traer un paquete: los de tienda (EAN/UPC) y los que imprime el sistema.
+const FORMATOS = ['EAN13', 'EAN8', 'UPCA', 'UPCE', 'Code128', 'Code39', 'ITF', 'Codabar'] as const
 // No registrar dos veces el mismo paquete por dejarlo un instante de mas frente a la camara.
 const PAUSA_MISMO_CODIGO_MS = 1800
+const PAUSA_ENTRE_CUADROS_MS = 90
+// Mas resolucion no mejora la lectura y si la vuelve lenta en telefonos modestos.
+const ANCHO_MAXIMO = 1280
+const SEGUNDOS_PARA_AYUDA = 8
 
 function mensajeDeError(error: unknown) {
   const nombre = error instanceof DOMException ? error.name : ''
@@ -42,6 +40,17 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
   const onCodigoRef = useRef(onCodigo)
   const [estado, setEstado] = useState<'iniciando' | 'leyendo' | 'error'>('iniciando')
   const [error, setError] = useState('')
+  const [tardando, setTardando] = useState(false)
+
+  // Si pasan unos segundos sin leer nada, se muestra un consejo; cada lectura lo reinicia.
+  useEffect(() => {
+    if (estado !== 'leyendo') return
+    const id = setTimeout(() => setTardando(true), SEGUNDOS_PARA_AYUDA * 1000)
+    return () => {
+      clearTimeout(id)
+      setTardando(false)
+    }
+  }, [estado, aviso])
 
   useEffect(() => {
     onCodigoRef.current = onCodigo
@@ -71,7 +80,7 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
         })
       } catch (err) {
         if (cancelado) return
@@ -87,32 +96,48 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
       video.srcObject = stream
       await video.play().catch(() => {})
 
-      const Detector = (window as unknown as { BarcodeDetector?: ConstructorDetector }).BarcodeDetector
-      if (Detector) {
-        // Chrome y Android traen el lector integrado: es mas rapido y no descarga nada.
-        const soportados = (await Detector.getSupportedFormats?.().catch(() => null)) ?? FORMATOS
-        const detector = new Detector({ formats: FORMATOS.filter((formato) => soportados.includes(formato)) })
-        let activo = true
-        const leer = async () => {
-          if (!activo) return
-          if (video.readyState >= 2) {
-            const hallados = await detector.detect(video).catch(() => [])
-            if (hallados[0]) entregar(hallados[0].rawValue)
-          }
-          setTimeout(leer, 160)
+      // Enfoque continuo donde el dispositivo lo permite (casi todos los telefonos).
+      const pista = stream.getVideoTracks()[0]
+      pista
+        ?.applyConstraints({ advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet] })
+        .catch(() => {})
+
+      // ZXing (compilado a WebAssembly) lee igual en todos los navegadores, tolera
+      // etiquetas inclinadas o algo desenfocadas, y se descarga solo al abrir la camara.
+      const [{ prepareZXingModule, readBarcodes }, { default: wasmUrl }] = await Promise.all([
+        import('zxing-wasm/reader'),
+        import('zxing-wasm/reader/zxing_reader.wasm?url'),
+      ])
+      if (cancelado) return
+      prepareZXingModule({
+        overrides: { locateFile: (ruta: string, prefijo: string) => (ruta.endsWith('.wasm') ? wasmUrl : prefijo + ruta) },
+      })
+
+      const lienzo = document.createElement('canvas')
+      const pincel = lienzo.getContext('2d', { willReadFrequently: true })
+      let activo = true
+      const leer = async () => {
+        if (!activo) return
+        if (pincel && video.readyState >= 2 && video.videoWidth > 0) {
+          const escala = Math.min(1, ANCHO_MAXIMO / video.videoWidth)
+          lienzo.width = Math.round(video.videoWidth * escala)
+          lienzo.height = Math.round(video.videoHeight * escala)
+          pincel.drawImage(video, 0, 0, lienzo.width, lienzo.height)
+          const hallados = await readBarcodes(pincel.getImageData(0, 0, lienzo.width, lienzo.height), {
+            formats: [...FORMATOS],
+            tryHarder: true,
+            tryRotate: true,
+            tryDownscale: true,
+            tryDenoise: true,
+            maxNumberOfSymbols: 1,
+          }).catch(() => [])
+          if (activo && hallados[0]?.text) entregar(hallados[0].text)
         }
-        leer()
-        detener = () => {
-          activo = false
-        }
-      } else {
-        // iPhone, Safari y Firefox no lo traen: se usa ZXing, que se descarga solo cuando hace falta.
-        const { BrowserMultiFormatReader } = await import('@zxing/browser')
-        if (cancelado) return
-        const controles = await new BrowserMultiFormatReader().decodeFromStream(stream, video, (resultado) => {
-          if (resultado) entregar(resultado.getText())
-        })
-        detener = () => controles.stop()
+        setTimeout(leer, PAUSA_ENTRE_CUADROS_MS)
+      }
+      leer()
+      detener = () => {
+        activo = false
       }
       if (!cancelado) setEstado('leyendo')
     }
@@ -160,8 +185,14 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
         </div>
 
         <p className={`escaner__aviso ${aviso ? `is-${aviso.tipo}` : ''}`} role="status" aria-live="polite">
-          {aviso?.texto ?? (estado === 'leyendo' ? 'Acerca el código de barras al recuadro.' : '\u00a0')}
+          {aviso?.texto ?? (estado === 'leyendo' ? 'Pon el código de barras dentro del recuadro.' : '\u00a0')}
         </p>
+
+        {tardando && (
+          <p className="escaner__consejo">
+            ¿No lo lee? Acerca o aleja el paquete hasta que las barras se vean nítidas, evita reflejos y busca más luz.
+          </p>
+        )}
 
         <button type="button" className="escaner__listo" onClick={onCerrar}>
           Listo

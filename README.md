@@ -98,13 +98,19 @@ En **Nueva venta** un producto se agrega a la cuenta de tres formas:
 
 - **Lector físico (USB o Bluetooth):** funciona como teclado. Con la pantalla de venta abierta
   basta escanear; no hay que tocar ningún campo.
-- **Cámara:** botón **Usar cámara**. En Chrome/Android usa el lector integrado del navegador;
-  en iPhone, Safari y Firefox usa ZXing (se descarga solo la primera vez).
+- **Cámara:** ícono de cámara en el buscador. Usa ZXing compilado a WebAssembly (`zxing-wasm`),
+  que se descarga solo al abrir la cámara y lee igual en cualquier navegador, aunque la etiqueta
+  esté inclinada, de lado o algo desenfocada.
 - **A mano:** escribir el código y presionar **Agregar**.
 
 Los códigos se asignan en **Inventario → Productos → Código de barras** (cuenta de administrador).
-Si los paquetes no traen código impreso, **Generar uno** crea un código interno y
-**Imprimir etiquetas** descarga un PDF con etiquetas Code 39 para pegarlas.
+Si los paquetes no traen código impreso, **Generar uno** crea un EAN-13 de uso interno (prefijo 2)
+e **Imprimir etiquetas** descarga un PDF para pegarlas: EAN-13 para códigos de 13 dígitos y
+Code 128 para los demás, con barras anchas y altas para que la cámara las lea con facilidad.
+
+Al comparar un código leído contra el guardado solo cuentan letras y números. Así un lector
+configurado para teclado en inglés sigue funcionando en una computadora en español, donde el
+guion llega como otro símbolo.
 
 ### Probar la cámara desde un teléfono
 

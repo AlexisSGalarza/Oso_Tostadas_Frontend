@@ -112,6 +112,14 @@
   font-weight: 600;
 }
 
+.escaner__consejo {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--tostado);
+  text-align: center;
+}
+
 .escaner__listo {
   min-height: 48px;
   border: none;
