@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import TopBar from '../../components/TopBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import NumericKeypad from '../../components/NumericKeypad'
@@ -48,6 +48,21 @@ function VentaScreen({
   const [enviando, setEnviando] = useState(false)
   const [errorVenta, setErrorVenta] = useState('')
   const [confirmandoCancelar, setConfirmandoCancelar] = useState(false)
+
+  // En telefono la cuenta queda debajo del catalogo: una barra fija muestra el
+  // total y lleva a la cuenta, y se oculta cuando la cuenta ya esta a la vista.
+  const cuentaRef = useRef<HTMLElement>(null)
+  const [cuentaVisible, setCuentaVisible] = useState(false)
+
+  useEffect(() => {
+    const cuenta = cuentaRef.current
+    if (!cuenta) return
+    const observador = new IntersectionObserver(([entrada]) => setCuentaVisible(entrada.isIntersecting), {
+      threshold: 0.15,
+    })
+    observador.observe(cuenta)
+    return () => observador.disconnect()
+  }, [])
 
   useEffect(() => {
     api
@@ -113,6 +128,7 @@ function VentaScreen({
     ventasTurno.filter((v) => v.metodoPago === 'efectivo').reduce((s, v) => s + v.total, 0) -
     devolucionesTurno.filter((d) => d.metodoPago === 'efectivo').reduce((s, d) => s + d.total, 0)
 
+  const unidades = carrito.reduce((suma, item) => suma + item.cantidad, 0)
   const subtotal = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0)
   const total = Math.round(subtotal * (1 + IVA_ESTIMADO) * 100) / 100
   const recibidoNumero = Number.parseFloat(efectivoRecibido)
@@ -194,23 +210,33 @@ function VentaScreen({
           )}
 
           <div className="catalogo__grid">
-            {productos.map((producto) => (
-              <button
-                key={producto.id_producto}
-                type="button"
-                className="producto"
-                onClick={() => agregar(producto)}
-                disabled={producto.stock <= 0}
-              >
-                <span className="producto__nombre">{producto.nombre}</span>
-                <span className="producto__precio">{formatMoney(producto.precio)}</span>
-                <span className="producto__precio">{producto.stock > 0 ? `Stock: ${producto.stock}` : 'Sin stock'}</span>
-              </button>
-            ))}
+            {productos.map((producto) => {
+              const enCuenta = carrito.find((item) => item.id_producto === producto.id_producto)?.cantidad ?? 0
+              return (
+                <button
+                  key={producto.id_producto}
+                  type="button"
+                  className={`producto ${enCuenta > 0 ? 'is-en-cuenta' : ''}`}
+                  onClick={() => agregar(producto)}
+                  disabled={producto.stock <= 0}
+                >
+                  <span className="producto__nombre">{producto.nombre}</span>
+                  <span className="producto__precio">{formatMoney(producto.precio)}</span>
+                  <span className={`producto__stock ${producto.stock <= 0 ? 'is-agotado' : ''}`}>
+                    {producto.stock > 0 ? `${producto.stock} en existencia` : 'Agotado'}
+                  </span>
+                  {enCuenta > 0 && (
+                    <span className="producto__encuenta" aria-label={`${enCuenta} en la cuenta`}>
+                      {enCuenta}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </section>
 
-        <aside className="cuenta">
+        <aside className="cuenta" id="cuenta" ref={cuentaRef}>
           <div className="cuenta__head">
             <span className="cuenta__label">Venta en curso</span>
             <span className="cuenta__ticket">{formatTicket(siguienteTicket)}</span>
@@ -372,6 +398,16 @@ function VentaScreen({
           )}
         </aside>
       </main>
+
+      {carrito.length > 0 && !cuentaVisible && (
+        <a className="venta__barra" href="#cuenta">
+          <span>
+            {unidades} {unidades === 1 ? 'paquete' : 'paquetes'}
+          </span>
+          <span className="venta__barra-total">{formatMoney(total)}</span>
+          <span className="venta__barra-ir">Ver cuenta</span>
+        </a>
+      )}
 
       <ConfirmDialog
         open={confirmandoCancelar}

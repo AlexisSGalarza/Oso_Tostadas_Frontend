@@ -27,22 +27,20 @@
 }
 
 .corte__subtitulo {
-  font-family: var(--font-mono);
   font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--tostado);
   margin: 0.5rem 0 2rem;
   align-self: flex-start;
+  font-weight: 600;
 }
 
 .recibo {
   position: relative;
   width: 100%;
   background: var(--masa);
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--radio-m) var(--radio-m);
   padding: 2rem 1.75rem 1.75rem;
-  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
 }
 
 .recibo::before {
@@ -79,7 +77,7 @@
 
 .recibo__fila--total {
   font-weight: 600;
-  border-top: 1px dashed rgba(138, 90, 52, 0.4);
+  border-top: 1px dashed var(--linea-fuerte);
   margin-top: 0.2rem;
 }
 
@@ -92,7 +90,7 @@
 }
 
 .recibo__corte {
-  border-top: 2px dashed rgba(138, 90, 52, 0.45);
+  border-top: 2px dashed var(--linea-fuerte);
   margin: 1.25rem 0;
 }
 
@@ -104,18 +102,16 @@
 }
 
 .recibo__conteo label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
 .recibo__conteo input {
   width: 100%;
   padding: 0.7rem 0.8rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: var(--font-mono);
@@ -126,7 +122,7 @@
 .recibo__conteo input:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 .recibo__diferencia {
@@ -134,7 +130,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.7rem 0.9rem;
-  border-radius: 6px;
+  border-radius: var(--radio-m);
   font-size: 0.88rem;
   font-weight: 600;
   margin: 0.9rem 0 1.4rem;
@@ -159,7 +155,7 @@
   width: 100%;
   padding: 0.85rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.95rem;
@@ -204,8 +200,6 @@
   margin-top: 0.4rem !important;
   font-family: var(--font-mono) !important;
   font-size: 0.75rem !important;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--tostado) !important;
   font-weight: 400 !important;
 }

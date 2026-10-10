@@ -95,9 +95,9 @@
   width: 100%;
   max-width: 23rem;
   background: var(--masa);
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--radio-m) var(--radio-m);
   padding: 3rem 2.25rem 1.5rem;
-  box-shadow: 0 24px 60px -24px rgba(22, 48, 31, 0.45);
+  box-shadow: var(--sombra-flotante);
   animation: print-in 700ms ease-out both;
 }
 
@@ -179,12 +179,10 @@
 
 .field label {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
   margin-bottom: 0.4rem;
+  font-weight: 600;
 }
 
 .field input[type='text'],
@@ -192,8 +190,8 @@
 .field input[type='password'] {
   width: 100%;
   padding: 0.7rem 0.8rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-size: 0.95rem;
@@ -203,7 +201,7 @@
 .field input:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 .field__control {
@@ -221,19 +219,17 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--verde-salsa-dark);
   cursor: pointer;
   padding: 0.35rem 0.5rem;
+  font-weight: 600;
 }
 
 .field__toggle:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: var(--radio-s);
 }
 
 .ticket__error {
@@ -267,7 +263,7 @@
   width: 100%;
   padding: 0.85rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.95rem;
@@ -294,7 +290,7 @@
   justify-content: space-between;
   margin-top: 1.5rem;
   padding-top: 0.85rem;
-  border-top: 1px dashed rgba(138, 90, 52, 0.4);
+  border-top: 1px dashed var(--linea-fuerte);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.04em;

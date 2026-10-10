@@ -13,6 +13,7 @@ import ProveedoresScreen from './pages/Admin/ProveedoresScreen'
 import ConfiguracionScreen from './pages/Admin/ConfiguracionScreen'
 import AuditoriaScreen from './pages/Admin/AuditoriaScreen'
 import AdminTurnoDetalleScreen from './pages/Admin/AdminTurnoDetalleScreen'
+import AppShell, { type ItemMenu } from './components/AppShell'
 import type { Devolucion, MetodoPago, Venta } from './pages/Vendedor/types'
 import { api, ApiError, getAccessToken, type EmpleadoMe, type Turno, type VentaApi } from './lib/api'
 
@@ -33,6 +34,19 @@ type Screen =
   | 'turno-detalle'
 
 const BASE_TICKET = 428
+
+const MENU_ADMIN: ItemMenu[] = [
+  { id: 'perfil-admin', etiqueta: 'Panel', icono: 'inicio' },
+  { id: 'reportes', etiqueta: 'Reportes', icono: 'reportes' },
+  { id: 'inventario', etiqueta: 'Inventario', icono: 'inventario' },
+  { id: 'proveedores', etiqueta: 'Proveedores', icono: 'proveedores' },
+  { id: 'usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
+  { id: 'auditoria', etiqueta: 'Auditoría', icono: 'auditoria' },
+  { id: 'configuracion', etiqueta: 'Configuración', icono: 'configuracion' },
+]
+
+// El detalle de un turno se abre desde el panel, asi que en el menu sigue marcado "Panel".
+const SECCION_DE: Partial<Record<Screen, Screen>> = { 'turno-detalle': 'perfil-admin' }
 const ROLES_VENDEDOR = ['vendedor', 'cajero']
 
 // Reconstruye una Venta (para Historial/Corte) a partir de lo que ya quedo guardado
@@ -159,152 +173,137 @@ function App() {
     setScreen('perfil')
   }
 
-  if (screen === 'login') {
+  if (screen === 'login' || !empleado) {
     return <LoginPage onIniciarSesion={handleIniciarSesion} />
   }
 
-  if (screen === 'perfil-admin' && empleado) {
+  const esVendedor = ROLES_VENDEDOR.includes(empleado.rol.toLowerCase())
+  const sinTurno = turno === null
+  const menu: ItemMenu[] = esVendedor
+    ? [
+        { id: 'perfil', etiqueta: 'Mi turno', icono: 'inicio' },
+        { id: 'venta', etiqueta: 'Nueva venta', icono: 'venta', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
+        { id: 'historial', etiqueta: 'Historial', icono: 'historial', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
+        { id: 'devolucion', etiqueta: 'Devoluciones', icono: 'devolucion', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
+        { id: 'corte', etiqueta: 'Corte de caja', icono: 'corte', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
+      ]
+    : MENU_ADMIN
+
+  const comunes = { now, onCerrarSesion: handleCerrarSesion }
+  const volverAdmin = () => setScreen('perfil-admin')
+  const volverPerfil = () => setScreen('perfil')
+
+  function pantalla() {
+    if (!empleado) return null
+    switch (screen) {
+      case 'perfil-admin':
+        return (
+          <PerfilAdmin
+            {...comunes}
+            empleado={empleado}
+            onUsuarios={() => setScreen('usuarios')}
+            onReportes={() => setScreen('reportes')}
+            onInventario={() => setScreen('inventario')}
+            onProveedores={() => setScreen('proveedores')}
+            onConfiguracion={() => setScreen('configuracion')}
+            onAuditoria={() => setScreen('auditoria')}
+            onVerTurno={(idTurno) => {
+              setIdTurnoSeleccionado(idTurno)
+              setScreen('turno-detalle')
+            }}
+          />
+        )
+      case 'usuarios':
+        return <UsuariosScreen {...comunes} onVolver={volverAdmin} />
+      case 'reportes':
+        return <ReportesScreen {...comunes} onVolver={volverAdmin} />
+      case 'inventario':
+        return <InventarioScreen {...comunes} onVolver={volverAdmin} />
+      case 'proveedores':
+        return <ProveedoresScreen {...comunes} onVolver={volverAdmin} />
+      case 'configuracion':
+        return <ConfiguracionScreen {...comunes} onVolver={volverAdmin} />
+      case 'auditoria':
+        return <AuditoriaScreen {...comunes} onVolver={volverAdmin} />
+      case 'turno-detalle':
+        if (idTurnoSeleccionado === null) break
+        return <AdminTurnoDetalleScreen {...comunes} idTurno={idTurnoSeleccionado} onVolver={volverAdmin} />
+      case 'venta':
+        if (!turno) break
+        return (
+          <VentaScreen
+            {...comunes}
+            turno={turno}
+            ventasTurno={ventas}
+            devolucionesTurno={devoluciones}
+            siguienteTicket={siguienteTicket}
+            onVolver={volverPerfil}
+            onRegistrarVenta={registrarVenta}
+          />
+        )
+      case 'historial':
+        return (
+          <HistorialScreen
+            {...comunes}
+            ventas={ventas}
+            devoluciones={devoluciones}
+            onVolver={volverPerfil}
+            onNuevaVenta={() => setScreen('venta')}
+          />
+        )
+      case 'corte':
+        if (!turno) break
+        return (
+          <CorteScreen
+            {...comunes}
+            turno={turno}
+            ventas={ventas}
+            devoluciones={devoluciones}
+            onVolver={volverPerfil}
+            onConfirmarCorte={turnoCerrado}
+          />
+        )
+      case 'devolucion':
+        return (
+          <DevolucionScreen
+            {...comunes}
+            ventas={ventas}
+            devoluciones={devoluciones}
+            onVolver={volverPerfil}
+            onRegistrarDevolucion={registrarDevolucion}
+          />
+        )
+    }
     return (
-      <PerfilAdmin
-        now={now}
+      <PerfilVendedor
+        {...comunes}
         empleado={empleado}
-        onCerrarSesion={handleCerrarSesion}
-        onUsuarios={() => setScreen('usuarios')}
-        onReportes={() => setScreen('reportes')}
-        onInventario={() => setScreen('inventario')}
-        onProveedores={() => setScreen('proveedores')}
-        onConfiguracion={() => setScreen('configuracion')}
-        onAuditoria={() => setScreen('auditoria')}
-        onVerTurno={(idTurno) => {
-          setIdTurnoSeleccionado(idTurno)
-          setScreen('turno-detalle')
-        }}
-      />
-    )
-  }
-
-  if (screen === 'usuarios') {
-    return (
-      <UsuariosScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
-    )
-  }
-
-  if (screen === 'reportes') {
-    return (
-      <ReportesScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
-    )
-  }
-
-  if (screen === 'inventario') {
-    return (
-      <InventarioScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
-    )
-  }
-
-  if (screen === 'proveedores') {
-    return (
-      <ProveedoresScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
-    )
-  }
-
-  if (screen === 'configuracion') {
-    return (
-      <ConfiguracionScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
-    )
-  }
-
-  if (screen === 'auditoria') {
-    return (
-      <AuditoriaScreen now={now} onVolver={() => setScreen('perfil-admin')} onCerrarSesion={handleCerrarSesion} />
-    )
-  }
-
-  if (screen === 'turno-detalle' && idTurnoSeleccionado !== null) {
-    return (
-      <AdminTurnoDetalleScreen
-        now={now}
-        idTurno={idTurnoSeleccionado}
-        onVolver={() => setScreen('perfil-admin')}
-        onCerrarSesion={handleCerrarSesion}
-      />
-    )
-  }
-
-  if (screen === 'venta' && empleado && turno) {
-    return (
-      <VentaScreen
-        now={now}
         turno={turno}
-        ventasTurno={ventas}
-        devolucionesTurno={devoluciones}
-        siguienteTicket={siguienteTicket}
-        onVolver={() => setScreen('perfil')}
-        onCerrarSesion={handleCerrarSesion}
-        onRegistrarVenta={registrarVenta}
-      />
-    )
-  }
-
-  if (screen === 'historial') {
-    return (
-      <HistorialScreen
-        now={now}
+        turnoError={turnoError}
         ventas={ventas}
         devoluciones={devoluciones}
-        onVolver={() => setScreen('perfil')}
-        onCerrarSesion={handleCerrarSesion}
+        onAbrirTurno={abrirTurno}
+        onCerrarTurno={() => setScreen('corte')}
         onNuevaVenta={() => setScreen('venta')}
+        onHistorial={() => setScreen('historial')}
+        onCorte={() => setScreen('corte')}
+        onDevolucion={() => setScreen('devolucion')}
       />
     )
-  }
-
-  if (screen === 'corte' && turno) {
-    return (
-      <CorteScreen
-        now={now}
-        turno={turno}
-        ventas={ventas}
-        devoluciones={devoluciones}
-        onVolver={() => setScreen('perfil')}
-        onCerrarSesion={handleCerrarSesion}
-        onConfirmarCorte={turnoCerrado}
-      />
-    )
-  }
-
-  if (screen === 'devolucion') {
-    return (
-      <DevolucionScreen
-        now={now}
-        ventas={ventas}
-        devoluciones={devoluciones}
-        onVolver={() => setScreen('perfil')}
-        onCerrarSesion={handleCerrarSesion}
-        onRegistrarDevolucion={registrarDevolucion}
-      />
-    )
-  }
-
-  if (!empleado) {
-    return <LoginPage onIniciarSesion={handleIniciarSesion} />
   }
 
   return (
-    <PerfilVendedor
-      now={now}
-      empleado={empleado}
-      turno={turno}
-      turnoError={turnoError}
-      ventas={ventas}
-      devoluciones={devoluciones}
-      onAbrirTurno={abrirTurno}
-      onCerrarTurno={() => setScreen('corte')}
+    <AppShell
+      items={menu}
+      activo={SECCION_DE[screen] ?? screen}
+      nombre={empleado.nombre}
+      rol={empleado.rol}
+      sucursal={empleado.sucursal}
+      onNavegar={(id) => setScreen(id as Screen)}
       onCerrarSesion={handleCerrarSesion}
-      onNuevaVenta={() => setScreen('venta')}
-      onHistorial={() => setScreen('historial')}
-      onCorte={() => setScreen('corte')}
-      onDevolucion={() => setScreen('devolucion')}
-    />
+    >
+      {pantalla()}
+    </AppShell>
   )
 }
 

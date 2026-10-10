@@ -87,7 +87,7 @@ function AdminTurnoDetalleScreen({ now, idTurno, onVolver, onCerrarSesion }: Pro
 
   return (
     <div className="turnodetalle">
-      <TopBar clock={formatClock(now)} onVolver={onVolver} volverLabel="Admin" onCerrarSesion={onCerrarSesion} />
+      <TopBar clock={formatClock(now)} onVolver={onVolver} volverLabel="Panel" esDetalle onCerrarSesion={onCerrarSesion} />
 
       <main className="turnodetalle__main">
         {cargando && <p className="turnodetalle__subtitulo">Cargando…</p>}

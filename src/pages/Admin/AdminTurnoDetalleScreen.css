@@ -8,7 +8,7 @@
 .turnodetalle__main {
   flex: 1;
   width: 100%;
-  max-width: 56rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   display: flex;
@@ -41,12 +41,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
-  background: var(--masa);
-  border-radius: 6px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 0.9rem 1.1rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--tinta);
+  border: 1px solid var(--linea);
 }
 
 .turnodetalle__resumen .is-desajuste {
@@ -69,10 +70,11 @@
 }
 
 .tventa {
-  background: var(--masa);
-  border-radius: 6px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1rem 1.25rem;
-  box-shadow: 0 12px 28px -20px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
 .tventa__cabeza {
@@ -94,10 +96,9 @@
   margin-left: auto;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .pill--efectivo {
@@ -106,7 +107,7 @@
 }
 
 .pill--tarjeta {
-  background: rgba(138, 90, 52, 0.15);
+  background: var(--linea);
   color: var(--tostado);
 }
 
@@ -136,8 +137,8 @@
 
 .tventa__boton {
   padding: 0.5rem 0.85rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: transparent;
   color: var(--tostado);
   font-size: 0.78rem;
@@ -171,7 +172,7 @@
 .tventa__form {
   margin-top: 0.9rem;
   padding-top: 0.9rem;
-  border-top: 1px dashed rgba(138, 90, 52, 0.35);
+  border-top: 1px dashed var(--linea-fuerte);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -195,8 +196,8 @@
 .tventa__cantidad button {
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 8px;
-  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: var(--radio-m);
+  border: 1px solid var(--linea-fuerte);
   background: var(--page);
   color: var(--tinta);
   font-size: 1.1rem;
@@ -233,7 +234,7 @@
 .tventa__confirmar {
   padding: 0.6rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.85rem;

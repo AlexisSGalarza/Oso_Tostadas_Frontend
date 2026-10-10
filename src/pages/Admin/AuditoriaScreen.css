@@ -8,7 +8,7 @@
 .auditoria__main {
   flex: 1;
   width: 100%;
-  max-width: 56rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   display: flex;
@@ -47,10 +47,11 @@
 }
 
 .aregistro {
-  background: var(--masa);
-  border-radius: 6px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1rem 1.25rem;
-  box-shadow: 0 12px 28px -20px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
 .aregistro__cabeza {
@@ -63,14 +64,12 @@
 }
 
 .aregistro__tag {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
   background: rgba(76, 122, 62, 0.14);
   color: var(--verde-salsa-dark);
+  font-weight: 600;
 }
 
 .aregistro__fecha {

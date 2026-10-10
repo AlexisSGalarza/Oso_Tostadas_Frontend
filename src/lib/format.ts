@@ -10,11 +10,13 @@ export function formatFecha(date: Date, opciones: Intl.DateTimeFormatOptions = {
   return date.toLocaleDateString('es-MX', { ...opciones, timeZone: ZONA_HORARIA_MX })
 }
 
+// Montos cerrados sin centavos ($120); con centavos siempre a dos decimales ($34.80, no $34.8).
 export function formatMoney(amount: number) {
+  const tieneCentavos = Math.round(amount * 100) % 100 !== 0
   return amount.toLocaleString('es-MX', {
     style: 'currency',
     currency: 'MXN',
-    minimumFractionDigits: 0,
+    minimumFractionDigits: tieneCentavos ? 2 : 0,
     maximumFractionDigits: 2,
   })
 }

@@ -15,8 +15,8 @@
   min-width: 3.6rem;
   min-height: 2.5rem;
   padding: 0.4rem 0.5rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: var(--font-mono);
@@ -48,8 +48,8 @@
 
 .keypad__tecla {
   min-height: 3rem;
-  border: 1px solid rgba(138, 90, 52, 0.25);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-size: 1.1rem;
@@ -59,7 +59,7 @@
 }
 
 .keypad__tecla:hover {
-  background: rgba(138, 90, 52, 0.08);
+  background: var(--hover);
 }
 
 .keypad__tecla:active {

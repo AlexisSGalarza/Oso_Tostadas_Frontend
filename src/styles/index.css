@@ -1,14 +1,35 @@
 :root {
+  /* Marca */
   --verde-tinta: #16301f;
   --verde-tinta-2: #1e3f28;
-  --verde-salsa: #4c7a3e;
-  --verde-salsa-dark: #3b6130;
+  --verde-salsa: #44733a;
+  --verde-salsa-dark: #345a2c;
   --verde-brote: #a3ca4a;
   --masa: #f4ecd8;
-  --page: #fbf7ec;
-  --tostado: #8a5a34;
-  --tinta: #201c14;
+  --tostado: #7a4f2c;
+  --tinta: #1f1c15;
   --chile: #b23a2e;
+  --chile-dark: #8f2e24;
+
+  /* Superficies y lineas */
+  --page: #f6f3ea;
+  --surface: #fffdf8;
+  --linea: #e7dfcc;
+  --linea-fuerte: #d3c7ac;
+  --hover: rgba(122, 79, 44, 0.08);
+  --hover-verde: rgba(68, 115, 58, 0.08);
+  --brote-suave: rgba(163, 202, 74, 0.22);
+  --chile-suave: rgba(178, 58, 46, 0.1);
+
+  /* Forma */
+  --radio-s: 6px;
+  --radio-m: 10px;
+  --radio-l: 14px;
+  --sombra-card: 0 1px 2px rgba(22, 48, 31, 0.06), 0 8px 24px -16px rgba(22, 48, 31, 0.28);
+  --sombra-flotante: 0 24px 60px -24px rgba(22, 48, 31, 0.45);
+  --anillo: 0 0 0 3px rgba(163, 202, 74, 0.45);
+
+  --ancho-menu: 15rem;
 
   --font-display: 'Fraunces', ui-serif, Georgia, serif;
   --font-body: 'Public Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -32,14 +53,46 @@ body,
 body {
   margin: 0;
   font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.45;
   color: var(--tinta);
   background: var(--page);
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font-family: inherit;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+/* En telefonos, un campo con letra menor a 16px hace que iOS acerque la pagina al enfocarlo. */
+@media (max-width: 720px) {
+  input,
+  select,
+  textarea {
+    font-size: 1rem !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--verde-salsa);
+  outline-offset: 2px;
+}
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -49,5 +102,11 @@ input {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }

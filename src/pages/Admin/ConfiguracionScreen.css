@@ -25,20 +25,18 @@
 }
 
 .config__subtitulo {
-  font-family: var(--font-mono);
   font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--tostado);
   margin: 0.5rem 0 2rem;
+  font-weight: 600;
 }
 
 .config__form {
   position: relative;
   background: var(--masa);
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--radio-m) var(--radio-m);
   padding: 2rem 1.75rem 1.75rem;
-  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -70,18 +68,16 @@
 }
 
 .config__campo label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
 .config__campo input {
   width: 100%;
   padding: 0.7rem 0.8rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: inherit;
@@ -90,13 +86,13 @@
 
 .config__campo input:disabled {
   color: var(--tostado);
-  background: rgba(138, 90, 52, 0.08);
+  background: var(--hover);
 }
 
 .config__campo input:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 .config__ayuda {
@@ -120,7 +116,7 @@
 .config__guardar {
   padding: 0.8rem 1.4rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.92rem;

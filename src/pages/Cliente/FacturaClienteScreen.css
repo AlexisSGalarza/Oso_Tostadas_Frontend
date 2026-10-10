@@ -65,7 +65,7 @@
   left: -50%;
   width: 100%;
   height: 1px;
-  background-image: linear-gradient(to right, rgba(138, 90, 52, 0.35) 50%, transparent 50%);
+  background-image: linear-gradient(to right, var(--linea-fuerte) 50%, transparent 50%);
   background-size: 8px 1px;
   z-index: 0;
 }
@@ -81,7 +81,7 @@
   height: 0.45rem;
   border-radius: 50%;
   background: var(--page);
-  border: 1.5px solid rgba(138, 90, 52, 0.45);
+  border: 1.5px solid var(--linea-fuerte);
 }
 
 .fc__paso.is-hecho .fc__paso-punta {
@@ -96,7 +96,7 @@
 .fc__paso.is-activo .fc__paso-punta {
   background: var(--verde-tinta);
   border-color: var(--verde-tinta);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.35);
+  box-shadow: var(--anillo);
 }
 
 .fc__paso.is-activo {
@@ -107,11 +107,12 @@
 
 .recibo {
   position: relative;
-  background: var(--masa);
-  border-radius: 4px;
+  background: var(--surface);
+  border-radius: var(--radio-s);
   padding: 2.5rem 2rem 2rem;
-  box-shadow: 0 24px 60px -28px rgba(22, 48, 31, 0.4);
+  box-shadow: var(--sombra-flotante);
   animation: recibo-in 500ms ease-out both;
+  border: 1px solid var(--linea);
 }
 
 @keyframes recibo-in {
@@ -165,13 +166,11 @@
 
 .folio-campo label {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
   text-align: center;
   margin-bottom: 0.6rem;
+  font-weight: 600;
 }
 
 .folio-campo input {
@@ -182,21 +181,21 @@
   font-size: 2rem;
   letter-spacing: 0.2em;
   padding: 0.85rem 0.5rem 0.75rem;
-  border: 1.5px dashed rgba(138, 90, 52, 0.4);
-  border-radius: 6px;
+  border: 1.5px dashed var(--linea-fuerte);
+  border-radius: var(--radio-m);
   background: var(--page);
   color: var(--verde-tinta);
 }
 
 .folio-campo input::placeholder {
-  color: rgba(138, 90, 52, 0.3);
+  color: var(--linea-fuerte);
 }
 
 .folio-campo input:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
   border-style: solid;
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 /* ---------- Recibo detail (confirm step) ---------- */
@@ -208,7 +207,7 @@
   font-size: 0.75rem;
   color: var(--tostado);
   padding-bottom: 0.75rem;
-  border-bottom: 1px dashed rgba(138, 90, 52, 0.4);
+  border-bottom: 1px dashed var(--linea-fuerte);
   margin-bottom: 0.75rem;
 }
 
@@ -239,7 +238,7 @@
   justify-content: space-between;
   align-items: baseline;
   padding-top: 0.85rem;
-  border-top: 1px dashed rgba(138, 90, 52, 0.4);
+  border-top: 1px dashed var(--linea-fuerte);
   margin-bottom: 1.5rem;
   font-family: var(--font-display);
   font-weight: 600;
@@ -259,7 +258,7 @@
   font-size: 0.85rem;
   color: var(--tostado);
   background: rgba(138, 90, 52, 0.1);
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   padding: 0.75rem 0.9rem;
   margin: 0 0 1rem;
 }
@@ -279,20 +278,18 @@
 
 .campo label {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
   margin-bottom: 0.4rem;
+  font-weight: 600;
 }
 
 .campo input,
 .campo select {
   width: 100%;
   padding: 0.65rem 0.7rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-size: 0.92rem;
@@ -311,7 +308,7 @@
 .campo select:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 /* ---------- Shared actions ---------- */
@@ -327,7 +324,7 @@
   width: 100%;
   padding: 0.85rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.95rem;
@@ -371,7 +368,7 @@
 .recibo__enlace:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
-  border-radius: 3px;
+  border-radius: var(--radio-s);
 }
 
 /* ---------- Success: stamped ---------- */
@@ -411,8 +408,8 @@
   align-items: center;
   gap: 0.75rem;
   background: var(--page);
-  border: 1px dashed rgba(138, 90, 52, 0.4);
-  border-radius: 4px;
+  border: 1px dashed var(--linea-fuerte);
+  border-radius: var(--radio-s);
   padding: 0.75rem 0.9rem;
   margin: 1.25rem 0 0.25rem;
   font-family: var(--font-mono);
