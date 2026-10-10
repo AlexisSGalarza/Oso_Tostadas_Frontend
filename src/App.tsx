@@ -204,12 +204,8 @@ function App() {
           <PerfilAdmin
             {...comunes}
             empleado={empleado}
-            onUsuarios={() => setScreen('usuarios')}
             onReportes={() => setScreen('reportes')}
             onInventario={() => setScreen('inventario')}
-            onProveedores={() => setScreen('proveedores')}
-            onConfiguracion={() => setScreen('configuracion')}
-            onAuditoria={() => setScreen('auditoria')}
             onVerTurno={(idTurno) => {
               setIdTurnoSeleccionado(idTurno)
               setScreen('turno-detalle')

@@ -239,9 +239,35 @@ export type Pendiente = {
 export type AdminDashboard = {
   fecha: string
   es_hoy: boolean
-  resumen: { ventas_dia: number; turnos_activos: number; cortes_por_revisar: number }
+  resumen: {
+    ventas_dia: number
+    devoluciones_dia: number
+    ventas_netas: number
+    tickets: number
+    ticket_promedio: number
+    paquetes: number
+    efectivo: number
+    tarjeta: number
+    // Mismo dia de la semana anterior
+    comparacion: { fecha: string; ventas_netas: number }
+    // null cuando algun producto vendido no tiene receta o costos cargados
+    costo_estimado: number | null
+    utilidad_estimada: number | null
+    turnos_activos: number
+    cortes_por_revisar: number
+  }
   turnos: TurnoDashboard[]
   pendientes: Pendiente[]
+  ventas_por_hora: { hora: number; ventas: number; tickets: number }[]
+  semana: { fecha: string; ventas: number; tickets: number }[]
+  productos_top: { nombre: string; cantidad: number; ingresos: number }[]
+  existencias: {
+    nombre: string
+    stock: number
+    stock_minimo: number
+    venta_diaria: number
+    dias_restantes: number | null
+  }[]
 }
 
 export type TurnoDetalleAdmin = Turno & {
