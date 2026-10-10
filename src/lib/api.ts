@@ -368,12 +368,23 @@ export type FacturaAdmin = {
   correo_enviado: boolean
 }
 
+export type VentaPorFacturar = {
+  id_venta: number
+  fecha: string
+  creado_en: string | null
+  total: number
+  metodo_pago: string | null
+  cajero: string
+  detalles: DetalleVentaDto[]
+}
+
 export type FacturasAdmin = {
   configuracion: {
     pac: string
     modo: ModoFactura
     emisor_rfc: string
     emisor_nombre: string
+    lugar_expedicion: string
     dias_para_facturar: number
   }
   facturas: FacturaAdmin[]
@@ -588,6 +599,18 @@ export const api = {
 
   facturasAdmin() {
     return request<FacturasAdmin>('/admin/facturas/')
+  },
+
+  // Compras recientes que aun se pueden facturar (el vendedor solo ve las suyas).
+  ventasPorFacturar() {
+    return request<VentaPorFacturar[]>('/facturacion/ventas/')
+  },
+
+  facturarVenta(idVenta: number, datos: DatosFiscales) {
+    return request<FacturaGenerada>(`/facturacion/ventas/${idVenta}/factura/`, {
+      method: 'POST',
+      body: JSON.stringify(datos),
+    })
   },
 
   // El total impreso en el ticket hace de segunda llave: sin el, no se muestra la compra.

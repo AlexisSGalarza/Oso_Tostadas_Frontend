@@ -11,6 +11,15 @@ import {
   type TicketPublico,
   type UsoCfdi,
 } from '../../lib/api'
+import {
+  correoValido,
+  DATOS_FISCALES_VACIOS as DATOS_INICIALES,
+  REGIMENES,
+  REGIMENES_SOLO_S01,
+  rfcValido,
+  soloDigitos,
+  USOS_CFDI,
+} from '../../lib/fiscal'
 import './FacturaClienteScreen.css'
 
 type Paso = 'buscar' | 'confirmar' | 'datos' | 'listo'
@@ -20,48 +29,6 @@ const PASOS: { id: Paso; etiqueta: string }[] = [
   { id: 'confirmar', etiqueta: 'Confirmar compra' },
   { id: 'datos', etiqueta: 'Datos fiscales' },
 ]
-
-const USOS_CFDI: { valor: UsoCfdi; etiqueta: string }[] = [
-  { valor: 'G03', etiqueta: 'G03 · Gastos en general' },
-  { valor: 'G01', etiqueta: 'G01 · Adquisición de mercancías' },
-  { valor: 'S01', etiqueta: 'S01 · Sin efectos fiscales' },
-]
-
-const REGIMENES: { valor: RegimenFiscal; etiqueta: string }[] = [
-  { valor: '616', etiqueta: '616 · Sin obligaciones fiscales' },
-  { valor: '626', etiqueta: '626 · Régimen Simplificado de Confianza' },
-  { valor: '612', etiqueta: '612 · Actividades empresariales y profesionales' },
-  { valor: '605', etiqueta: '605 · Sueldos y salarios' },
-  { valor: '601', etiqueta: '601 · General de ley personas morales' },
-  { valor: '603', etiqueta: '603 · Personas morales sin fines de lucro' },
-  { valor: '606', etiqueta: '606 · Arrendamiento' },
-  { valor: '621', etiqueta: '621 · Incorporación fiscal' },
-  { valor: '625', etiqueta: '625 · Plataformas tecnológicas' },
-]
-
-// El SAT solo admite el uso S01 para estos regimenes (de los usos que ofrecemos).
-const REGIMENES_SOLO_S01: RegimenFiscal[] = ['616', '605']
-
-const DATOS_INICIALES: DatosFiscales = {
-  rfc: '',
-  razon_social: '',
-  correo: '',
-  codigo_postal: '',
-  regimen_fiscal: '616',
-  uso_cfdi: 'S01',
-}
-
-function soloDigitos(valor: string) {
-  return valor.replace(/\D/g, '')
-}
-
-function rfcValido(rfc: string) {
-  return /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test(rfc.trim().toUpperCase())
-}
-
-function correoValido(correo: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())
-}
 
 function FacturaClienteScreen() {
   const [paso, setPaso] = useState<Paso>('buscar')

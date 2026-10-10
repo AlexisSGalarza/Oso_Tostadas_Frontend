@@ -189,6 +189,7 @@ function App() {
         { id: 'historial', etiqueta: 'Historial', icono: 'historial', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
         { id: 'devolucion', etiqueta: 'Devoluciones', icono: 'devolucion', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
         { id: 'corte', etiqueta: 'Corte de caja', icono: 'corte', deshabilitado: sinTurno, motivo: 'Abre tu turno primero' },
+        { id: 'facturas', etiqueta: 'Facturas', icono: 'facturas' },
       ]
     : MENU_ADMIN
 
@@ -223,7 +224,7 @@ function App() {
       case 'configuracion':
         return <ConfiguracionScreen {...comunes} onVolver={volverAdmin} />
       case 'facturas':
-        return <FacturasScreen {...comunes} onVolver={volverAdmin} />
+        return <FacturasScreen {...comunes} onVolver={esVendedor ? volverPerfil : volverAdmin} />
       case 'auditoria':
         return <AuditoriaScreen {...comunes} onVolver={volverAdmin} />
       case 'turno-detalle':

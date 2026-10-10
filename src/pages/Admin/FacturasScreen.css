@@ -285,3 +285,406 @@
     display: block;
   }
 }
+
+/* ---------- Compras por facturar ---------- */
+
+.facturas__seccion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.facturas__seccion h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.facturas__conteo {
+  min-width: 1.75rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--verde-tinta);
+  color: var(--surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.facturas__vacio,
+.facturas__tabla-caja,
+.facturas__aviso {
+  border-radius: var(--radio-l);
+}
+
+.facturas__buscador {
+  border-radius: 999px;
+  padding-inline: 1.1rem;
+  margin-bottom: 0.85rem;
+}
+
+.facturas__pie a {
+  color: var(--verde-salsa-dark);
+  font-weight: 600;
+}
+
+.compras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: 0.75rem;
+}
+
+.compra {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  grid-template-areas: 'foto texto total' 'foto texto accion';
+  column-gap: 0.85rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem 0.75rem 0.75rem;
+  border: 1.5px solid var(--linea);
+  border-radius: var(--radio-l);
+  background: var(--surface);
+  color: var(--tinta);
+  text-align: left;
+  transition: border-color var(--rapido) ease, transform var(--medio) var(--sale), box-shadow var(--medio) var(--sale);
+}
+
+.compra:hover {
+  border-color: var(--verde-salsa);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -20px rgba(22, 48, 31, 0.45);
+}
+
+.compra:focus-visible {
+  outline: 3px solid var(--verde-salsa);
+  outline-offset: 2px;
+}
+
+.compra__foto {
+  grid-area: foto;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radio-s);
+}
+
+.compra__foto .tostadas__piezas {
+  display: none;
+}
+
+.compra__texto {
+  grid-area: texto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.compra__ticket {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.compra__detalle {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compra__meta {
+  font-size: 0.78rem;
+  color: var(--tostado);
+}
+
+.compra__total {
+  grid-area: total;
+  justify-self: end;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.compra__accion {
+  grid-area: accion;
+  justify-self: end;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  background: var(--verde-tinta);
+  color: var(--surface);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background var(--rapido) ease;
+}
+
+.compra:hover .compra__accion {
+  background: var(--verde-salsa);
+}
+
+/* ---------- Dialogo de facturacion ---------- */
+
+.fdialogo {
+  position: fixed;
+  inset: 0;
+  z-index: 940;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(22, 48, 31, 0.55);
+  animation: fdialogo-velo var(--medio) ease;
+}
+
+@keyframes fdialogo-velo {
+  from {
+    opacity: 0;
+  }
+}
+
+.fdialogo__hoja {
+  width: 100%;
+  max-width: 34rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-radius: var(--radio-l);
+  background: var(--surface);
+  box-shadow: var(--sombra-flotante);
+  animation: entra var(--medio) var(--sale);
+}
+
+.fdialogo__cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fdialogo__cabeza h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.fdialogo__cabeza p {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  color: var(--tostado);
+}
+
+.fdialogo__cerrar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  background: none;
+  color: var(--tinta);
+}
+
+.fdialogo__cerrar:hover {
+  background: var(--hover);
+}
+
+.fdialogo__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.fdialogo__compra {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radio-s);
+  background: var(--page);
+  font-size: 0.88rem;
+}
+
+.fdialogo__atajo {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 40px;
+  padding: 0.4rem 1rem;
+  border: 1.5px dashed var(--linea-fuerte);
+  border-radius: 999px;
+  background: none;
+  color: var(--verde-salsa-dark);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.fdialogo__atajo:hover {
+  border-style: solid;
+  border-color: var(--verde-salsa);
+  background: var(--hover-verde);
+}
+
+.fcampo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.fcampo--ancho {
+  grid-column: 1 / -1;
+}
+
+.fcampo label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tostado);
+}
+
+.fcampo input,
+.fcampo select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.6rem 0.9rem;
+  border: 1.5px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
+  background: var(--surface);
+  color: var(--tinta);
+  font-size: 0.95rem;
+}
+
+.fcampo input:focus-visible,
+.fcampo select:focus-visible {
+  outline: none;
+  border-color: var(--verde-salsa);
+  box-shadow: var(--anillo);
+}
+
+.fdialogo__principal,
+.fdialogo__secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.fdialogo__principal {
+  border: none;
+  background: var(--verde-tinta);
+  color: var(--surface);
+  transition: background var(--rapido) ease;
+}
+
+.fdialogo__principal:hover:not(:disabled) {
+  background: var(--verde-salsa);
+}
+
+.fdialogo__principal:disabled {
+  opacity: 0.6;
+}
+
+.fdialogo__secundario {
+  border: 1.5px solid var(--verde-salsa);
+  color: var(--verde-salsa-dark);
+}
+
+.fdialogo__secundario:hover {
+  background: var(--hover-verde);
+}
+
+.fdialogo__listo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  text-align: center;
+}
+
+.fdialogo__palomita {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--verde-brote);
+  color: var(--verde-tinta);
+  animation: salta var(--lento) var(--rebota);
+}
+
+.fdialogo__palomita svg {
+  width: 2rem;
+  height: 2rem;
+  stroke-width: 2.4;
+}
+
+.fdialogo__folio {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.fdialogo__folio span {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--tostado);
+  word-break: break-all;
+}
+
+.fdialogo__nota {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--tostado);
+}
+
+.fdialogo__acciones {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.fdialogo__enlace {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: none;
+  background: none;
+  color: var(--verde-salsa-dark);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .compras {
+    grid-template-columns: 1fr;
+  }
+
+  .fdialogo {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .fdialogo__hoja {
+    max-height: 92dvh;
+    border-radius: var(--radio-l) var(--radio-l) 0 0;
+    padding: 1.25rem 1rem max(1.25rem, env(safe-area-inset-bottom));
+  }
+
+  .fdialogo__form,
+  .fdialogo__acciones {
+    grid-template-columns: 1fr;
+  }
+}
