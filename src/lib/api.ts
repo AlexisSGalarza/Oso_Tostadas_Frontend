@@ -29,8 +29,10 @@ async function extraerMensajeError(response: Response): Promise<string> {
   try {
     const data = await response.json()
     if (typeof data.detail === 'string') return data.detail
-    const primerCampo = Object.values(data)[0]
-    if (Array.isArray(primerCampo)) return String(primerCampo[0])
+    // DRF manda las validaciones como lista (["mensaje"]) o como {campo: ["mensaje"]}.
+    const primero = Array.isArray(data) ? data[0] : Object.values(data)[0]
+    if (typeof primero === 'string') return primero
+    if (Array.isArray(primero) && primero.length > 0) return String(primero[0])
     return 'Ocurrio un error al comunicarse con el servidor.'
   } catch {
     return 'Ocurrio un error al comunicarse con el servidor.'
@@ -75,6 +77,26 @@ async function request<T>(path: string, options: RequestInit = {}, reintentado =
   return response.json() as Promise<T>
 }
 
+// Baja un PDF protegido con sesion y dispara la descarga en el navegador.
+// No usa `request()` porque la respuesta es binaria.
+async function descargarPdf(path: string, nombreArchivo: string) {
+  const access = getAccessToken()
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: access ? { Authorization: `Bearer ${access}` } : undefined,
+  })
+  if (!response.ok) {
+    throw new ApiError(response.status, await extraerMensajeError(response))
+  }
+  const url = URL.createObjectURL(await response.blob())
+  const enlace = document.createElement('a')
+  enlace.href = url
+  enlace.download = nombreArchivo
+  document.body.appendChild(enlace)
+  enlace.click()
+  enlace.remove()
+  URL.revokeObjectURL(url)
+}
+
 export type EmpleadoMe = {
   id_empleado: number
   numero_empleado: string
@@ -91,6 +113,7 @@ export type ProductoDisponible = {
   nombre: string
   precio: number
   stock: number
+  codigo_barras: string | null
 }
 
 export type Turno = {
@@ -191,6 +214,7 @@ export type ProductoAdmin = {
   estado: string
   stock: number
   stock_minimo: number
+  codigo_barras: string | null
 }
 
 export type InsumoAdmin = {
@@ -421,25 +445,9 @@ export const api = {
     })
   },
 
-  // Descarga el recibo de compra en PDF (no es un CFDI/factura fiscal) y dispara
-  // la descarga en el navegador. No usa `request()` porque la respuesta es binaria.
-  async descargarRecibo(idVenta: number) {
-    const access = getAccessToken()
-    const response = await fetch(`${API_URL}/ventas/${idVenta}/recibo/`, {
-      headers: access ? { Authorization: `Bearer ${access}` } : undefined,
-    })
-    if (!response.ok) {
-      throw new ApiError(response.status, await extraerMensajeError(response))
-    }
-    const blob = await response.blob()
-    const url = URL.createObjectURL(blob)
-    const enlace = document.createElement('a')
-    enlace.href = url
-    enlace.download = `recibo-${idVenta}.pdf`
-    document.body.appendChild(enlace)
-    enlace.click()
-    enlace.remove()
-    URL.revokeObjectURL(url)
+  // Descarga el recibo de compra en PDF (no es un CFDI/factura fiscal).
+  descargarRecibo(idVenta: number) {
+    return descargarPdf(`/ventas/${idVenta}/recibo/`, `recibo-${idVenta}.pdf`)
   },
 
   // --- Admin: usuarios ---
@@ -503,6 +511,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ cantidad }),
     })
+  },
+
+  // Cadena vacia quita el codigo.
+  asignarCodigoBarras(idProducto: number, codigoBarras: string) {
+    return request<ProductoAdmin>(`/admin/productos/${idProducto}/codigo-barras/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ codigo_barras: codigoBarras }),
+    })
+  },
+
+  descargarEtiquetas(copias: number) {
+    return descargarPdf(`/admin/productos/etiquetas/?copias=${copias}`, 'etiquetas-codigo-barras.pdf')
   },
 
   insumosAdmin() {

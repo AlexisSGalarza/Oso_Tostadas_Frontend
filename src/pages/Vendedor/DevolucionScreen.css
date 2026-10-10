@@ -45,7 +45,7 @@
 
 /* ---------- List of eligible tickets ---------- */
 
-.lista {
+.devolucion .lista {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -56,7 +56,7 @@
   border: 1px solid var(--linea);
 }
 
-.lista__fila {
+.devolucion .lista__fila {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -66,16 +66,16 @@
   border-bottom: 1px dashed var(--linea-fuerte);
 }
 
-.lista__fila:last-child {
+.devolucion .lista__fila:last-child {
   border-bottom: none;
 }
 
-.lista__info {
+.devolucion .lista__info {
   min-width: 0;
   flex: 1 1 14rem;
 }
 
-.lista__principal {
+.devolucion .lista__principal {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
@@ -85,23 +85,23 @@
   margin-bottom: 0.3rem;
 }
 
-.lista__numero {
+.devolucion .lista__numero {
   color: var(--tinta);
 }
 
-.lista__items {
+.devolucion .lista__items {
   margin: 0;
   font-size: 0.88rem;
   color: var(--tinta);
 }
 
-.lista__accion {
+.devolucion .lista__accion {
   display: flex;
   align-items: center;
   gap: 0.9rem;
 }
 
-.lista__total {
+.devolucion .lista__total {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.9rem;
@@ -109,7 +109,7 @@
   color: var(--tinta);
 }
 
-.lista__accion button {
+.devolucion .lista__accion button {
   padding: 0.5rem 0.9rem;
   border-radius: var(--radio-s);
   border: 1px solid var(--chile);
@@ -122,11 +122,11 @@
   transition: background 150ms ease;
 }
 
-.lista__accion button:hover {
+.devolucion .lista__accion button:hover {
   background: rgba(178, 58, 46, 0.08);
 }
 
-.lista__accion button:focus-visible {
+.devolucion .lista__accion button:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
@@ -380,11 +380,11 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 480px) {
-  .lista__fila {
+  .devolucion .lista__fila {
     padding: 1rem;
   }
 
-  .lista__accion {
+  .devolucion .lista__accion {
     width: 100%;
     justify-content: space-between;
   }

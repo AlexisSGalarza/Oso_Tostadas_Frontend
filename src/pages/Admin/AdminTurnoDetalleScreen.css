@@ -92,7 +92,7 @@
   color: var(--tinta);
 }
 
-.pill {
+.turnodetalle .pill {
   margin-left: auto;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
@@ -101,12 +101,12 @@
   font-weight: 600;
 }
 
-.pill--efectivo {
+.turnodetalle .pill--efectivo {
   background: rgba(163, 202, 74, 0.28);
   color: var(--verde-salsa-dark);
 }
 
-.pill--tarjeta {
+.turnodetalle .pill--tarjeta {
   background: var(--linea);
   color: var(--tostado);
 }

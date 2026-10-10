@@ -84,7 +84,7 @@
 
 /* ---------- Alta form ---------- */
 
-.alta {
+.usuarios .alta {
   background: var(--surface);
   border-radius: var(--radio-m);
   padding: 1.25rem 1.5rem;
@@ -96,7 +96,7 @@
   border: 1px solid var(--linea);
 }
 
-.alta__campo {
+.usuarios .alta__campo {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -104,14 +104,14 @@
   min-width: 12rem;
 }
 
-.alta__campo label {
+.usuarios .alta__campo label {
   font-size: 0.78rem;
   color: var(--tostado);
   font-weight: 600;
 }
 
-.alta__campo input,
-.alta__campo select {
+.usuarios .alta__campo input,
+.usuarios .alta__campo select {
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--linea-fuerte);
   border-radius: var(--radio-s);
@@ -121,24 +121,24 @@
   font-size: 0.9rem;
 }
 
-.alta__campo input:focus-visible,
-.alta__campo select:focus-visible {
+.usuarios .alta__campo input:focus-visible,
+.usuarios .alta__campo select:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
   box-shadow: var(--anillo);
 }
 
-.alta__password {
+.usuarios .alta__password {
   display: flex;
   gap: 0.4rem;
 }
 
-.alta__password input {
+.usuarios .alta__password input {
   flex: 1;
   min-width: 0;
 }
 
-.alta__passwordtoggle {
+.usuarios .alta__passwordtoggle {
   padding: 0 0.75rem;
   border: 1px solid var(--linea-fuerte);
   border-radius: var(--radio-s);
@@ -149,18 +149,18 @@
   white-space: nowrap;
 }
 
-.alta__passwordtoggle:hover {
+.usuarios .alta__passwordtoggle:hover {
   border-color: var(--verde-salsa);
 }
 
-.alta__error {
+.usuarios .alta__error {
   flex-basis: 100%;
   margin: 0;
   color: var(--chile);
   font-size: 0.82rem;
 }
 
-.alta__guardar {
+.usuarios .alta__guardar {
   padding: 0.65rem 1.1rem;
   border: none;
   border-radius: var(--radio-s);
@@ -172,18 +172,18 @@
   white-space: nowrap;
 }
 
-.alta__guardar:hover {
+.usuarios .alta__guardar:hover {
   background: var(--verde-tinta-2);
 }
 
-.alta__guardar:focus-visible {
+.usuarios .alta__guardar:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
 
 /* ---------- List ---------- */
 
-.lista {
+.usuarios .lista {
   background: var(--surface);
   border-radius: var(--radio-m);
   padding: 1.5rem 1.5rem 0.5rem;
@@ -191,7 +191,7 @@
   border: 1px solid var(--linea);
 }
 
-.lista__cabecera,
+.usuarios .lista__cabecera,
 .ufila__fila {
   display: grid;
   grid-template-columns: 1.3fr 1.1fr 1fr 0.9fr auto;
@@ -199,7 +199,7 @@
   align-items: center;
 }
 
-.lista__cabecera {
+.usuarios .lista__cabecera {
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--linea);
   font-size: 0.78rem;
@@ -207,7 +207,7 @@
   font-weight: 600;
 }
 
-.lista__filas {
+.usuarios .lista__filas {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -223,7 +223,7 @@
   color: var(--tinta);
 }
 
-.lista__filas li.ufila:last-child {
+.usuarios .lista__filas li.ufila:last-child {
   border-bottom: none;
 }
 
@@ -424,7 +424,7 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {
-  .lista__cabecera {
+  .usuarios .lista__cabecera {
     display: none;
   }
 

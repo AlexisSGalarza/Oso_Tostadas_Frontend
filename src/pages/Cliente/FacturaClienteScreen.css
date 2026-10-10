@@ -105,7 +105,7 @@
 
 /* ---------- Recibo card ---------- */
 
-.recibo {
+.fc .recibo {
   position: relative;
   background: var(--masa);
   border-radius: var(--radio-s);
@@ -125,7 +125,7 @@
   }
 }
 
-.recibo__perforado {
+.fc .recibo__perforado {
   position: absolute;
   top: -1px;
   left: 0;
@@ -136,7 +136,7 @@
   transform: translateY(-50%);
 }
 
-.recibo__titulo {
+.fc .recibo__titulo {
   font-family: var(--font-display);
   font-optical-sizing: auto;
   font-weight: 600;
@@ -146,11 +146,11 @@
   margin: 0;
 }
 
-.recibo__titulo:focus-visible {
+.fc .recibo__titulo:focus-visible {
   outline: none;
 }
 
-.recibo__subtitulo {
+.fc .recibo__subtitulo {
   text-align: center;
   font-size: 0.88rem;
   color: var(--tostado);
@@ -199,7 +199,7 @@
 
 /* ---------- Recibo detail (confirm step) ---------- */
 
-.recibo__meta {
+.fc .recibo__meta {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
@@ -210,7 +210,7 @@
   margin-bottom: 0.75rem;
 }
 
-.recibo__items {
+.fc .recibo__items {
   list-style: none;
   margin: 0 0 0.75rem;
   padding: 0;
@@ -219,7 +219,7 @@
   gap: 0.5rem;
 }
 
-.recibo__items li {
+.fc .recibo__items li {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -227,12 +227,12 @@
   color: var(--tinta);
 }
 
-.recibo__items li span:last-child {
+.fc .recibo__items li span:last-child {
   font-family: var(--font-mono);
   color: var(--tostado);
 }
 
-.recibo__total {
+.fc .recibo__total {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -245,7 +245,7 @@
   color: var(--verde-tinta);
 }
 
-.recibo__total span:first-child {
+.fc .recibo__total span:first-child {
   font-family: var(--font-body);
   font-weight: 400;
   font-size: 0.85rem;
@@ -253,7 +253,7 @@
   align-self: center;
 }
 
-.recibo__nota {
+.fc .recibo__nota {
   font-size: 0.85rem;
   color: var(--tostado);
   background: rgba(138, 90, 52, 0.1);
@@ -312,14 +312,14 @@
 
 /* ---------- Shared actions ---------- */
 
-.recibo__error {
+.fc .recibo__error {
   color: var(--chile);
   font-size: 0.82rem;
   margin: -0.4rem 0 1rem;
   text-align: center;
 }
 
-.recibo__cta {
+.fc .recibo__cta {
   width: 100%;
   padding: 0.85rem;
   border: none;
@@ -332,26 +332,26 @@
   transition: background 150ms ease, transform 100ms ease;
 }
 
-.recibo__cta:hover {
+.fc .recibo__cta:hover {
   background: var(--verde-salsa-dark);
 }
 
-.recibo__cta:active {
+.fc .recibo__cta:active {
   transform: scale(0.98);
 }
 
-.recibo__cta:disabled {
+.fc .recibo__cta:disabled {
   opacity: 0.6;
   cursor: default;
   transform: none;
 }
 
-.recibo__cta:focus-visible {
+.fc .recibo__cta:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
 
-.recibo__enlace {
+.fc .recibo__enlace {
   display: block;
   width: 100%;
   margin-top: 0.9rem;
@@ -364,7 +364,7 @@
   cursor: pointer;
 }
 
-.recibo__enlace:focus-visible {
+.fc .recibo__enlace:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
   border-radius: var(--radio-s);
@@ -423,7 +423,7 @@
   text-align: right;
 }
 
-.recibo__desglose {
+.fc .recibo__desglose {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
@@ -431,24 +431,24 @@
   margin-bottom: 0.3rem;
 }
 
-.recibo__desglose span:last-child {
+.fc .recibo__desglose span:last-child {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-a.recibo__cta {
+.fc a.recibo__cta {
   display: block;
   text-align: center;
   text-decoration: none;
 }
 
-.recibo__cta--secundario {
+.fc .recibo__cta--secundario {
   background: transparent;
   color: var(--verde-salsa-dark);
   border: 1px solid var(--verde-salsa);
 }
 
-.recibo__cta--secundario:hover {
+.fc .recibo__cta--secundario:hover {
   background: var(--hover-verde);
 }
 
@@ -491,7 +491,7 @@ a.recibo__cta {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 480px) {
-  .recibo {
+  .fc .recibo {
     padding: 2.25rem 1.4rem 1.75rem;
   }
 
@@ -501,8 +501,8 @@ a.recibo__cta {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .recibo,
-  .listo__stamp {
+  .fc .recibo,
+.listo__stamp {
     animation: none;
     opacity: 1;
     transform: none;

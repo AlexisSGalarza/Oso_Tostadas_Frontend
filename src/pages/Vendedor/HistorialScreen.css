@@ -102,7 +102,7 @@
   color: var(--tinta);
 }
 
-.pill {
+.historial .pill {
   margin-left: auto;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
@@ -118,17 +118,17 @@
   color: var(--verde-salsa-dark);
 }
 
-.pill--efectivo {
+.historial .pill--efectivo {
   background: rgba(163, 202, 74, 0.28);
   color: var(--verde-salsa-dark);
 }
 
-.pill--tarjeta {
+.historial .pill--tarjeta {
   background: var(--linea);
   color: var(--tostado);
 }
 
-.pill--devolucion {
+.historial .pill--devolucion {
   background: rgba(178, 58, 46, 0.15);
   color: var(--chile);
 }

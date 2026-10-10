@@ -84,7 +84,7 @@
 
 /* ---------- Alta form ---------- */
 
-.alta {
+.proveedores .alta {
   background: var(--surface);
   border-radius: var(--radio-m);
   padding: 1.25rem 1.5rem;
@@ -96,7 +96,7 @@
   border: 1px solid var(--linea);
 }
 
-.alta__campo {
+.proveedores .alta__campo {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -104,13 +104,13 @@
   min-width: 12rem;
 }
 
-.alta__campo label {
+.proveedores .alta__campo label {
   font-size: 0.78rem;
   color: var(--tostado);
   font-weight: 600;
 }
 
-.alta__campo input {
+.proveedores .alta__campo input {
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--linea-fuerte);
   border-radius: var(--radio-s);
@@ -120,20 +120,20 @@
   font-size: 0.9rem;
 }
 
-.alta__campo input:focus-visible {
+.proveedores .alta__campo input:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
   box-shadow: var(--anillo);
 }
 
-.alta__error {
+.proveedores .alta__error {
   flex-basis: 100%;
   margin: 0;
   color: var(--chile);
   font-size: 0.82rem;
 }
 
-.alta__guardar {
+.proveedores .alta__guardar {
   padding: 0.65rem 1.1rem;
   border: none;
   border-radius: var(--radio-s);
@@ -145,18 +145,18 @@
   white-space: nowrap;
 }
 
-.alta__guardar:hover {
+.proveedores .alta__guardar:hover {
   background: var(--verde-tinta-2);
 }
 
-.alta__guardar:focus-visible {
+.proveedores .alta__guardar:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
 
 /* ---------- List ---------- */
 
-.lista {
+.proveedores .lista {
   background: var(--surface);
   border-radius: var(--radio-m);
   padding: 1.5rem 1.5rem 0.5rem;
@@ -164,7 +164,7 @@
   border: 1px solid var(--linea);
 }
 
-.lista__cabecera,
+.proveedores .lista__cabecera,
 .pfila__fila {
   display: grid;
   grid-template-columns: 1.2fr 1.3fr 1fr 1fr 0.8fr auto;
@@ -172,7 +172,7 @@
   align-items: center;
 }
 
-.lista__cabecera {
+.proveedores .lista__cabecera {
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--linea);
   font-size: 0.78rem;
@@ -180,7 +180,7 @@
   font-weight: 600;
 }
 
-.lista__filas {
+.proveedores .lista__filas {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -196,7 +196,7 @@
   color: var(--tinta);
 }
 
-.lista__filas li.pfila:last-child {
+.proveedores .lista__filas li.pfila:last-child {
   border-bottom: none;
 }
 
@@ -289,7 +289,7 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 860px) {
-  .lista__cabecera {
+  .proveedores .lista__cabecera {
     display: none;
   }
 

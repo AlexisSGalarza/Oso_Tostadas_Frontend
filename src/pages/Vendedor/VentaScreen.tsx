@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import NumericKeypad from '../../components/NumericKeypad'
+import EscanerCamara from '../../components/EscanerCamara'
+import Icono from '../../components/Icono'
+import { mismoCodigo, sonarLectura, useLectorCodigos } from '../../lib/escaner'
 import { formatClock, formatMoney, formatTicket } from '../../lib/format'
 import { api, ApiError, type ProductoDisponible, type Turno } from '../../lib/api'
 import type { Devolucion, ItemVenta, MetodoPago, Venta } from './types'
@@ -49,6 +52,10 @@ function VentaScreen({
   const [errorVenta, setErrorVenta] = useState('')
   const [confirmandoCancelar, setConfirmandoCancelar] = useState(false)
 
+  const [codigoManual, setCodigoManual] = useState('')
+  const [avisoCodigo, setAvisoCodigo] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
+  const [camaraAbierta, setCamaraAbierta] = useState(false)
+
   // En telefono la cuenta queda debajo del catalogo: una barra fija muestra el
   // total y lleva a la cuenta, y se oculta cuando la cuenta ya esta a la vista.
   const cuentaRef = useRef<HTMLElement>(null)
@@ -92,6 +99,39 @@ function VentaScreen({
     })
   }
 
+  // Entrada unica para lector fisico, camara y codigo escrito a mano.
+  function registrarCodigo(leido: string) {
+    const codigo = leido.trim()
+    if (!codigo) return
+    const producto = productos.find((p) => mismoCodigo(p.codigo_barras, codigo))
+    const enCuenta = producto
+      ? (carrito.find((item) => item.id_producto === producto.id_producto)?.cantidad ?? 0)
+      : 0
+
+    if (!producto) {
+      setAvisoCodigo({ tipo: 'error', texto: `Ningún producto tiene el código ${codigo}.` })
+    } else if (producto.stock - enCuenta <= 0) {
+      setAvisoCodigo({ tipo: 'error', texto: `Ya no hay existencia de ${producto.nombre}.` })
+    } else {
+      // Escanear despues de cobrar empieza la siguiente venta sin tocar la pantalla.
+      setJustCharged(false)
+      setErrorVenta('')
+      agregar(producto)
+      setAvisoCodigo({ tipo: 'ok', texto: `${producto.nombre} agregado (${enCuenta + 1} en la cuenta).` })
+      sonarLectura(true)
+      return
+    }
+    sonarLectura(false)
+  }
+
+  function enviarCodigoManual(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    registrarCodigo(codigoManual)
+    setCodigoManual('')
+  }
+
+  useLectorCodigos(registrarCodigo, !camaraAbierta && !confirmandoCancelar && !enviando)
+
   function incrementar(idProducto: number) {
     setCarrito((actual) =>
       actual.map((item) => (item.id_producto === idProducto ? { ...item, cantidad: item.cantidad + 1 } : item)),
@@ -118,6 +158,7 @@ function VentaScreen({
     setEfectivoRecibido('')
     setMetodoPago('efectivo')
     setErrorVenta('')
+    setAvisoCodigo(null)
   }
 
   // Efectivo fisico disponible en la caja: el fondo inicial mas lo que ya entro en
@@ -201,6 +242,39 @@ function VentaScreen({
       <main className="venta__main">
         <section className="catalogo" aria-label="Paquetes de tostadas">
           <h1 className="catalogo__titulo">Paquetes de tostadas</h1>
+
+          <form className="lector" onSubmit={enviarCodigoManual}>
+            <label htmlFor="codigo-barras" className="solo-lectores">
+              Código de barras
+            </label>
+            <div className="lector__campo">
+              <Icono nombre="codigo" />
+              <input
+                id="codigo-barras"
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                placeholder="Escanea o escribe el código"
+                value={codigoManual}
+                onChange={(event) => setCodigoManual(event.target.value)}
+              />
+            </div>
+            <button type="submit" className="lector__agregar" disabled={!codigoManual.trim()}>
+              Agregar
+            </button>
+            <button type="button" className="lector__camara" onClick={() => setCamaraAbierta(true)}>
+              <Icono nombre="camara" />
+              <span>Usar cámara</span>
+            </button>
+          </form>
+          <p className={`lector__aviso ${avisoCodigo ? `is-${avisoCodigo.tipo}` : ''}`} role="status" aria-live="polite">
+            {avisoCodigo?.texto ??
+              (!cargandoCatalogo && productos.length > 0 && !productos.some((p) => p.codigo_barras)
+                ? 'Ningún producto tiene código de barras todavía. Se asignan en Inventario, desde una cuenta de administrador.'
+                : 'Con un lector conectado, solo escanea: no hace falta tocar el campo.')}
+          </p>
 
           {cargandoCatalogo && <p className="cuenta__vacio">Cargando catálogo…</p>}
           {errorCatalogo && (
@@ -407,6 +481,10 @@ function VentaScreen({
           <span className="venta__barra-total">{formatMoney(total)}</span>
           <span className="venta__barra-ir">Ver cuenta</span>
         </a>
+      )}
+
+      {camaraAbierta && (
+        <EscanerCamara aviso={avisoCodigo} onCodigo={registrarCodigo} onCerrar={() => setCamaraAbierta(false)} />
       )}
 
       <ConfirmDialog

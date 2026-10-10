@@ -91,3 +91,36 @@ Paleta y tipografía propias de la marca, definidas como tokens CSS en `src/styl
 - Tipografía: Fraunces (display), Public Sans (texto), IBM Plex Mono (datos/monto/hora).
 
 Todas las pantallas reutilizan estos tokens; evita introducir colores o fuentes sueltas fuera de `:root`.
+
+## Cobro con código de barras
+
+En **Nueva venta** un producto se agrega a la cuenta de tres formas:
+
+- **Lector físico (USB o Bluetooth):** funciona como teclado. Con la pantalla de venta abierta
+  basta escanear; no hay que tocar ningún campo.
+- **Cámara:** botón **Usar cámara**. En Chrome/Android usa el lector integrado del navegador;
+  en iPhone, Safari y Firefox usa ZXing (se descarga solo la primera vez).
+- **A mano:** escribir el código y presionar **Agregar**.
+
+Los códigos se asignan en **Inventario → Productos → Código de barras** (cuenta de administrador).
+Si los paquetes no traen código impreso, **Generar uno** crea un código interno y
+**Imprimir etiquetas** descarga un PDF con etiquetas Code 39 para pegarlas.
+
+### Probar la cámara desde un teléfono
+
+El navegador solo permite usar la cámara en `https` o en `localhost`. Para abrir el punto de
+venta desde un teléfono en la misma red:
+
+```bash
+npm run dev:movil
+```
+
+Sirve la app en `https://<ip-de-tu-equipo>:5173` con un certificado local (el teléfono mostrará
+una advertencia la primera vez; hay que aceptarla) y manda las llamadas a la API por el proxy
+`/api`, así que el backend solo necesita estar corriendo en este equipo.
+
+## Facturación
+
+El cliente factura en `/factura` con el número y el total de su ticket. El administrador ve
+las facturas en **Facturas**. Mientras el backend esté en `CFDI_PAC=simulado`, las facturas son
+de prueba y no tienen validez fiscal (ver el README del backend).

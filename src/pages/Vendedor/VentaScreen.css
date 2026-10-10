@@ -25,6 +25,109 @@
   color: var(--tinta);
 }
 
+/* ---------- Lector de codigo de barras ---------- */
+
+.lector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.lector__campo {
+  flex: 1 1 14rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
+  background: var(--surface);
+  color: var(--tostado);
+}
+
+.lector__campo:focus-within {
+  border-color: var(--verde-salsa);
+  box-shadow: var(--anillo);
+}
+
+.lector__campo input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--tinta);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+
+.lector__campo input::placeholder {
+  font-family: var(--font-body);
+  color: var(--tostado);
+  opacity: 0.8;
+}
+
+.lector__agregar,
+.lector__camara {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 1rem;
+  border-radius: var(--radio-s);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lector__agregar {
+  border: 1px solid var(--linea-fuerte);
+  background: var(--surface);
+  color: var(--tinta);
+}
+
+.lector__agregar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lector__camara {
+  border: 1px solid var(--verde-tinta);
+  background: var(--verde-tinta);
+  color: var(--surface);
+}
+
+.lector__camara:hover {
+  background: var(--verde-tinta-2);
+}
+
+.lector__aviso {
+  margin: 0.5rem 0 1.1rem;
+  font-size: 0.82rem;
+  color: var(--tostado);
+}
+
+.lector__aviso.is-ok,
+.lector__aviso.is-error {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radio-s);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lector__aviso.is-ok {
+  background: var(--brote-suave);
+  color: var(--verde-salsa-dark);
+}
+
+.lector__aviso.is-error {
+  background: var(--chile-suave);
+  color: var(--chile-dark);
+}
+
 .catalogo__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -89,6 +192,10 @@
 .producto:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.producto.is-en-cuenta .producto__nombre {
+  padding-right: 1.9rem;
 }
 
 .producto.is-en-cuenta {
@@ -569,6 +676,10 @@
 }
 
 @media (max-width: 480px) {
+  .lector__camara {
+    flex: 1;
+  }
+
   .venta__main {
     padding: 1rem;
     gap: 1rem;
