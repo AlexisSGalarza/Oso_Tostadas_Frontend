@@ -3,16 +3,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 1.75rem;
+  padding: 0.6rem clamp(1rem, 3vw, 2rem);
   background: var(--verde-tinta);
-  flex-wrap: wrap;
+  color: var(--surface);
 }
 
 .topbar__brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  min-height: 1.75rem;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 0;
 }
 
 .topbar__mark {
@@ -31,86 +32,139 @@
 
 .topbar__name {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: -0.01em;
-  color: var(--page);
 }
 
-.topbar__back {
+.topbar__back,
+.topbar__menu {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: none;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.3rem 0.5rem;
   border: none;
-  color: var(--page);
-  font-family: var(--font-body);
+  border-radius: var(--radio-s);
+  background: none;
+  color: inherit;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  min-height: 44px;
-  padding: 0.3rem 0.4rem;
-  margin: -0.3rem -0.4rem;
-  border-radius: 4px;
 }
 
-.topbar__back:hover {
-  background: rgba(251, 247, 236, 0.1);
+.topbar__menu {
+  justify-content: center;
+  margin-left: -0.5rem;
 }
 
-.topbar__back:focus-visible {
-  outline: 2px solid var(--verde-brote);
-  outline-offset: 2px;
+.topbar__back:hover,
+.topbar__menu:hover {
+  background: rgba(255, 253, 248, 0.1);
 }
 
 .topbar__meta {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(251, 247, 236, 0.75);
-  flex-wrap: wrap;
+  gap: 1.1rem;
+  font-size: 0.82rem;
+  color: rgba(255, 253, 248, 0.78);
+  white-space: nowrap;
 }
 
 .topbar__clock {
-  color: var(--verde-brote);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  color: var(--verde-brote);
 }
 
 .topbar__logout {
-  background: none;
-  border: 1px solid rgba(251, 247, 236, 0.35);
-  color: var(--page);
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  text-transform: none;
-  letter-spacing: 0;
   min-height: 44px;
-  min-width: 44px;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 253, 248, 0.35);
+  border-radius: var(--radio-s);
+  background: none;
+  color: var(--surface);
+  font-size: 0.82rem;
   cursor: pointer;
   transition: background 150ms ease;
 }
 
 .topbar__logout:hover {
-  background: rgba(251, 247, 236, 0.1);
+  background: rgba(255, 253, 248, 0.1);
 }
 
+.topbar__back:focus-visible,
+.topbar__menu:focus-visible,
 .topbar__logout:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
 
-@media (max-width: 480px) {
-  .topbar {
-    padding: 0.75rem 1rem;
+/* ---------- Dentro del menu lateral: barra clara y delgada ---------- */
+
+.topbar--shell {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding-block: 0.75rem;
+  background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(10px);
+  color: var(--tinta);
+}
+
+.topbar--shell .topbar__sucursal,
+.topbar--shell .topbar__clock {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--linea);
+  font-weight: 500;
+}
+
+.topbar--shell .topbar__meta {
+  gap: 0.5rem;
+}
+
+.topbar--shell .topbar__menu {
+  background: var(--surface);
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  margin-left: 0;
+}
+
+.topbar--shell .topbar__meta {
+  color: var(--tostado);
+}
+
+.topbar--shell .topbar__clock {
+  color: var(--verde-salsa-dark);
+}
+
+.topbar--shell .topbar__back:hover,
+.topbar--shell .topbar__menu:hover {
+  background: var(--hover);
+}
+
+.topbar--shell .topbar__back:focus-visible,
+.topbar--shell .topbar__menu:focus-visible {
+  outline-color: var(--verde-salsa);
+}
+
+/* En escritorio el menu ya esta a la vista: sobran el boton y la marca. */
+@media (min-width: 1024px) {
+  .topbar__menu,
+  .topbar__name--movil {
+    display: none;
   }
 
+  .topbar--shell .topbar__brand:empty {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
   .topbar__sucursal {
     display: none;
   }

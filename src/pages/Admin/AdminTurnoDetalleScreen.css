@@ -8,7 +8,7 @@
 .turnodetalle__main {
   flex: 1;
   width: 100%;
-  max-width: 56rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   display: flex;
@@ -18,7 +18,6 @@
 
 .turnodetalle__main h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.5rem, 2.8vw, 1.9rem);
   margin: 0;
@@ -41,12 +40,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.5rem;
-  background: var(--masa);
-  border-radius: 6px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 0.9rem 1.1rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--tinta);
+  border: 1px solid var(--linea);
 }
 
 .turnodetalle__resumen .is-desajuste {
@@ -69,10 +69,11 @@
 }
 
 .tventa {
-  background: var(--masa);
-  border-radius: 6px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1rem 1.25rem;
-  box-shadow: 0 12px 28px -20px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
 .tventa__cabeza {
@@ -90,23 +91,22 @@
   color: var(--tinta);
 }
 
-.pill {
+.turnodetalle .pill {
   margin-left: auto;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
   white-space: nowrap;
+  font-weight: 600;
 }
 
-.pill--efectivo {
+.turnodetalle .pill--efectivo {
   background: rgba(163, 202, 74, 0.28);
   color: var(--verde-salsa-dark);
 }
 
-.pill--tarjeta {
-  background: rgba(138, 90, 52, 0.15);
+.turnodetalle .pill--tarjeta {
+  background: var(--linea);
   color: var(--tostado);
 }
 
@@ -136,8 +136,8 @@
 
 .tventa__boton {
   padding: 0.5rem 0.85rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: transparent;
   color: var(--tostado);
   font-size: 0.78rem;
@@ -171,7 +171,7 @@
 .tventa__form {
   margin-top: 0.9rem;
   padding-top: 0.9rem;
-  border-top: 1px dashed rgba(138, 90, 52, 0.35);
+  border-top: 1px dashed var(--linea-fuerte);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -195,8 +195,8 @@
 .tventa__cantidad button {
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 8px;
-  border: 1px solid rgba(138, 90, 52, 0.35);
+  border-radius: var(--radio-m);
+  border: 1px solid var(--linea-fuerte);
   background: var(--page);
   color: var(--tinta);
   font-size: 1.1rem;
@@ -233,7 +233,7 @@
 .tventa__confirmar {
   padding: 0.6rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.85rem;
@@ -249,4 +249,60 @@
 .tventa__confirmar:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
+}
+
+/* ---------- Dashboard moderno: resumen en cifras y ventas en una sola lista ---------- */
+
+.turnodetalle__subtitulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+}
+
+.turnodetalle__lista {
+  gap: 0;
+  padding: 0.35rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--borde-tarjeta);
+  border-radius: var(--radio-m);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.tventa {
+  padding: 1rem 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.tventa + .tventa {
+  border-top: 1px solid var(--linea);
+}
+
+.tventa__cabeza {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--texto-suave);
+}
+
+.tventa__numero {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.tventa__total {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.tventa__form {
+  border-top: 1px solid var(--linea);
+}
+
+@media (max-width: 720px) {
+  .turnodetalle__lista {
+    padding-inline: 1.1rem;
+  }
 }

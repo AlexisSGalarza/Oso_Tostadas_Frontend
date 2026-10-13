@@ -11,6 +11,15 @@ import {
   type TicketPublico,
   type UsoCfdi,
 } from '../../lib/api'
+import {
+  correoValido,
+  DATOS_FISCALES_VACIOS as DATOS_INICIALES,
+  REGIMENES,
+  REGIMENES_SOLO_S01,
+  rfcValido,
+  soloDigitos,
+  USOS_CFDI,
+} from '../../lib/fiscal'
 import './FacturaClienteScreen.css'
 
 type Paso = 'buscar' | 'confirmar' | 'datos' | 'listo'
@@ -21,44 +30,11 @@ const PASOS: { id: Paso; etiqueta: string }[] = [
   { id: 'datos', etiqueta: 'Datos fiscales' },
 ]
 
-const USOS_CFDI: { valor: UsoCfdi; etiqueta: string }[] = [
-  { valor: 'G03', etiqueta: 'G03 · Gastos en general' },
-  { valor: 'G01', etiqueta: 'G01 · Adquisición de mercancías' },
-  { valor: 'P01', etiqueta: 'P01 · Por definir' },
-]
-
-const REGIMENES: { valor: RegimenFiscal; etiqueta: string }[] = [
-  { valor: '616', etiqueta: '616 · Sin obligaciones fiscales' },
-  { valor: '612', etiqueta: '612 · Actividades empresariales y profesionales' },
-  { valor: '621', etiqueta: '621 · Incorporación fiscal' },
-  { valor: '601', etiqueta: '601 · General de ley personas morales' },
-]
-
-const DATOS_INICIALES: DatosFiscales = {
-  rfc: '',
-  razon_social: '',
-  correo: '',
-  codigo_postal: '',
-  regimen_fiscal: '616',
-  uso_cfdi: 'G03',
-}
-
-function soloDigitos(valor: string) {
-  return valor.replace(/\D/g, '')
-}
-
-function rfcValido(rfc: string) {
-  return /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test(rfc.trim().toUpperCase())
-}
-
-function correoValido(correo: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())
-}
-
 function FacturaClienteScreen() {
   const [paso, setPaso] = useState<Paso>('buscar')
 
   const [folio, setFolio] = useState('')
+  const [totalTicket, setTotalTicket] = useState('')
   const [buscando, setBuscando] = useState(false)
   const [errorBusqueda, setErrorBusqueda] = useState('')
   const [ticket, setTicket] = useState<TicketPublico | null>(null)
@@ -81,16 +57,21 @@ function FacturaClienteScreen() {
       setErrorBusqueda('Escribe el número de tu ticket para buscarlo.')
       return
     }
+    const total = Number.parseFloat(totalTicket.replace(/[$,\s]/g, ''))
+    if (Number.isNaN(total) || total <= 0) {
+      setErrorBusqueda('Escribe el total de tu compra tal como aparece en el ticket.')
+      return
+    }
     setErrorBusqueda('')
     setBuscando(true)
     try {
-      const encontrado = await api.buscarTicketPublico(limpio)
+      const encontrado = await api.buscarTicketPublico(limpio, String(total))
       setTicket(encontrado)
       setPaso('confirmar')
     } catch (err) {
       setErrorBusqueda(
         err instanceof ApiError && err.status === 404
-          ? 'No encontramos un ticket con ese número. Revisa los dígitos e intenta de nuevo.'
+          ? 'No encontramos un ticket con ese número y ese total. Revisa los datos e intenta de nuevo.'
           : err instanceof ApiError
             ? err.message
             : 'No se pudo conectar con el servidor.',
@@ -102,6 +83,7 @@ function FacturaClienteScreen() {
 
   function handleBuscarOtro() {
     setFolio('')
+    setTotalTicket('')
     setErrorBusqueda('')
     setTicket(null)
     setDatos(DATOS_INICIALES)
@@ -134,11 +116,15 @@ function FacturaClienteScreen() {
     setErrorDatos('')
     setEnviando(true)
     try {
-      const generada = await api.generarFacturaPublica(ticket.id_venta, {
-        ...datos,
-        rfc: datos.rfc.trim().toUpperCase(),
-        codigo_postal: soloDigitos(datos.codigo_postal),
-      })
+      const generada = await api.generarFacturaPublica(
+        ticket.id_venta,
+        {
+          ...datos,
+          rfc: datos.rfc.trim().toUpperCase(),
+          codigo_postal: soloDigitos(datos.codigo_postal),
+        },
+        ticket.total,
+      )
       setFactura(generada)
       setPaso('listo')
     } catch (err) {
@@ -183,7 +169,7 @@ function FacturaClienteScreen() {
                 Factura tu ticket
               </h1>
               <p className="recibo__subtitulo">
-                Escribe el número que aparece en tu ticket de compra para generar tu factura.
+                Escribe el número y el total que aparecen en tu ticket de compra.
               </p>
 
               <form onSubmit={handleBuscar} noValidate>
@@ -199,6 +185,20 @@ function FacturaClienteScreen() {
                     value={folio}
                     onChange={(event) => setFolio(event.target.value)}
                     autoFocus
+                  />
+                </div>
+
+                <div className="folio-campo">
+                  <label htmlFor="total-ticket">Total de la compra</label>
+                  <input
+                    id="total-ticket"
+                    name="total"
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    placeholder="34.80"
+                    value={totalTicket}
+                    onChange={(event) => setTotalTicket(event.target.value)}
                   />
                 </div>
 
@@ -236,6 +236,14 @@ function FacturaClienteScreen() {
                 ))}
               </ul>
 
+              <div className="recibo__desglose">
+                <span>Subtotal</span>
+                <span>{formatMoney(ticket.subtotal)}</span>
+              </div>
+              <div className="recibo__desglose">
+                <span>IVA</span>
+                <span>{formatMoney(ticket.impuesto)}</span>
+              </div>
               <div className="recibo__total">
                 <span>Total</span>
                 <span>{formatMoney(ticket.total)}</span>
@@ -246,6 +254,8 @@ function FacturaClienteScreen() {
                   Este ticket ya tiene una factura generada. Si no la recibiste, pide ayuda en caja con tu número de
                   ticket.
                 </p>
+              ) : ticket.motivo_no_facturable ? (
+                <p className="recibo__nota">{ticket.motivo_no_facturable}</p>
               ) : (
                 <button type="button" className="recibo__cta" onClick={() => setPaso('datos')}>
                   Generar factura
@@ -317,7 +327,14 @@ function FacturaClienteScreen() {
                   <select
                     id="regimen_fiscal"
                     value={datos.regimen_fiscal}
-                    onChange={(event) => setDatos((d) => ({ ...d, regimen_fiscal: event.target.value as RegimenFiscal }))}
+                    onChange={(event) => {
+                      const regimen = event.target.value as RegimenFiscal
+                      setDatos((d) => ({
+                        ...d,
+                        regimen_fiscal: regimen,
+                        uso_cfdi: REGIMENES_SOLO_S01.includes(regimen) ? 'S01' : d.uso_cfdi,
+                      }))
+                    }}
                   >
                     {REGIMENES.map((r) => (
                       <option key={r.valor} value={r.valor}>
@@ -334,7 +351,9 @@ function FacturaClienteScreen() {
                     value={datos.uso_cfdi}
                     onChange={(event) => setDatos((d) => ({ ...d, uso_cfdi: event.target.value as UsoCfdi }))}
                   >
-                    {USOS_CFDI.map((u) => (
+                    {USOS_CFDI.filter(
+                      (u) => !REGIMENES_SOLO_S01.includes(datos.regimen_fiscal) || u.valor === 'S01',
+                    ).map((u) => (
                       <option key={u.valor} value={u.valor}>
                         {u.etiqueta}
                       </option>
@@ -365,11 +384,32 @@ function FacturaClienteScreen() {
               <h1 className="recibo__titulo" ref={encabezadoRef} tabIndex={-1}>
                 Factura generada
               </h1>
-              <p className="recibo__subtitulo">La enviamos a {factura.correo}.</p>
+              <p className="recibo__subtitulo">
+                {factura.correo_enviado
+                  ? `La enviamos a ${factura.correo}. También puedes descargarla aquí.`
+                  : 'Descárgala aquí y guárdala: es tu comprobante.'}
+              </p>
+
+              {factura.modo === 'pruebas' && (
+                <p className="listo__prueba" role="note">
+                  Factura de prueba, sin validez fiscal. El timbrado ante el SAT todavía no está activado.
+                </p>
+              )}
 
               <div className="listo__folio">
-                <span>Folio fiscal</span>
+                <span>
+                  Factura {factura.serie}-{factura.folio} · Folio fiscal
+                </span>
                 <span>{factura.folio_fiscal}</span>
+              </div>
+
+              <div className="listo__descargas">
+                <a className="recibo__cta" href={api.urlArchivoFactura(factura.folio_fiscal, 'pdf')}>
+                  Descargar PDF
+                </a>
+                <a className="recibo__cta recibo__cta--secundario" href={api.urlArchivoFactura(factura.folio_fiscal, 'xml')}>
+                  Descargar XML
+                </a>
               </div>
 
               <button type="button" className="recibo__enlace" onClick={handleBuscarOtro}>
@@ -379,7 +419,7 @@ function FacturaClienteScreen() {
           )}
         </section>
 
-        <p className="fc__ayuda">¿Problemas para encontrar tu ticket? Pide ayuda en caja con tu número de orden.</p>
+        <p className="fc__ayuda">¿No encuentras tu ticket? Pide ayuda en caja con tu número de ticket.</p>
       </div>
     </main>
   )

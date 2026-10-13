@@ -1,0 +1,55 @@
+.tostadas {
+  --cara: #e2c08a;
+  --canto: #c79f63;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radio-m);
+  background: color-mix(in srgb, var(--cara) 22%, var(--surface));
+}
+
+.tostadas.is-amarilla {
+  --cara: #f0c44c;
+  --canto: #d29f24;
+}
+
+.tostadas.is-roja {
+  --cara: #e2714f;
+  --canto: #bd4c2e;
+}
+
+.tostadas svg {
+  width: 78%;
+  max-width: 7rem;
+  height: auto;
+}
+
+.tostadas__cara {
+  fill: var(--cara);
+}
+
+.tostadas__canto {
+  fill: var(--canto);
+}
+
+.tostadas__sombra {
+  fill: rgba(22, 48, 31, 0.1);
+}
+
+.tostadas__burbujas {
+  fill: var(--canto);
+  opacity: 0.6;
+}
+
+.tostadas__piezas {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--tinta);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+}

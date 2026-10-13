@@ -8,7 +8,7 @@
 .inventario__main {
   flex: 1;
   width: 100%;
-  max-width: 60rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   display: flex;
@@ -16,7 +16,7 @@
   gap: 1.25rem;
 }
 
-.alta__error {
+.inventario .alta__error {
   margin: 0;
   color: var(--chile);
   font-size: 0.82rem;
@@ -30,7 +30,7 @@
 .inventario__nuevo {
   padding: 0.65rem 1.1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.85rem;
@@ -53,18 +53,19 @@
   outline-offset: 2px;
 }
 
-.alta {
-  background: var(--masa);
-  border-radius: 6px;
+.inventario .alta {
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: flex-end;
   gap: 1rem;
   flex-wrap: wrap;
-  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
-.alta__campo {
+.inventario .alta__campo {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -72,36 +73,34 @@
   min-width: 12rem;
 }
 
-.alta__campo label {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.inventario .alta__campo label {
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
-.alta__campo input,
-.alta__campo select {
+.inventario .alta__campo input,
+.inventario .alta__campo select {
   padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: inherit;
   font-size: 0.9rem;
 }
 
-.alta__campo input:focus-visible,
-.alta__campo select:focus-visible {
+.inventario .alta__campo input:focus-visible,
+.inventario .alta__campo select:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
-.alta__guardar {
+.inventario .alta__guardar {
   padding: 0.65rem 1.1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-tinta);
   color: var(--page);
   font-size: 0.85rem;
@@ -110,18 +109,17 @@
   white-space: nowrap;
 }
 
-.alta__guardar:hover {
+.inventario .alta__guardar:hover {
   background: var(--verde-tinta-2);
 }
 
-.alta__guardar:focus-visible {
+.inventario .alta__guardar:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
 
 .inventario__main h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   margin: 0;
@@ -138,11 +136,12 @@
 
 .tabs {
   display: inline-flex;
-  background: var(--masa);
+  background: var(--surface);
   border-radius: 999px;
   padding: 0.3rem;
   gap: 0.2rem;
   width: fit-content;
+  border: 1px solid var(--linea);
 }
 
 .tab {
@@ -186,51 +185,50 @@
 
 /* ---------- List ---------- */
 
-.lista {
-  background: var(--masa);
-  border-radius: 6px;
+.inventario .lista {
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1.5rem 1.5rem 0.5rem;
-  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
-.lista__cabecera,
+.inventario .lista__cabecera,
 .ifila__fila {
   display: grid;
   gap: 0.75rem;
   align-items: center;
 }
 
-.lista__cabecera--insumos,
+.inventario .lista__cabecera--insumos,
 .ifila__fila--insumos {
-  grid-template-columns: 1.4fr 0.9fr 0.9fr 1.1fr 0.8fr auto;
+  grid-template-columns: 1.4fr 0.9fr 0.9fr 1.1fr 0.8fr 10rem;
 }
 
-.lista__cabecera--productos,
+.inventario .lista__cabecera--productos,
 .ifila__fila--productos {
-  grid-template-columns: 1.5fr 0.8fr 0.9fr 0.8fr 0.8fr auto;
+  grid-template-columns: 1.6fr 0.6fr 0.7fr 0.7fr 0.6fr 19.5rem;
 }
 
-.lista__cabecera {
+.inventario .lista__cabecera {
   padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(32, 28, 20, 0.14);
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  border-bottom: 1px solid var(--linea);
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
-.lista__filas {
+.inventario .lista__filas {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .ifila {
-  border-bottom: 1px dashed rgba(138, 90, 52, 0.3);
+  border-bottom: 1px dashed var(--linea-fuerte);
 }
 
-.lista__filas li.ifila:last-child {
+.inventario .lista__filas li.ifila:last-child {
   border-bottom: none;
 }
 
@@ -258,12 +256,10 @@
 
 .ifila__estado {
   display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   padding: 0.22rem 0.55rem;
   border-radius: 999px;
+  font-weight: 600;
 }
 
 .ifila__estado.is-bien {
@@ -287,8 +283,8 @@
 
 .ifila__entrada {
   padding: 0.35rem 0.7rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-size: 0.74rem;
@@ -324,18 +320,16 @@
 }
 
 .ifila__formcampo label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
 .ifila__formcampo input,
 .ifila__formcampo select {
   padding: 0.5rem 0.65rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: inherit;
@@ -347,13 +341,13 @@
 .ifila__formcampo select:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 .ifila__confirmar {
   padding: 0.55rem 0.9rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.8rem;
@@ -374,7 +368,7 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 760px) {
-  .lista__cabecera {
+  .inventario .lista__cabecera {
     display: none;
   }
 
@@ -399,13 +393,11 @@
   .ifila__celda[data-label]::before {
     content: attr(data-label) ': ';
     display: block;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
     color: var(--tostado);
     margin-bottom: 0.15rem;
-  }
+  font-weight: 600;
+}
 
   .ifila__celda--nombre::before {
     display: none;
@@ -413,5 +405,110 @@
 
   .ifila__form {
     padding-left: 0.9rem;
+  }
+}
+
+/* ---------- Codigo de barras ---------- */
+
+.etiquetas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-m);
+  background: var(--surface);
+}
+
+.etiquetas__texto {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--tostado);
+}
+
+.etiquetas__accion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--tostado);
+}
+
+.etiquetas__accion input {
+  width: 4.5rem;
+  min-height: 40px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
+  background: var(--page);
+  color: var(--tinta);
+}
+
+.ifila__codigo {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 400;
+  color: var(--tostado);
+}
+
+.ifila__codigo.is-falta {
+  font-family: var(--font-body);
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.ifila__celda--accion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ifila__formcampo--codigo {
+  flex: 1 1 16rem;
+}
+
+.ifila__formcampo--codigo input {
+  font-family: var(--font-mono);
+}
+
+.ifila__entrada:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ifila__entrada--quitar {
+  color: var(--chile);
+}
+
+.ifila__error {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--chile);
+}
+
+@media (max-width: 1100px) {
+  .inventario .lista__cabecera--productos,
+.ifila__fila--productos {
+    grid-template-columns: 1.6fr 0.6fr 0.7fr 0.7fr 0.6fr 10.5rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .ifila__fila--insumos,
+  .ifila__fila--productos {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ifila__celda--accion {
+    justify-content: flex-start;
   }
 }

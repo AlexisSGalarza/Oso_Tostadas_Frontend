@@ -1,0 +1,167 @@
+.dona {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.dona__anillo {
+  position: relative;
+  width: min(100%, 13rem);
+  margin-inline: auto;
+  animation: aparece var(--lento) var(--sale) both;
+}
+
+.dona__anillo svg {
+  display: block;
+  width: 100%;
+  transform: rotate(-90deg);
+}
+
+.dona__pista,
+.dona__arco {
+  fill: none;
+  stroke-width: 15;
+}
+
+.dona__pista {
+  stroke: var(--page);
+}
+
+.dona__arco {
+  transition: opacity var(--rapido) ease, stroke-width var(--medio) var(--sale);
+  cursor: pointer;
+}
+
+.dona__arco:hover {
+  stroke-width: 18;
+}
+
+.dona__arco.is-tenue {
+  opacity: 0.35;
+}
+
+.dona__centro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.dona__total {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.dona__etiqueta {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--tostado);
+}
+
+.dona__leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.6rem 1rem;
+}
+
+.dona__leyenda li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.5rem;
+  align-items: center;
+  font-size: 0.82rem;
+  transition: opacity var(--rapido) ease;
+}
+
+.dona__leyenda li.is-tenue {
+  opacity: 0.45;
+}
+
+.dona__color {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 4px;
+}
+
+.dona__nombre {
+  color: var(--tinta);
+  line-height: 1.25;
+}
+
+.dona__valor {
+  grid-column: 2;
+  font-variant-numeric: tabular-nums;
+  color: var(--tostado);
+}
+
+.dona__vacio {
+  margin: 0;
+  padding: 4rem 1rem;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--tostado);
+}
+
+/* ---------- Dashboard moderno: anillo fino y leyenda en renglones ---------- */
+
+.dona__anillo {
+  width: min(100%, 11.5rem);
+}
+
+.dona__pista,
+.dona__arco {
+  stroke-width: 11;
+}
+
+.dona__arco:hover {
+  stroke-width: 13;
+}
+
+.dona__total {
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.02em;
+}
+
+.dona__etiqueta {
+  color: var(--texto-suave);
+}
+
+.dona__leyenda {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.dona__leyenda li {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 0.6rem;
+  padding: 0.5rem 0;
+  font-size: 0.86rem;
+}
+
+.dona__leyenda li + li {
+  border-top: 1px solid var(--linea);
+}
+
+.dona__color {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.dona__valor {
+  grid-column: auto;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  color: var(--texto-suave);
+}

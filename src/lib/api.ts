@@ -29,8 +29,10 @@ async function extraerMensajeError(response: Response): Promise<string> {
   try {
     const data = await response.json()
     if (typeof data.detail === 'string') return data.detail
-    const primerCampo = Object.values(data)[0]
-    if (Array.isArray(primerCampo)) return String(primerCampo[0])
+    // DRF manda las validaciones como lista (["mensaje"]) o como {campo: ["mensaje"]}.
+    const primero = Array.isArray(data) ? data[0] : Object.values(data)[0]
+    if (typeof primero === 'string') return primero
+    if (Array.isArray(primero) && primero.length > 0) return String(primero[0])
     return 'Ocurrio un error al comunicarse con el servidor.'
   } catch {
     return 'Ocurrio un error al comunicarse con el servidor.'
@@ -75,6 +77,26 @@ async function request<T>(path: string, options: RequestInit = {}, reintentado =
   return response.json() as Promise<T>
 }
 
+// Baja un PDF protegido con sesion y dispara la descarga en el navegador.
+// No usa `request()` porque la respuesta es binaria.
+async function descargarPdf(path: string, nombreArchivo: string) {
+  const access = getAccessToken()
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: access ? { Authorization: `Bearer ${access}` } : undefined,
+  })
+  if (!response.ok) {
+    throw new ApiError(response.status, await extraerMensajeError(response))
+  }
+  const url = URL.createObjectURL(await response.blob())
+  const enlace = document.createElement('a')
+  enlace.href = url
+  enlace.download = nombreArchivo
+  document.body.appendChild(enlace)
+  enlace.click()
+  enlace.remove()
+  URL.revokeObjectURL(url)
+}
+
 export type EmpleadoMe = {
   id_empleado: number
   numero_empleado: string
@@ -91,6 +113,7 @@ export type ProductoDisponible = {
   nombre: string
   precio: number
   stock: number
+  codigo_barras: string | null
 }
 
 export type Turno = {
@@ -191,6 +214,7 @@ export type ProductoAdmin = {
   estado: string
   stock: number
   stock_minimo: number
+  codigo_barras: string | null
 }
 
 export type InsumoAdmin = {
@@ -239,9 +263,35 @@ export type Pendiente = {
 export type AdminDashboard = {
   fecha: string
   es_hoy: boolean
-  resumen: { ventas_dia: number; turnos_activos: number; cortes_por_revisar: number }
+  resumen: {
+    ventas_dia: number
+    devoluciones_dia: number
+    ventas_netas: number
+    tickets: number
+    ticket_promedio: number
+    paquetes: number
+    efectivo: number
+    tarjeta: number
+    // Mismo dia de la semana anterior
+    comparacion: { fecha: string; ventas_netas: number }
+    // null cuando algun producto vendido no tiene receta o costos cargados
+    costo_estimado: number | null
+    utilidad_estimada: number | null
+    turnos_activos: number
+    cortes_por_revisar: number
+  }
   turnos: TurnoDashboard[]
   pendientes: Pendiente[]
+  ventas_por_hora: { hora: number; ventas: number; tickets: number }[]
+  semana: { fecha: string; ventas: number; tickets: number }[]
+  productos_top: { nombre: string; cantidad: number; ingresos: number }[]
+  existencias: {
+    nombre: string
+    stock: number
+    stock_minimo: number
+    venta_diaria: number
+    dias_restantes: number | null
+  }[]
 }
 
 export type TurnoDetalleAdmin = Turno & {
@@ -264,13 +314,17 @@ export type TicketPublico = {
   folio: number
   fecha: string
   creado_en: string | null
+  subtotal: number
+  impuesto: number
   total: number
   detalles: DetalleVentaDto[]
   facturado: boolean
+  // Texto listo para mostrar cuando el ticket no se puede facturar (plazo vencido, sin pago, etc.)
+  motivo_no_facturable: string | null
 }
 
-export type UsoCfdi = 'G01' | 'G03' | 'P01'
-export type RegimenFiscal = '616' | '621' | '612' | '601'
+export type UsoCfdi = 'G01' | 'G03' | 'S01'
+export type RegimenFiscal = '601' | '603' | '605' | '606' | '612' | '616' | '621' | '625' | '626'
 
 export type DatosFiscales = {
   rfc: string
@@ -281,11 +335,59 @@ export type DatosFiscales = {
   uso_cfdi: UsoCfdi
 }
 
+export type ModoFactura = 'pruebas' | 'produccion'
+
 export type FacturaGenerada = {
   folio_fiscal: string
+  serie: string
+  folio: number
   correo: string
+  correo_enviado: boolean
   fecha_emision: string
+  modo: ModoFactura
   url_pdf: string
+  url_xml: string
+}
+
+export type FacturaAdmin = {
+  id_factura: number
+  serie: string
+  folio: number
+  folio_fiscal: string
+  id_venta: number
+  razon_social: string
+  rfc_receptor: string
+  correo: string
+  uso_cfdi: string
+  subtotal: number
+  impuesto: number
+  total: number
+  estado: string
+  modo: ModoFactura
+  fecha_emision: string
+  correo_enviado: boolean
+}
+
+export type VentaPorFacturar = {
+  id_venta: number
+  fecha: string
+  creado_en: string | null
+  total: number
+  metodo_pago: string | null
+  cajero: string
+  detalles: DetalleVentaDto[]
+}
+
+export type FacturasAdmin = {
+  configuracion: {
+    pac: string
+    modo: ModoFactura
+    emisor_rfc: string
+    emisor_nombre: string
+    lugar_expedicion: string
+    dias_para_facturar: number
+  }
+  facturas: FacturaAdmin[]
 }
 
 export const api = {
@@ -354,25 +456,9 @@ export const api = {
     })
   },
 
-  // Descarga el recibo de compra en PDF (no es un CFDI/factura fiscal) y dispara
-  // la descarga en el navegador. No usa `request()` porque la respuesta es binaria.
-  async descargarRecibo(idVenta: number) {
-    const access = getAccessToken()
-    const response = await fetch(`${API_URL}/ventas/${idVenta}/recibo/`, {
-      headers: access ? { Authorization: `Bearer ${access}` } : undefined,
-    })
-    if (!response.ok) {
-      throw new ApiError(response.status, await extraerMensajeError(response))
-    }
-    const blob = await response.blob()
-    const url = URL.createObjectURL(blob)
-    const enlace = document.createElement('a')
-    enlace.href = url
-    enlace.download = `recibo-${idVenta}.pdf`
-    document.body.appendChild(enlace)
-    enlace.click()
-    enlace.remove()
-    URL.revokeObjectURL(url)
+  // Descarga el recibo de compra en PDF (no es un CFDI/factura fiscal).
+  descargarRecibo(idVenta: number) {
+    return descargarPdf(`/ventas/${idVenta}/recibo/`, `recibo-${idVenta}.pdf`)
   },
 
   // --- Admin: usuarios ---
@@ -438,6 +524,18 @@ export const api = {
     })
   },
 
+  // Cadena vacia quita el codigo.
+  asignarCodigoBarras(idProducto: number, codigoBarras: string) {
+    return request<ProductoAdmin>(`/admin/productos/${idProducto}/codigo-barras/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ codigo_barras: codigoBarras }),
+    })
+  },
+
+  descargarEtiquetas(copias: number) {
+    return descargarPdf(`/admin/productos/etiquetas/?copias=${copias}`, 'etiquetas-codigo-barras.pdf')
+  },
+
   insumosAdmin() {
     return request<InsumoAdmin[]>('/admin/insumos/')
   },
@@ -497,16 +595,38 @@ export const api = {
     return request<TurnoDetalleAdmin>(`/admin/turnos/${idTurno}/`)
   },
 
-  // --- Cliente ---
+  // --- Facturacion ---
 
-  buscarTicketPublico(folio: string) {
-    return request<TicketPublico>(`/publico/tickets/${folio}/`)
+  facturasAdmin() {
+    return request<FacturasAdmin>('/admin/facturas/')
   },
 
-  generarFacturaPublica(idVenta: number, datos: DatosFiscales) {
-    return request<FacturaGenerada>(`/publico/tickets/${idVenta}/factura/`, {
+  // Compras recientes que aun se pueden facturar (el vendedor solo ve las suyas).
+  ventasPorFacturar() {
+    return request<VentaPorFacturar[]>('/facturacion/ventas/')
+  },
+
+  facturarVenta(idVenta: number, datos: DatosFiscales) {
+    return request<FacturaGenerada>(`/facturacion/ventas/${idVenta}/factura/`, {
       method: 'POST',
       body: JSON.stringify(datos),
     })
+  },
+
+  // El total impreso en el ticket hace de segunda llave: sin el, no se muestra la compra.
+  buscarTicketPublico(folio: string, total: string) {
+    return request<TicketPublico>(`/publico/tickets/${folio}/?total=${encodeURIComponent(total)}`)
+  },
+
+  generarFacturaPublica(idVenta: number, datos: DatosFiscales, total: number) {
+    return request<FacturaGenerada>(`/publico/tickets/${idVenta}/factura/`, {
+      method: 'POST',
+      body: JSON.stringify({ ...datos, total }),
+    })
+  },
+
+  // Enlace directo al PDF o XML; el folio fiscal es la llave, no requiere sesion.
+  urlArchivoFactura(folioFiscal: string, formato: 'pdf' | 'xml') {
+    return `${API_URL}/publico/facturas/${folioFiscal}/${formato}/`
   },
 }

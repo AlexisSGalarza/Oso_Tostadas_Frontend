@@ -91,3 +91,42 @@ Paleta y tipografía propias de la marca, definidas como tokens CSS en `src/styl
 - Tipografía: Fraunces (display), Public Sans (texto), IBM Plex Mono (datos/monto/hora).
 
 Todas las pantallas reutilizan estos tokens; evita introducir colores o fuentes sueltas fuera de `:root`.
+
+## Cobro con código de barras
+
+En **Nueva venta** un producto se agrega a la cuenta de tres formas:
+
+- **Lector físico (USB o Bluetooth):** funciona como teclado. Con la pantalla de venta abierta
+  basta escanear; no hay que tocar ningún campo.
+- **Cámara:** ícono de cámara en el buscador. Usa ZXing compilado a WebAssembly (`zxing-wasm`),
+  que se descarga solo al abrir la cámara y lee igual en cualquier navegador, aunque la etiqueta
+  esté inclinada, de lado o algo desenfocada.
+- **A mano:** escribir el código y presionar **Agregar**.
+
+Los códigos se asignan en **Inventario → Productos → Código de barras** (cuenta de administrador).
+Si los paquetes no traen código impreso, **Generar uno** crea un EAN-13 de uso interno (prefijo 2)
+e **Imprimir etiquetas** descarga un PDF para pegarlas: EAN-13 para códigos de 13 dígitos y
+Code 128 para los demás, con barras anchas y altas para que la cámara las lea con facilidad.
+
+Al comparar un código leído contra el guardado solo cuentan letras y números. Así un lector
+configurado para teclado en inglés sigue funcionando en una computadora en español, donde el
+guion llega como otro símbolo.
+
+### Probar la cámara desde un teléfono
+
+El navegador solo permite usar la cámara en `https` o en `localhost`. Para abrir el punto de
+venta desde un teléfono en la misma red:
+
+```bash
+npm run dev:movil
+```
+
+Sirve la app en `https://<ip-de-tu-equipo>:5173` con un certificado local (el teléfono mostrará
+una advertencia la primera vez; hay que aceptarla) y manda las llamadas a la API por el proxy
+`/api`, así que el backend solo necesita estar corriendo en este equipo.
+
+## Facturación
+
+El cliente factura en `/factura` con el número y el total de su ticket. El administrador ve
+las facturas en **Facturas**. Mientras el backend esté en `CFDI_PAC=simulado`, las facturas son
+de prueba y no tienen validez fiscal (ver el README del backend).

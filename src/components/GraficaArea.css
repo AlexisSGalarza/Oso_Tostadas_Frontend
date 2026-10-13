@@ -1,0 +1,242 @@
+.area {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 13rem auto;
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
+}
+
+.area__ejey {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+  color: var(--texto-suave);
+}
+
+.area__lienzo {
+  position: relative;
+  min-width: 0;
+}
+
+.area__lienzo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.area__linea {
+  fill: none;
+  stroke: var(--verde-salsa);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* La curva se descubre de izquierda a derecha, como si se dibujara. */
+.area__lienzo svg {
+  animation: area-traza 900ms var(--sale) both;
+}
+
+@keyframes area-traza {
+  from {
+    clip-path: inset(-10% 100% -10% 0);
+  }
+  to {
+    clip-path: inset(-10% -2% -10% 0);
+  }
+}
+
+.area__zonas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.area__zona {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: crosshair;
+}
+
+.area__zona:active {
+  transform: none !important;
+}
+
+.area__zona:focus-visible {
+  outline: 2px solid var(--verde-salsa);
+  outline-offset: -2px;
+  border-radius: var(--radio-s);
+}
+
+.area__guia {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid var(--linea-fuerte);
+  pointer-events: none;
+}
+
+.area__marca {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--verde-salsa);
+  box-shadow: 0 0 0 1.5px var(--verde-salsa);
+  pointer-events: none;
+  transition: left var(--rapido) var(--sale), top var(--rapido) var(--sale);
+}
+
+.area__globo {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 16px));
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radio-s);
+  background: var(--verde-tinta);
+  color: var(--surface);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--sombra-flotante);
+  transition: left var(--rapido) var(--sale), top var(--rapido) var(--sale);
+}
+
+.area__globo.is-izq {
+  transform: translate(-12%, calc(-100% - 16px));
+}
+
+.area__globo.is-der {
+  transform: translate(-88%, calc(-100% - 16px));
+}
+
+.area__ejex {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--texto-suave);
+}
+
+.area__ejex span {
+  width: 0;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.area__ejex span.is-activa {
+  color: var(--tinta);
+  font-weight: 700;
+}
+
+.area__vacio {
+  margin: 0;
+  padding: 4rem 1rem;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--tostado);
+}
+
+@media (max-width: 560px) {
+  .area {
+    grid-template-rows: 10.5rem auto;
+  }
+}
+
+/* ---------- Dashboard moderno: rejilla tenue y globo compacto ---------- */
+
+/* Tres lineas de referencia (tope, mitad y cero) alineadas con las etiquetas del eje. */
+.area__rejilla {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.area__rejilla span {
+  height: 0;
+  border-top: 1px dashed var(--linea);
+}
+
+.area__rejilla span:last-child {
+  border-top-style: solid;
+  border-top-color: var(--linea-fuerte);
+}
+
+/* Fuera del flujo: asi el dibujo se adapta al alto disponible en vez de imponer el suyo. */
+.area__lienzo svg {
+  position: absolute;
+  inset: 0;
+}
+
+.area__marca {
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-width: 2.5px;
+  box-shadow: 0 0 0 1px var(--verde-salsa);
+}
+
+.area__globo,
+.grafica__globo {
+  gap: 0.05rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.area__globo strong,
+.grafica__globo strong {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.area__globo strong + span,
+.grafica__globo strong + span {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.area__vacio,
+.dona__vacio,
+.grafica__vacio {
+  color: var(--texto-suave);
+}
+
+/* La grafica ocupa el alto que le deje la tarjeta cuando su vecina es mas alta. */
+.tarjeta:has(> .area) {
+  display: flex;
+  flex-direction: column;
+}
+
+.area {
+  flex: 1;
+  grid-template-rows: minmax(13rem, 1fr) auto;
+}
+
+@media (max-width: 560px) {
+  .area {
+    grid-template-rows: minmax(10.5rem, 1fr) auto;
+  }
+}

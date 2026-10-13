@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import TopBar from '../../components/TopBar'
 import { formatClock, formatFecha, ZONA_HORARIA_MX } from '../../lib/format'
+import EstadoVacio from '../../components/EstadoVacio'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import { api, ApiError, type RegistroAuditoria } from '../../lib/api'
 import './AuditoriaScreen.css'
 
@@ -11,6 +13,13 @@ const ACCION_LABEL: Record<string, string> = {
   'empleado.horario': 'Horario asignado',
   'proveedor.alternar_estado': 'Proveedor',
   'insumo.crear': 'Insumo creado',
+}
+
+// Las acciones sin etiqueta llegan como "producto.codigo_barras": se muestran legibles.
+function etiquetaAccion(accion: string) {
+  if (ACCION_LABEL[accion]) return ACCION_LABEL[accion]
+  const texto = accion.replace(/[._]/g, ' ')
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 function formatFechaHora(iso: string) {
@@ -45,7 +54,7 @@ function AuditoriaScreen({ now, onVolver, onCerrarSesion }: Props) {
         <h1>Auditoría</h1>
         <p className="auditoria__subtitulo">Quién hizo qué en las últimas acciones administrativas</p>
 
-        {cargando && <p className="auditoria__subtitulo">Cargando…</p>}
+        {cargando && <EsqueletoLista filas={6} etiqueta="Cargando la auditoría…" />}
         {error && (
           <p className="auditoria__error" role="alert">
             {error}
@@ -53,19 +62,23 @@ function AuditoriaScreen({ now, onVolver, onCerrarSesion }: Props) {
         )}
 
         {!cargando && !error && registros.length === 0 && (
-          <p className="auditoria__subtitulo">Todavía no hay acciones registradas.</p>
+          <div className="tarjeta">
+            <EstadoVacio icono="auditoria" titulo="Todavía no hay acciones registradas">
+              Aquí queda constancia de altas, cambios de acceso y ajustes de inventario.
+            </EstadoVacio>
+          </div>
         )}
 
         {!cargando && registros.length > 0 && (
           <ul className="auditoria__lista">
             {registros.map((registro) => (
               <li key={registro.id_registro} className="aregistro">
-                <div className="aregistro__cabeza">
-                  <span className="aregistro__tag">{ACCION_LABEL[registro.accion] ?? registro.accion}</span>
-                  <span className="aregistro__fecha">{formatFechaHora(registro.creado_en)}</span>
+                <span className="aregistro__fecha">{formatFechaHora(registro.creado_en)}</span>
+                <div className="aregistro__cuerpo">
+                  <p className="aregistro__detalle">{registro.detalle}</p>
+                  <p className="aregistro__actor">Por {registro.actor}</p>
                 </div>
-                <p className="aregistro__detalle">{registro.detalle}</p>
-                <p className="aregistro__actor">Por {registro.actor}</p>
+                <span className="aregistro__tag">{etiquetaAccion(registro.accion)}</span>
               </li>
             ))}
           </ul>

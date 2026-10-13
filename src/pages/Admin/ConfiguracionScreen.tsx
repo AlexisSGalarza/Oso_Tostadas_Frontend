@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import { formatClock } from '../../lib/format'
 import { api, ApiError } from '../../lib/api'
 import './ConfiguracionScreen.css'
@@ -65,7 +66,9 @@ function ConfiguracionScreen({ now, onVolver, onCerrarSesion }: Props) {
         <p className="config__subtitulo">Datos generales de tu sucursal</p>
 
         {cargando ? (
-          <p className="config__subtitulo">Cargando…</p>
+          <div className="config__carga">
+            <EsqueletoLista filas={4} etiqueta="Cargando la configuración…" />
+          </div>
         ) : (
           <form className="config__form" onSubmit={guardar}>
             <div className="config__campo">

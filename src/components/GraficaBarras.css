@@ -1,0 +1,216 @@
+.grafica {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.grafica__lienzo {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 11rem;
+  padding-top: 1.4rem;
+
+}
+
+.grafica__columna {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 clamp(1px, 12%, 6px);
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+button.grafica__columna {
+  cursor: pointer;
+}
+
+.grafica__barra {
+  display: block;
+  width: 100%;
+  max-width: 2.5rem;
+  border-radius: 999px;
+  background: var(--verde-brote);
+  transform-origin: bottom;
+  animation: barra-crece var(--lento) var(--sale) both;
+  transition: background var(--rapido) ease;
+}
+
+.grafica__columna.is-cero .grafica__barra {
+  height: 8px !important;
+  background: var(--linea);
+}
+
+.grafica__columna:hover .grafica__barra,
+.grafica__columna:focus-visible .grafica__barra {
+  background: var(--verde-salsa-dark);
+}
+
+.grafica__columna.is-activa .grafica__barra {
+  background: var(--verde-tinta);
+}
+
+.grafica__columna:focus-visible {
+  outline: 2px solid var(--verde-salsa);
+  outline-offset: -2px;
+  border-radius: var(--radio-s);
+}
+
+.grafica__valor {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  color: var(--tinta);
+  white-space: nowrap;
+  margin-bottom: 0.2rem;
+}
+
+.grafica__globo {
+  position: absolute;
+  bottom: calc(100% - 1.2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radio-s);
+  background: var(--tinta);
+  color: var(--surface);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: left;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--sombra-flotante);
+}
+
+.grafica__columna.is-izq .grafica__globo {
+  left: 0;
+  transform: none;
+}
+
+.grafica__columna.is-der .grafica__globo {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.grafica__columna:hover .grafica__globo,
+.grafica__columna:focus-visible .grafica__globo {
+  display: flex;
+}
+
+.grafica__eje {
+  display: flex;
+  gap: 2px;
+}
+
+.grafica__eje span {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--tostado);
+  white-space: nowrap;
+}
+
+.grafica__eje span.is-activa {
+  color: var(--tinta);
+  font-weight: 700;
+}
+
+.grafica__vacio {
+  margin: 0;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--tostado);
+}
+
+@keyframes barra-crece {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.grafica__columna:nth-child(2) .grafica__barra { animation-delay: 40ms; }
+.grafica__columna:nth-child(3) .grafica__barra { animation-delay: 80ms; }
+.grafica__columna:nth-child(4) .grafica__barra { animation-delay: 120ms; }
+.grafica__columna:nth-child(5) .grafica__barra { animation-delay: 160ms; }
+.grafica__columna:nth-child(6) .grafica__barra { animation-delay: 200ms; }
+.grafica__columna:nth-child(7) .grafica__barra { animation-delay: 240ms; }
+
+.grafica__globo {
+  background: var(--verde-tinta);
+}
+
+/* ---------- Dashboard moderno: barras rectas y discretas ---------- */
+
+.grafica__lienzo {
+  gap: 0;
+  height: 12rem;
+  border-bottom: 1px solid var(--linea-fuerte);
+}
+
+.grafica__eje {
+  gap: 0;
+}
+
+.grafica__barra {
+  max-width: 2.75rem;
+  border-radius: 8px 8px 0 0;
+  background: color-mix(in srgb, var(--verde-salsa) 26%, var(--surface));
+}
+
+.grafica__columna.is-cero .grafica__barra {
+  height: 0 !important;
+}
+
+.grafica__columna:hover .grafica__barra,
+.grafica__columna:focus-visible .grafica__barra {
+  background: color-mix(in srgb, var(--verde-salsa) 55%, var(--surface));
+}
+
+.grafica__columna.is-activa .grafica__barra {
+  background: var(--verde-salsa);
+}
+
+button.grafica__columna:active {
+  transform: none !important;
+}
+
+.grafica__valor {
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.grafica__eje span {
+  padding-top: 0.15rem;
+  color: var(--texto-suave);
+}
+
+.grafica__eje span.is-activa {
+  font-weight: 600;
+}
+
+/* La cifra flota sobre su barra sin quitarle altura (el lienzo reserva ese espacio arriba). */
+.grafica__lienzo {
+  padding-top: 1.6rem;
+}
+
+.grafica__valor {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}

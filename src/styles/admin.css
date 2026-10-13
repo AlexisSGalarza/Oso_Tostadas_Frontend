@@ -1,0 +1,600 @@
+/*
+ * Capa comun del panel de administracion.
+ * Se carga al final para que todas las pantallas de admin compartan cabecera,
+ * tarjetas, tablas, cifras y estados de carga sin repetir estilos en cada una.
+ */
+
+:root {
+  --borde-tarjeta: rgba(22, 48, 31, 0.08);
+  --sombra-tarjeta: 0 1px 2px rgba(22, 48, 31, 0.04), 0 12px 28px -22px rgba(22, 48, 31, 0.28);
+  --texto-suave: #6b6558;
+  --maiz-suave: #fbf0cf;
+  --maiz-dark: #8a6100;
+}
+
+/* ---------- Lienzo y cabecera de pagina ---------- */
+
+:is(.admin__main, .reportes__main, .facturas__main, .inventario__main, .proveedores__main, .usuarios__main, .auditoria__main, .config__main, .turnodetalle__main) {
+  max-width: 78rem;
+  padding: clamp(0.75rem, 1.6vw, 1.25rem) clamp(1rem, 3vw, 2.5rem) 3.5rem;
+  gap: 1.25rem;
+}
+
+:is(.admin__main, .reportes__main, .facturas__main, .inventario__main, .proveedores__main, .usuarios__main, .auditoria__main, .config__main, .turnodetalle__main) h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.4vw, 1.85rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--tinta);
+}
+
+:is(.reportes__subtitulo, .facturas__subtitulo, .inventario__subtitulo, .proveedores__subtitulo, .usuarios__subtitulo, .auditoria__subtitulo, .config__subtitulo, .turnodetalle__subtitulo, .panel-cabeza__dia) {
+  margin: 0.3rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
+/* Las pantallas que ponen titulo y subtitulo sueltos dentro de un main con gap. */
+:is(.reportes__main, .inventario__main, .auditoria__main, .turnodetalle__main) > h1 + p {
+  margin-top: -0.95rem;
+}
+
+/* ---------- Tarjeta ---------- */
+
+.tarjeta,
+:is(.inventario, .usuarios, .proveedores) .lista,
+.config__form {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--borde-tarjeta);
+  border-radius: var(--radio-m);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.tarjeta {
+  padding: 1.25rem 1.35rem 1.35rem;
+}
+
+.tarjeta__cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+.tarjeta__titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--tinta);
+}
+
+.tarjeta > .tarjeta__titulo {
+  margin-bottom: 1.1rem;
+}
+
+.tarjeta__sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+.tarjeta__enlace {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-height: 36px;
+  margin: -0.4rem -0.5rem -0.4rem 0;
+  padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--verde-salsa-dark);
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: background var(--rapido) ease;
+}
+
+.tarjeta__enlace svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tarjeta__enlace:hover {
+  background: var(--hover-verde);
+}
+
+/* ---------- Cifras (KPI) ---------- */
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.kpis--tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 1.1rem 1.25rem 1.15rem;
+  background: var(--surface);
+  border: 1px solid var(--borde-tarjeta);
+  border-radius: var(--radio-m);
+  box-shadow: var(--sombra-tarjeta);
+}
+
+.kpi__cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+}
+
+.kpi__etiqueta {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+
+.kpi__valor {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: clamp(1.6rem, 2.2vw, 1.95rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}
+
+.kpi.is-alerta .kpi__valor {
+  color: var(--chile);
+}
+
+.kpi__cambio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.3rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.kpi__cambio svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  stroke-width: 2.2;
+}
+
+.kpi__cambio.is-sube {
+  background: var(--brote-suave);
+  color: var(--verde-salsa-dark);
+}
+
+.kpi__cambio.is-baja {
+  background: var(--chile-suave);
+  color: var(--chile-dark);
+}
+
+.kpi__tendencia {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.kpi__periodo {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.kpi__avance {
+  display: block;
+  height: 0.4rem;
+  margin: 0.75rem 0 0.45rem;
+  border-radius: 999px;
+  background: var(--page);
+  overflow: hidden;
+}
+
+.kpi__avance span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--verde-salsa);
+  transform-origin: left;
+  animation: crece-x var(--lento) var(--sale) both;
+}
+
+.kpi__nota {
+  margin-top: auto;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--texto-suave);
+}
+
+.spark {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
+  height: 2rem;
+  /* El punto final sobresale medio diametro. */
+  margin-right: 4px;
+}
+
+.spark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.spark__linea {
+  fill: none;
+  stroke: var(--verde-salsa);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.spark__relleno {
+  fill: var(--verde-salsa);
+  opacity: 0.1;
+}
+
+.spark__punto {
+  position: absolute;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--verde-salsa);
+  box-shadow: 0 0 0 1px var(--verde-salsa);
+}
+
+/* ---------- Tablas ---------- */
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.tabla th {
+  padding: 0 0 0.65rem;
+  text-align: left;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--texto-suave);
+  border-bottom: 1px solid var(--linea);
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: middle;
+}
+
+.tabla th + th,
+.tabla td + td {
+  padding-left: 1rem;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+  padding-bottom: 0.15rem;
+}
+
+.tabla .es-numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.tabla .es-fuerte {
+  font-weight: 600;
+}
+
+.tabla__producto {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.tabla__foto {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.tabla__foto .tostadas__piezas {
+  display: none;
+}
+
+.tabla__puesto {
+  width: 1.5rem;
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barra de proporcion dentro de una celda. */
+.tabla__barra {
+  display: block;
+  width: 100%;
+  min-width: 4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--page);
+  overflow: hidden;
+}
+
+.tabla__barra span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--verde-salsa);
+  transform-origin: left;
+  animation: crece-x var(--lento) var(--sale) both;
+}
+
+@keyframes crece-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------- Listas tipo tabla de Inventario, Usuarios y Proveedores ---------- */
+
+:is(.inventario, .usuarios, .proveedores) .lista {
+  padding: 0.5rem;
+}
+
+:is(.inventario, .usuarios, .proveedores) .lista__cabecera {
+  padding: 0.75rem 0.85rem 0.7rem;
+  border-bottom: 1px solid var(--linea);
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--texto-suave);
+}
+
+.ifila,
+.ufila,
+.pfila {
+  border-bottom: 1px solid var(--linea);
+}
+
+:is(.ifila__fila, .ufila__fila, .pfila__fila) {
+  padding: 0.85rem;
+  border-radius: var(--radio-s);
+  font-size: 0.9rem;
+  transition: background var(--rapido) ease;
+}
+
+@media (hover: hover) {
+  :is(.ifila__fila, .ufila__fila, .pfila__fila):hover {
+    background: color-mix(in srgb, var(--page) 55%, transparent);
+  }
+}
+
+:is(.ifila__celda--num, .ufila__celda--usuario, .pfila__celda--mono) {
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--tinta);
+}
+
+:is(.ifila__form, .ufila__panel, .pfila__panel) {
+  margin: 0 0.85rem 0.85rem;
+}
+
+:is(.usuarios__buscador, .proveedores__buscador) {
+  max-width: 28rem;
+  min-height: 44px;
+  padding-inline: 1.1rem;
+  border-color: var(--linea);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+/* Estados como pildora con punto: se leen igual en todas las pantallas. */
+:is(.ifila__estado, .ufila__estado, .pfila__estado, .estado) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:is(.ifila__estado, .ufila__estado, .pfila__estado, .estado)::before {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.estado.is-bien {
+  background: var(--brote-suave);
+  color: var(--verde-salsa-dark);
+}
+
+.estado.is-neutro {
+  background: var(--page);
+  color: var(--texto-suave);
+}
+
+.estado.is-aviso {
+  background: var(--maiz-suave);
+  color: var(--maiz-dark);
+}
+
+.estado.is-alerta {
+  background: var(--chile-suave);
+  color: var(--chile-dark);
+}
+
+/* ---------- Estado vacio ---------- */
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2.25rem 1rem;
+  text-align: center;
+}
+
+.vacio--compacto {
+  padding: 1.25rem 0.5rem;
+}
+
+.vacio__icono {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.35rem;
+  border-radius: 50%;
+  background: var(--page);
+  color: var(--tostado);
+}
+
+.vacio__titulo {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.vacio__texto {
+  margin: 0;
+  max-width: 26rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--texto-suave);
+}
+
+/* ---------- Esqueletos de carga ---------- */
+
+.esq {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #ebeadd 25%, #f5f4ea 45%, #ebeadd 65%) 0 0 / 300% 100%;
+  animation: esq-brillo 1.4s ease-in-out infinite;
+}
+
+@keyframes esq-brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+.esq-lista {
+  display: flex;
+  flex-direction: column;
+  padding-block: 0.5rem;
+}
+
+.esq-lista__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--linea);
+}
+
+.esq-lista__fila:last-child {
+  border-bottom: none;
+}
+
+/* El brillo es movimiento continuo: con "reducir movimiento" queda el bloque fijo. */
+@media (prefers-reduced-motion: reduce) {
+  .esq {
+    animation: none;
+    background: #ebeadd;
+  }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1180px) {
+  .kpis,
+  .kpis--tres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .tarjeta {
+    padding: 1.1rem 1.1rem 1.2rem;
+  }
+
+  .kpis,
+  .kpis--tres {
+    gap: 0.75rem;
+  }
+
+  .kpi {
+    padding: 0.95rem 1rem 1rem;
+  }
+
+  .kpi__periodo {
+    display: none;
+  }
+
+  .tabla__foto {
+    display: none;
+  }
+}
+
+@media (max-width: 340px) {
+  .kpis,
+  .kpis--tres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Configuracion: mismo margen que el resto, formulario de ancho comodo ---------- */
+
+.config__form,
+.config__carga {
+  width: 100%;
+  max-width: 38rem;
+}
+
+.config__main {
+  gap: 0;
+}
+
+.config__main > .config__subtitulo {
+  margin-bottom: 1.25rem;
+}

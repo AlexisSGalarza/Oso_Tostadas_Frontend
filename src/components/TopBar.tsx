@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import BearMark from './BearMark'
 import ConfirmDialog from './ConfirmDialog'
+import Icono from './Icono'
+import { useShell } from './AppShell'
 import './TopBar.css'
 
 type Props = {
@@ -9,17 +11,44 @@ type Props = {
   onCerrarSesion: () => void
   onVolver?: () => void
   volverLabel?: string
+  // Dentro del menu lateral solo las pantallas de detalle muestran "Volver";
+  // a las secciones principales se llega desde el menu.
+  esDetalle?: boolean
 }
 
-function TopBar({ clock, sucursal = 'Sucursal Centro', onCerrarSesion, onVolver, volverLabel }: Props) {
+function TopBar({ clock, sucursal, onCerrarSesion, onVolver, volverLabel, esDetalle = false }: Props) {
+  const shell = useShell()
   const [confirmandoSalida, setConfirmandoSalida] = useState(false)
+
+  if (shell) {
+    return (
+      <header className="topbar topbar--shell">
+        <div className="topbar__brand">
+          <button type="button" className="topbar__menu" onClick={shell.abrirMenu} aria-label="Abrir menú">
+            <Icono nombre="menu" />
+          </button>
+          {esDetalle && onVolver ? (
+            <button type="button" className="topbar__back" onClick={onVolver}>
+              <Icono nombre="volver" /> {volverLabel ?? 'Volver'}
+            </button>
+          ) : (
+            <span className="topbar__name topbar__name--movil">Oso Tostadas</span>
+          )}
+        </div>
+        <div className="topbar__meta">
+          <span className="topbar__sucursal">{sucursal ?? shell.sucursal}</span>
+          <span className="topbar__clock">{clock}</span>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header className="topbar">
       <div className="topbar__brand">
         {onVolver ? (
           <button type="button" className="topbar__back" onClick={onVolver}>
-            <span aria-hidden="true">←</span> {volverLabel ?? 'Volver'}
+            <Icono nombre="volver" /> {volverLabel ?? 'Volver'}
           </button>
         ) : (
           <>
@@ -29,7 +58,7 @@ function TopBar({ clock, sucursal = 'Sucursal Centro', onCerrarSesion, onVolver,
         )}
       </div>
       <div className="topbar__meta">
-        <span className="topbar__sucursal">{sucursal}</span>
+        {sucursal && <span className="topbar__sucursal">{sucursal}</span>}
         <span className="topbar__clock">{clock}</span>
         <button type="button" className="topbar__logout" onClick={() => setConfirmandoSalida(true)}>
           Cerrar sesión

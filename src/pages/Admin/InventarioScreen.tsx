@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import { formatClock, formatMoney } from '../../lib/format'
 import { api, ApiError, type InsumoAdmin, type ProductoAdmin, type Proveedor } from '../../lib/api'
+import { generarEan13Interno } from '../../lib/escaner'
 import './InventarioScreen.css'
 
 type Estado = 'bien' | 'bajo' | 'agotado'
@@ -48,6 +50,11 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
   const [guardandoInsumo, setGuardandoInsumo] = useState(false)
 
   const [produccionId, setProduccionId] = useState<number | null>(null)
+  const [codigoId, setCodigoId] = useState<number | null>(null)
+  const [codigoValor, setCodigoValor] = useState('')
+  const [errorCodigo, setErrorCodigo] = useState('')
+  const [copiasEtiqueta, setCopiasEtiqueta] = useState('1')
+  const [imprimiendo, setImprimiendo] = useState(false)
   const [cantidadProduccion, setCantidadProduccion] = useState('')
   const [enviando, setEnviando] = useState(false)
 
@@ -121,7 +128,45 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
     }
   }
 
+  function abrirCodigo(producto: ProductoAdmin) {
+    setErrorCodigo('')
+    if (codigoId === producto.id_producto) {
+      setCodigoId(null)
+      return
+    }
+    setProduccionId(null)
+    setCodigoId(producto.id_producto)
+    setCodigoValor(producto.codigo_barras ?? '')
+  }
+
+  async function guardarCodigo(idProducto: number, codigo: string) {
+    setErrorCodigo('')
+    setEnviando(true)
+    try {
+      const actualizado = await api.asignarCodigoBarras(idProducto, codigo.trim())
+      setProductos((actual) => actual.map((p) => (p.id_producto === idProducto ? actualizado : p)))
+      setCodigoId(null)
+    } catch (err) {
+      setErrorCodigo(err instanceof ApiError ? err.message : 'No se pudo guardar el código.')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  async function imprimirEtiquetas() {
+    setError('')
+    setImprimiendo(true)
+    try {
+      await api.descargarEtiquetas(Number.parseInt(copiasEtiqueta, 10) || 1)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'No se pudieron generar las etiquetas.')
+    } finally {
+      setImprimiendo(false)
+    }
+  }
+
   function abrirProduccion(producto: ProductoAdmin) {
+    setCodigoId(null)
     if (produccionId === producto.id_producto) {
       setProduccionId(null)
       return
@@ -154,7 +199,7 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
         <h1>Inventario</h1>
         <p className="inventario__subtitulo">Insumos de producción y paquetes listos para vender</p>
 
-        {cargando && <p className="inventario__subtitulo">Cargando…</p>}
+        {cargando && <EsqueletoLista filas={6} etiqueta="Cargando el inventario…" />}
         {error && (
           <p className="alta__error" role="alert">
             {error}
@@ -366,6 +411,33 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
             )}
 
             {tab === 'productos' && (
+              <>
+              <div className="etiquetas">
+                <p className="etiquetas__texto">
+                  Asigna a cada paquete su código de barras para cobrarlo con lector o cámara. Si tus paquetes no
+                  traen código, genera uno e imprime las etiquetas para pegarlas.
+                </p>
+                <div className="etiquetas__accion">
+                  <label htmlFor="copias-etiqueta">Copias por producto</label>
+                  <input
+                    id="copias-etiqueta"
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    max="21"
+                    value={copiasEtiqueta}
+                    onChange={(event) => setCopiasEtiqueta(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="ifila__entrada"
+                    onClick={imprimirEtiquetas}
+                    disabled={imprimiendo || !productos.some((p) => p.codigo_barras)}
+                  >
+                    {imprimiendo ? 'Generando…' : 'Imprimir etiquetas'}
+                  </button>
+                </div>
+              </div>
               <section className="lista" aria-label="Productos">
                 <div className="lista__cabecera lista__cabecera--productos" aria-hidden="true">
                   <span>Producto</span>
@@ -383,6 +455,9 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
                         <div className="ifila__fila ifila__fila--productos">
                           <span className="ifila__celda ifila__celda--nombre" data-label="Producto">
                             {producto.nombre}
+                            <span className={`ifila__codigo ${producto.codigo_barras ? '' : 'is-falta'}`}>
+                              {producto.codigo_barras ?? 'Sin código de barras'}
+                            </span>
                           </span>
                           <span className="ifila__celda ifila__celda--num" data-label="Precio">
                             {formatMoney(producto.precio)}
@@ -397,11 +472,66 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
                             <span className={`ifila__estado is-${estado}`}>{ESTADO_LABEL[estado]}</span>
                           </span>
                           <span className="ifila__celda ifila__celda--accion">
+                            <button type="button" className="ifila__entrada" onClick={() => abrirCodigo(producto)}>
+                              {codigoId === producto.id_producto ? 'Cancelar' : 'Código de barras'}
+                            </button>
                             <button type="button" className="ifila__entrada" onClick={() => abrirProduccion(producto)}>
                               {produccionId === producto.id_producto ? 'Cancelar' : '+ Registrar producción'}
                             </button>
                           </span>
                         </div>
+
+                        {codigoId === producto.id_producto && (
+                          <form
+                            className="ifila__form"
+                            onSubmit={(event) => {
+                              event.preventDefault()
+                              guardarCodigo(producto.id_producto, codigoValor)
+                            }}
+                          >
+                            <div className="ifila__formcampo ifila__formcampo--codigo">
+                              <label htmlFor={`codigo-${producto.id_producto}`}>
+                                Código de barras (escanéalo con el lector o escríbelo)
+                              </label>
+                              <input
+                                id={`codigo-${producto.id_producto}`}
+                                type="text"
+                                autoComplete="off"
+                                autoCapitalize="characters"
+                                spellCheck={false}
+                                maxLength={64}
+                                value={codigoValor}
+                                onChange={(event) => setCodigoValor(event.target.value)}
+                                autoFocus
+                              />
+                            </div>
+                            <button type="submit" className="ifila__confirmar" disabled={enviando || !codigoValor.trim()}>
+                              Guardar código
+                            </button>
+                            <button
+                              type="button"
+                              className="ifila__entrada"
+                              onClick={() => setCodigoValor(generarEan13Interno(producto.id_producto))}
+                            >
+                              Generar uno
+                            </button>
+                            {producto.codigo_barras && (
+                              <button
+                                type="button"
+                                className="ifila__entrada ifila__entrada--quitar"
+                                disabled={enviando}
+                                onClick={() => guardarCodigo(producto.id_producto, '')}
+                              >
+                                Quitar código
+                              </button>
+                            )}
+                            {errorCodigo && (
+                              <p className="ifila__error" role="alert">
+                                {errorCodigo}
+                              </p>
+                            )}
+                          </form>
+                        )}
 
                         {produccionId === producto.id_producto && (
                           <form
@@ -432,6 +562,7 @@ function InventarioScreen({ now, onVolver, onCerrarSesion }: Props) {
                   })}
                 </ul>
               </section>
+              </>
             )}
           </>
         )}

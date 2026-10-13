@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatClock } from '../../lib/format'
 import { api, ApiError, type EmpleadoAdmin, type Rol } from '../../lib/api'
@@ -255,7 +256,7 @@ function UsuariosScreen({ now, onVolver, onCerrarSesion }: Props) {
           </form>
         )}
 
-        {cargando && <p className="usuarios__subtitulo">Cargando personal…</p>}
+        {cargando && <EsqueletoLista filas={4} etiqueta="Cargando personal…" />}
         {errorCarga && (
           <p className="alta__error" role="alert">
             {errorCarga}

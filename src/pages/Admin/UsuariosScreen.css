@@ -8,7 +8,7 @@
 .usuarios__main {
   flex: 1;
   width: 100%;
-  max-width: 52rem;
+  max-width: 72rem;
   margin: 0 auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   display: flex;
@@ -26,7 +26,6 @@
 
 .usuarios__head h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   margin: 0;
@@ -42,8 +41,8 @@
 .usuarios__buscador {
   width: 100%;
   padding: 0.65rem 0.9rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: inherit;
@@ -53,13 +52,13 @@
 .usuarios__buscador:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
 .usuarios__nuevo {
   padding: 0.65rem 1.1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.85rem;
@@ -84,18 +83,19 @@
 
 /* ---------- Alta form ---------- */
 
-.alta {
-  background: var(--masa);
-  border-radius: 6px;
+.usuarios .alta {
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: flex-end;
   gap: 1rem;
   flex-wrap: wrap;
-  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
-.alta__campo {
+.usuarios .alta__campo {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -103,46 +103,44 @@
   min-width: 12rem;
 }
 
-.alta__campo label {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.usuarios .alta__campo label {
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
-.alta__campo input,
-.alta__campo select {
+.usuarios .alta__campo input,
+.usuarios .alta__campo select {
   padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: inherit;
   font-size: 0.9rem;
 }
 
-.alta__campo input:focus-visible,
-.alta__campo select:focus-visible {
+.usuarios .alta__campo input:focus-visible,
+.usuarios .alta__campo select:focus-visible {
   outline: none;
   border-color: var(--verde-salsa);
-  box-shadow: 0 0 0 3px rgba(163, 202, 74, 0.4);
+  box-shadow: var(--anillo);
 }
 
-.alta__password {
+.usuarios .alta__password {
   display: flex;
   gap: 0.4rem;
 }
 
-.alta__password input {
+.usuarios .alta__password input {
   flex: 1;
   min-width: 0;
 }
 
-.alta__passwordtoggle {
+.usuarios .alta__passwordtoggle {
   padding: 0 0.75rem;
-  border: 1px solid rgba(138, 90, 52, 0.35);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tostado);
   font-size: 0.78rem;
@@ -150,21 +148,21 @@
   white-space: nowrap;
 }
 
-.alta__passwordtoggle:hover {
+.usuarios .alta__passwordtoggle:hover {
   border-color: var(--verde-salsa);
 }
 
-.alta__error {
+.usuarios .alta__error {
   flex-basis: 100%;
   margin: 0;
   color: var(--chile);
   font-size: 0.82rem;
 }
 
-.alta__guardar {
+.usuarios .alta__guardar {
   padding: 0.65rem 1.1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-tinta);
   color: var(--page);
   font-size: 0.85rem;
@@ -173,50 +171,49 @@
   white-space: nowrap;
 }
 
-.alta__guardar:hover {
+.usuarios .alta__guardar:hover {
   background: var(--verde-tinta-2);
 }
 
-.alta__guardar:focus-visible {
+.usuarios .alta__guardar:focus-visible {
   outline: 2px solid var(--verde-brote);
   outline-offset: 2px;
 }
 
 /* ---------- List ---------- */
 
-.lista {
-  background: var(--masa);
-  border-radius: 6px;
+.usuarios .lista {
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 1.5rem 1.5rem 0.5rem;
-  box-shadow: 0 20px 44px -24px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
-.lista__cabecera,
+.usuarios .lista__cabecera,
 .ufila__fila {
   display: grid;
-  grid-template-columns: 1.3fr 1.1fr 1fr 0.9fr auto;
+  grid-template-columns: 1.3fr 1.1fr 1fr 0.9fr 6.5rem;
   gap: 0.75rem;
   align-items: center;
 }
 
-.lista__cabecera {
+.usuarios .lista__cabecera {
   padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgba(32, 28, 20, 0.14);
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  border-bottom: 1px solid var(--linea);
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
-.lista__filas {
+.usuarios .lista__filas {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .ufila {
-  border-bottom: 1px dashed rgba(138, 90, 52, 0.3);
+  border-bottom: 1px dashed var(--linea-fuerte);
 }
 
 .ufila__fila {
@@ -225,7 +222,7 @@
   color: var(--tinta);
 }
 
-.lista__filas li.ufila:last-child {
+.usuarios .lista__filas li.ufila:last-child {
   border-bottom: none;
 }
 
@@ -241,12 +238,10 @@
 
 .ufila__estado {
   display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   padding: 0.22rem 0.55rem;
   border-radius: 999px;
+  font-weight: 600;
 }
 
 .ufila__estado.is-activo {
@@ -255,7 +250,7 @@
 }
 
 .ufila__estado.is-inactivo {
-  background: rgba(138, 90, 52, 0.15);
+  background: var(--linea);
   color: var(--tostado);
 }
 
@@ -267,8 +262,8 @@
 .ufila__toggle,
 .ufila__reset {
   padding: 0.35rem 0.7rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-size: 0.76rem;
@@ -318,11 +313,9 @@
 }
 
 .ufila__datolabel {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
 .ufila__horario {
@@ -332,8 +325,8 @@
   flex-wrap: wrap;
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  background: rgba(76, 122, 62, 0.06);
-  border-radius: 6px;
+  background: var(--hover-verde);
+  border-radius: var(--radio-m);
 }
 
 .ufila__horariocampo {
@@ -343,17 +336,15 @@
 }
 
 .ufila__horariocampo label {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--tostado);
+  font-weight: 600;
 }
 
 .ufila__horariocampo input {
   padding: 0.45rem 0.6rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: var(--page);
   color: var(--tinta);
   font-family: inherit;
@@ -367,7 +358,7 @@
 .ufila__horarioguardar {
   padding: 0.5rem 0.85rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.78rem;
@@ -395,7 +386,7 @@
   margin: 0.85rem 0 0;
   padding: 0.75rem 0.9rem;
   background: rgba(163, 202, 74, 0.16);
-  border-radius: 6px;
+  border-radius: var(--radio-m);
   font-size: 0.8rem;
   line-height: 1.5;
   color: var(--tinta);
@@ -415,7 +406,7 @@
   font-size: 0.72rem;
   font-weight: 600;
   padding: 0.3rem 0.6rem;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   cursor: pointer;
   margin-top: 0.5rem;
 }
@@ -432,7 +423,7 @@
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {
-  .lista__cabecera {
+  .usuarios .lista__cabecera {
     display: none;
   }
 
@@ -456,13 +447,11 @@
   .ufila__celda[data-label]::before {
     content: attr(data-label) ': ';
     display: block;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
     color: var(--tostado);
     margin-bottom: 0.15rem;
-  }
+  font-weight: 600;
+}
 
   .ufila__celda--nombre::before {
     display: none;

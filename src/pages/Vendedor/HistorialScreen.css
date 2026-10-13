@@ -15,7 +15,6 @@
 
 .historial__main h1 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(1.6rem, 3vw, 2.1rem);
   margin: 0;
@@ -23,19 +22,18 @@
 }
 
 .historial__subtitulo {
-  font-family: var(--font-mono);
   font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--tostado);
   margin: 0.5rem 0 2rem;
+  font-weight: 600;
 }
 
 .historial__vacio {
-  background: var(--masa);
-  border-radius: 8px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   padding: 2.5rem 1.5rem;
   text-align: center;
+  border: 1px solid var(--linea);
 }
 
 .historial__vacio p {
@@ -47,7 +45,7 @@
 .historial__vacio button {
   padding: 0.7rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radio-s);
   background: var(--verde-salsa);
   color: var(--page);
   font-size: 0.92rem;
@@ -70,15 +68,16 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--masa);
-  border-radius: 8px;
+  background: var(--surface);
+  border-radius: var(--radio-m);
   overflow: hidden;
-  box-shadow: 0 20px 44px -28px rgba(22, 48, 31, 0.35);
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--linea);
 }
 
 .ticket-fila {
   padding: 1.1rem 1.4rem;
-  border-bottom: 1px dashed rgba(138, 90, 52, 0.35);
+  border-bottom: 1px dashed var(--linea-fuerte);
   position: relative;
 }
 
@@ -102,14 +101,13 @@
   color: var(--tinta);
 }
 
-.pill {
+.historial .pill {
   margin-left: auto;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .ticket-fila__cambio {
@@ -119,17 +117,17 @@
   color: var(--verde-salsa-dark);
 }
 
-.pill--efectivo {
+.historial .pill--efectivo {
   background: rgba(163, 202, 74, 0.28);
   color: var(--verde-salsa-dark);
 }
 
-.pill--tarjeta {
-  background: rgba(138, 90, 52, 0.15);
+.historial .pill--tarjeta {
+  background: var(--linea);
   color: var(--tostado);
 }
 
-.pill--devolucion {
+.historial .pill--devolucion {
   background: rgba(178, 58, 46, 0.15);
   color: var(--chile);
 }
@@ -165,8 +163,8 @@
 
 .ticket-fila__recibo {
   padding: 0.3rem 0.65rem;
-  border: 1px solid rgba(138, 90, 52, 0.3);
-  border-radius: 4px;
+  border: 1px solid var(--linea-fuerte);
+  border-radius: var(--radio-s);
   background: transparent;
   color: var(--tostado);
   font-size: 0.72rem;
@@ -201,7 +199,7 @@
   margin-top: 1rem;
   padding: 1rem 1.4rem;
   background: var(--verde-tinta);
-  border-radius: 8px;
+  border-radius: var(--radio-m);
   color: var(--page);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;

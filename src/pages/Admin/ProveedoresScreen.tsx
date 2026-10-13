@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import TopBar from '../../components/TopBar'
+import { EsqueletoLista } from '../../components/Esqueleto'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import { formatClock } from '../../lib/format'
 import { api, ApiError, type Proveedor } from '../../lib/api'
@@ -175,7 +176,7 @@ function ProveedoresScreen({ now, onVolver, onCerrarSesion }: Props) {
           </form>
         )}
 
-        {cargando && <p className="proveedores__subtitulo">Cargando…</p>}
+        {cargando && <EsqueletoLista filas={5} etiqueta="Cargando proveedores…" />}
 
         {!cargando && proveedores.length > 0 && (
           <input

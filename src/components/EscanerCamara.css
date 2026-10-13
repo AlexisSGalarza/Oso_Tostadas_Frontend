@@ -1,0 +1,197 @@
+/* Recuadro de camara dentro de la pantalla de venta */
+
+.camara {
+  margin-top: 1rem;
+  padding: 0.4rem;
+  border: 1.5px solid var(--linea);
+  border-radius: var(--radio-l);
+  background: var(--surface);
+  transition: border-color var(--medio) var(--sale);
+}
+
+.camara.is-encendida {
+  border-color: var(--verde-salsa);
+}
+
+.camara__visor {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--radio-l) - 0.4rem);
+  background: var(--verde-tinta);
+  overflow: hidden;
+}
+
+.camara__visor video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camara__apagada {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.camara__apagada svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.camara__guia {
+  position: absolute;
+  inset: 24% 10%;
+  border: 2.5px solid var(--verde-brote);
+  border-radius: var(--radio-s);
+  animation: camara-late 1.6s ease-in-out infinite;
+}
+
+@keyframes camara-late {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.camara__confirmacion {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.75rem;
+  background: rgba(22, 48, 31, 0.9);
+  color: var(--surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  animation: aparece var(--rapido) var(--sale);
+}
+
+.camara__confirmacion.is-error {
+  background: rgba(153, 48, 31, 0.92);
+}
+
+.camara__confirmacion svg {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.35rem;
+  border-radius: 50%;
+  background: var(--verde-brote);
+  color: var(--verde-tinta);
+  stroke-width: 2.6;
+  box-sizing: content-box;
+  animation: salta var(--medio) var(--rebota);
+}
+
+.camara__confirmacion.is-error svg {
+  background: var(--surface);
+  color: var(--chile-dark);
+}
+
+/* Barra que se vacia mientras dura la pausa: avisa cuando vuelve a leer. */
+.camara__cuenta {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--verde-brote);
+  transform-origin: left;
+  animation: camara-cuenta linear both;
+}
+
+@keyframes camara-cuenta {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.camara__error {
+  max-width: 22rem;
+  padding: 0 1rem;
+  color: var(--surface);
+  line-height: 1.35;
+  text-align: center;
+}
+
+.camara__abriendo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.camara__boton {
+  min-height: 44px;
+  margin-top: 0.35rem;
+  padding: 0 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--verde-brote);
+  color: var(--verde-tinta);
+  font-size: 0.92rem;
+  font-weight: 600;
+  transition: background var(--rapido) ease, transform var(--rapido) var(--sale);
+}
+
+.camara__boton:hover {
+  background: #bfe067;
+}
+
+/* Con la camara encendida el boton se encoge a una esquina para no tapar la imagen. */
+.camara__boton--apagar {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0 0.9rem;
+  background: rgba(22, 48, 31, 0.78);
+  color: var(--surface);
+  font-size: 0.82rem;
+  backdrop-filter: blur(6px);
+}
+
+.camara__boton--apagar:hover {
+  background: var(--verde-tinta);
+}
+
+.camara__luz {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.camara__luz.is-viva {
+  background: var(--verde-brote);
+  box-shadow: 0 0 0 3px rgba(169, 209, 79, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camara__guia {
+    animation: none;
+  }
+}
+
+/* En telefono se recorta un poco mas ancha para no empujar el catalogo. */
+@media (max-width: 900px) {
+  .camara__visor {
+    aspect-ratio: 2 / 1;
+  }
+}
