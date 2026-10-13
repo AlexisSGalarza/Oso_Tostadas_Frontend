@@ -975,7 +975,6 @@
 
 .venta__lateral .camara {
   margin-top: 0;
-  grid-template-columns: 11rem minmax(0, 1fr);
 }
 
 .venta__lateral .cuenta {
@@ -1009,11 +1008,5 @@
   .venta__lateral .cuenta {
     order: 4;
     margin-top: 1.5rem;
-  }
-}
-
-@media (max-width: 560px) {
-  .venta__lateral .camara {
-    grid-template-columns: 9.5rem minmax(0, 1fr);
   }
 }

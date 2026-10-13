@@ -161,24 +161,37 @@ function EscanerCamara({ encendida, onCambiar, onCodigo }: Props) {
     }
   }, [encendida])
 
-  const textoEstado = error
-    ? error
-    : estado === 'leyendo'
-      ? 'Pon el código frente a la cámara. Para agregar otro igual, retíralo y muéstralo de nuevo.'
-      : estado === 'iniciando'
-        ? 'Abriendo la cámara…'
-        : 'Enciéndela para agregar paquetes con solo mostrar su código.'
-
   return (
     <section className={`camara ${encendida ? 'is-encendida' : ''}`} aria-label="Cámara para leer códigos">
       <div className="camara__visor">
         <video ref={videoRef} muted playsInline hidden={!encendida} />
+
         {!encendida && (
-          <span className="camara__apagada">
+          <div className="camara__apagada">
             <Icono nombre="camara" />
-            Cámara apagada
-          </span>
+            <span className={error ? 'camara__error' : ''} role={error ? 'alert' : undefined}>
+              {error || 'Cámara apagada'}
+            </span>
+            <button
+              type="button"
+              className="camara__boton"
+              onClick={() => {
+                setError('')
+                onCambiar(true)
+              }}
+            >
+              {error ? 'Intentar de nuevo' : 'Encender'}
+            </button>
+          </div>
         )}
+
+        {encendida && (
+          <button type="button" className="camara__boton camara__boton--apagar" onClick={() => onCambiar(false)}>
+            <span className={`camara__luz ${estado === 'leyendo' ? 'is-viva' : ''}`} aria-hidden="true" />
+            Apagar
+          </button>
+        )}
+        {estado === 'iniciando' && <span className="camara__abriendo">Abriendo la cámara…</span>}
         {estado === 'leyendo' && !confirmacion && <span className="camara__guia" aria-hidden="true" />}
         {confirmacion && (
           <span key={confirmacion.clave} className={`camara__confirmacion is-${confirmacion.tipo}`}>
@@ -187,27 +200,6 @@ function EscanerCamara({ encendida, onCambiar, onCodigo }: Props) {
             <span className="camara__cuenta" style={{ animationDuration: `${PAUSA_TRAS_LECTURA_MS}ms` }} />
           </span>
         )}
-      </div>
-
-      <div className="camara__lado">
-        <span className="camara__titulo">
-          <span className={`camara__luz ${estado === 'leyendo' ? 'is-viva' : ''}`} aria-hidden="true" />
-          {estado === 'leyendo' ? 'Cámara encendida' : estado === 'iniciando' ? 'Encendiendo…' : 'Cámara'}
-        </span>
-        <p className={`camara__texto ${error ? 'is-error' : ''}`} role={error ? 'alert' : undefined}>
-          {textoEstado}
-        </p>
-        <button
-          type="button"
-          className="camara__boton"
-          aria-pressed={encendida}
-          onClick={() => {
-            setError('')
-            onCambiar(!encendida)
-          }}
-        >
-          {encendida ? 'Apagar cámara' : 'Encender cámara'}
-        </button>
       </div>
 
       {/* Los lectores de pantalla anuncian cada registro aunque no vean la imagen. */}

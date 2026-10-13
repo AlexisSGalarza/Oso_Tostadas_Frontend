@@ -1,12 +1,8 @@
 /* Recuadro de camara dentro de la pantalla de venta */
 
 .camara {
-  display: grid;
-  grid-template-columns: 13.5rem minmax(0, 1fr);
-  gap: 1rem;
-  align-items: center;
   margin-top: 1rem;
-  padding: 0.6rem;
+  padding: 0.4rem;
   border: 1.5px solid var(--linea);
   border-radius: var(--radio-l);
   background: var(--surface);
@@ -19,8 +15,8 @@
 
 .camara__visor {
   position: relative;
-  aspect-ratio: 16 / 10;
-  border-radius: var(--radio-m);
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--radio-l) - 0.4rem);
   background: var(--verde-tinta);
   overflow: hidden;
 }
@@ -120,73 +116,71 @@
   }
 }
 
-.camara__lado {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
-  min-width: 0;
-  padding-right: 0.5rem;
+.camara__error {
+  max-width: 22rem;
+  padding: 0 1rem;
+  color: var(--surface);
+  line-height: 1.35;
+  text-align: center;
 }
 
-.camara__titulo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-.camara__luz {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  background: var(--linea-fuerte);
-}
-
-.camara__luz.is-viva {
-  background: var(--verde-salsa);
-  box-shadow: 0 0 0 4px var(--brote-suave);
-}
-
-.camara__texto {
-  margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--tostado);
-}
-
-.camara__texto.is-error {
-  color: var(--chile-dark);
+.camara__abriendo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
 }
 
 .camara__boton {
   min-height: 44px;
-  margin-top: 0.25rem;
-  padding: 0 1.25rem;
-  border: 1.5px solid var(--verde-tinta);
+  margin-top: 0.35rem;
+  padding: 0 1.4rem;
+  border: none;
   border-radius: 999px;
-  background: var(--verde-tinta);
-  color: var(--surface);
-  font-size: 0.9rem;
+  background: var(--verde-brote);
+  color: var(--verde-tinta);
+  font-size: 0.92rem;
   font-weight: 600;
-  transition: background var(--rapido) ease, color var(--rapido) ease;
+  transition: background var(--rapido) ease, transform var(--rapido) var(--sale);
 }
 
 .camara__boton:hover {
-  background: var(--verde-salsa);
-  border-color: var(--verde-salsa);
+  background: #bfe067;
 }
 
-.camara__boton[aria-pressed='true'] {
-  background: none;
-  color: var(--verde-tinta);
+/* Con la camara encendida el boton se encoge a una esquina para no tapar la imagen. */
+.camara__boton--apagar {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0 0.9rem;
+  background: rgba(22, 48, 31, 0.78);
+  color: var(--surface);
+  font-size: 0.82rem;
+  backdrop-filter: blur(6px);
 }
 
-.camara__boton[aria-pressed='true']:hover {
-  background: var(--hover);
-  border-color: var(--verde-tinta);
+.camara__boton--apagar:hover {
+  background: var(--verde-tinta);
+}
+
+.camara__luz {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.camara__luz.is-viva {
+  background: var(--verde-brote);
+  box-shadow: 0 0 0 3px rgba(169, 209, 79, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -195,18 +189,9 @@
   }
 }
 
-/* En telefono: imagen mas chica a la izquierda para no empujar el catalogo. */
-@media (max-width: 560px) {
-  .camara {
-    grid-template-columns: 9.5rem minmax(0, 1fr);
-    gap: 0.75rem;
-  }
-
-  .camara__texto {
-    font-size: 0.8rem;
-  }
-
-  .camara__boton {
-    padding: 0 0.9rem;
+/* En telefono se recorta un poco mas ancha para no empujar el catalogo. */
+@media (max-width: 900px) {
+  .camara__visor {
+    aspect-ratio: 2 / 1;
   }
 }
