@@ -961,3 +961,59 @@
     font-size: 0.95rem;
   }
 }
+
+/* ---------- Columna derecha: camara arriba de la cuenta ---------- */
+
+.venta__lateral {
+  position: sticky;
+  top: 4.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.venta__lateral .camara {
+  margin-top: 0;
+  grid-template-columns: 11rem minmax(0, 1fr);
+}
+
+.venta__lateral .cuenta {
+  position: static;
+}
+
+/* En tablet y telefono todo va en una sola columna: buscador, camara, catalogo y cuenta. */
+@media (max-width: 900px) {
+  .venta__main {
+    row-gap: 0;
+  }
+
+  .catalogo,
+  .venta__lateral {
+    display: contents;
+  }
+
+  .catalogo > * {
+    order: 3;
+  }
+
+  .catalogo > .buscador {
+    order: 1;
+  }
+
+  .venta__lateral .camara {
+    order: 2;
+    margin-top: 1rem;
+  }
+
+  .venta__lateral .cuenta {
+    order: 4;
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .venta__lateral .camara {
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+  }
+}

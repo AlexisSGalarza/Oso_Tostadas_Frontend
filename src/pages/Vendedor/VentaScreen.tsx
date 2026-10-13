@@ -298,8 +298,6 @@ function VentaScreen({
             />
           </form>
 
-          <EscanerCamara encendida={camaraEncendida} onCambiar={setCamaraEncendida} onCodigo={registrarCodigo} />
-
           {filtros.length > 1 && (
             <div className="filtros" role="group" aria-label="Filtrar paquetes">
               {filtros.map((f) => (
@@ -372,6 +370,10 @@ function VentaScreen({
             })}
           </div>
         </section>
+
+        {/* En escritorio la camara va arriba de la cuenta; en telefono, bajo el buscador (ver CSS). */}
+        <div className="venta__lateral">
+          <EscanerCamara encendida={camaraEncendida} onCambiar={setCamaraEncendida} onCodigo={registrarCodigo} />
 
         <aside className="cuenta" id="cuenta" ref={cuentaRef}>
           <div className="cuenta__head">
@@ -542,6 +544,7 @@ function VentaScreen({
             </>
           )}
         </aside>
+        </div>
       </main>
 
       {carrito.length > 0 && !cuentaVisible && (
