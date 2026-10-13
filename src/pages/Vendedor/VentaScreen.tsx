@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 
 import TopBar from '../../components/TopBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import NumericKeypad from '../../components/NumericKeypad'
-import EscanerCamara from '../../components/EscanerCamara'
+import EscanerCamara, { type ResultadoLectura } from '../../components/EscanerCamara'
 import Icono from '../../components/Icono'
 import Tostadas, { tonoDe } from '../../components/Tostadas'
 import { mismoCodigo, sonarLectura, useLectorCodigos } from '../../lib/escaner'
@@ -55,7 +55,7 @@ function VentaScreen({
 
   const [codigoManual, setCodigoManual] = useState('')
   const [avisoCodigo, setAvisoCodigo] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
-  const [camaraAbierta, setCamaraAbierta] = useState(false)
+  const [camaraEncendida, setCamaraEncendida] = useState(false)
   const [filtro, setFiltro] = useState<'todos' | 'amarilla' | 'roja'>('todos')
 
   // En telefono la cuenta queda debajo del catalogo: una barra fija muestra el
@@ -102,29 +102,30 @@ function VentaScreen({
   }
 
   // Entrada unica para lector fisico, camara y codigo escrito a mano.
-  function registrarCodigo(leido: string): boolean {
+  // Devuelve que paso con el codigo (para confirmarlo sobre la camara) o null si venia vacio.
+  function registrarCodigo(leido: string): ResultadoLectura | null {
     const codigo = leido.trim()
-    if (!codigo) return false
+    if (!codigo) return null
     const producto = productos.find((p) => mismoCodigo(p.codigo_barras, codigo))
     const enCuenta = producto
       ? (carrito.find((item) => item.id_producto === producto.id_producto)?.cantidad ?? 0)
       : 0
 
+    let resultado: ResultadoLectura
     if (!producto) {
-      setAvisoCodigo({ tipo: 'error', texto: `Ningún producto tiene el código ${codigo}.` })
+      resultado = { tipo: 'error', texto: `Ningún producto tiene el código ${codigo}.` }
     } else if (producto.stock - enCuenta <= 0) {
-      setAvisoCodigo({ tipo: 'error', texto: `Ya no hay existencia de ${producto.nombre}.` })
+      resultado = { tipo: 'error', texto: `Ya no hay existencia de ${producto.nombre}.` }
     } else {
       // Escanear despues de cobrar empieza la siguiente venta sin tocar la pantalla.
       setJustCharged(false)
       setErrorVenta('')
       agregar(producto)
-      setAvisoCodigo({ tipo: 'ok', texto: `${producto.nombre} agregado (${enCuenta + 1} en la cuenta).` })
-      sonarLectura(true)
-      return true
+      resultado = { tipo: 'ok', texto: `${producto.nombre} registrado (${enCuenta + 1} en la cuenta).` }
     }
-    sonarLectura(false)
-    return false
+    setAvisoCodigo(resultado)
+    sonarLectura(resultado.tipo === 'ok')
+    return resultado
   }
 
   // Enter en el buscador: si el texto es un codigo se agrega ese producto; si la
@@ -137,7 +138,7 @@ function VentaScreen({
     if (porCodigo) {
       registrarCodigo(texto)
     } else if (visibles.length === 1) {
-      if (!registrarCodigo(visibles[0].codigo_barras ?? '')) agregarSiHay(visibles[0])
+      if (registrarCodigo(visibles[0].codigo_barras ?? '')?.tipo !== 'ok') agregarSiHay(visibles[0])
     } else if (visibles.length === 0) {
       registrarCodigo(texto)
     } else {
@@ -151,7 +152,7 @@ function VentaScreen({
     if (producto.stock - enCuenta > 0) agregar(producto)
   }
 
-  useLectorCodigos(registrarCodigo, !camaraAbierta && !confirmandoCancelar && !enviando)
+  useLectorCodigos(registrarCodigo, !confirmandoCancelar && !enviando)
 
   function incrementar(idProducto: number) {
     setCarrito((actual) =>
@@ -295,16 +296,9 @@ function VentaScreen({
                 }
               }}
             />
-            <button
-              type="button"
-              className="buscador__camara"
-              onClick={() => setCamaraAbierta(true)}
-              aria-label="Escanear con la cámara"
-              title="Escanear con la cámara"
-            >
-              <Icono nombre="camara" />
-            </button>
           </form>
+
+          <EscanerCamara encendida={camaraEncendida} onCambiar={setCamaraEncendida} onCodigo={registrarCodigo} />
 
           {filtros.length > 1 && (
             <div className="filtros" role="group" aria-label="Filtrar paquetes">
@@ -558,10 +552,6 @@ function VentaScreen({
           <span className="venta__barra-total">{formatMoney(total)}</span>
           <span className="venta__barra-ir">Ver cuenta</span>
         </a>
-      )}
-
-      {camaraAbierta && (
-        <EscanerCamara aviso={avisoCodigo} onCodigo={registrarCodigo} onCerrar={() => setCamaraAbierta(false)} />
       )}
 
       <ConfirmDialog

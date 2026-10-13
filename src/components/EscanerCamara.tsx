@@ -2,24 +2,25 @@ import { useEffect, useRef, useState } from 'react'
 import Icono from './Icono'
 import './EscanerCamara.css'
 
-type Aviso = { tipo: 'ok' | 'error'; texto: string }
+export type ResultadoLectura = { tipo: 'ok' | 'error'; texto: string }
 
 type Props = {
-  titulo?: string
-  // Ultimo resultado, para confirmar la lectura sin cerrar la camara.
-  aviso?: Aviso | null
-  onCodigo: (codigo: string) => void
-  onCerrar: () => void
+  encendida: boolean
+  onCambiar: (encendida: boolean) => void
+  // Recibe cada codigo leido y responde que paso con el, para confirmarlo sobre la imagen.
+  onCodigo: (codigo: string) => ResultadoLectura | null
 }
 
 // Formatos que puede traer un paquete: los de tienda (EAN/UPC) y los que imprime el sistema.
 const FORMATOS = ['EAN13', 'EAN8', 'UPCA', 'UPCE', 'Code128', 'Code39', 'ITF', 'Codabar'] as const
-// No registrar dos veces el mismo paquete por dejarlo un instante de mas frente a la camara.
-const PAUSA_MISMO_CODIGO_MS = 1800
+// Despues de cada lectura la camara descansa este tiempo y muestra que registro.
+const PAUSA_TRAS_LECTURA_MS = 1400
+// El mismo paquete no vuelve a contar mientras siga a la vista: hay que retirarlo
+// (dejar de verlo este tiempo) y mostrarlo otra vez para agregar otro igual.
+const AUSENCIA_PARA_REPETIR_MS = 900
 const PAUSA_ENTRE_CUADROS_MS = 90
 // Mas resolucion no mejora la lectura y si la vuelve lenta en telefonos modestos.
 const ANCHO_MAXIMO = 1280
-const SEGUNDOS_PARA_AYUDA = 8
 
 function mensajeDeError(error: unknown) {
   const nombre = error instanceof DOMException ? error.name : ''
@@ -35,46 +36,54 @@ function mensajeDeError(error: unknown) {
   return 'No se pudo abrir la cámara.'
 }
 
-function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, onCerrar }: Props) {
+function EscanerCamara({ encendida, onCambiar, onCodigo }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const onCodigoRef = useRef(onCodigo)
-  const [estado, setEstado] = useState<'iniciando' | 'leyendo' | 'error'>('iniciando')
+  const onCambiarRef = useRef(onCambiar)
+  const [estado, setEstado] = useState<'apagada' | 'iniciando' | 'leyendo'>('apagada')
   const [error, setError] = useState('')
-  const [tardando, setTardando] = useState(false)
-
-  // Si pasan unos segundos sin leer nada, se muestra un consejo; cada lectura lo reinicia.
-  useEffect(() => {
-    if (estado !== 'leyendo') return
-    const id = setTimeout(() => setTardando(true), SEGUNDOS_PARA_AYUDA * 1000)
-    return () => {
-      clearTimeout(id)
-      setTardando(false)
-    }
-  }, [estado, aviso])
+  const [confirmacion, setConfirmacion] = useState<(ResultadoLectura & { clave: number }) | null>(null)
 
   useEffect(() => {
     onCodigoRef.current = onCodigo
+    onCambiarRef.current = onCambiar
   })
 
   useEffect(() => {
+    if (!encendida) return
     let cancelado = false
     let stream: MediaStream | null = null
     let detener: (() => void) | null = null
-    let ultimo = { codigo: '', momento: 0 }
+    let temporizador = 0
+    let pausaHasta = 0
+    let ultimo = { codigo: '', visto: 0 }
 
-    function entregar(codigo: string) {
+    function fallar(mensaje: string) {
+      if (cancelado) return
+      setError(mensaje)
+      onCambiarRef.current(false)
+    }
+
+    function alDetectar(codigo: string) {
       const ahora = Date.now()
-      if (!codigo || (codigo === ultimo.codigo && ahora - ultimo.momento < PAUSA_MISMO_CODIGO_MS)) return
-      ultimo = { codigo, momento: ahora }
-      onCodigoRef.current(codigo)
+      const sigueALaVista = codigo === ultimo.codigo && ahora - ultimo.visto < AUSENCIA_PARA_REPETIR_MS
+      if (codigo === ultimo.codigo) ultimo.visto = ahora
+      if (ahora < pausaHasta || sigueALaVista) return
+
+      ultimo = { codigo, visto: ahora }
+      pausaHasta = ahora + PAUSA_TRAS_LECTURA_MS
+      const resultado = onCodigoRef.current(codigo)
+      if (!resultado) return
+      setConfirmacion({ ...resultado, clave: ahora })
+      window.clearTimeout(temporizador)
+      temporizador = window.setTimeout(() => setConfirmacion(null), PAUSA_TRAS_LECTURA_MS)
     }
 
     async function iniciar() {
+      setError('')
+      setEstado('iniciando')
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-        setError(
-          'El navegador solo permite usar la cámara en páginas seguras (https) o en localhost. Abre el punto de venta con https para escanear desde el teléfono.',
-        )
-        setEstado('error')
+        fallar('El navegador solo permite usar la cámara en páginas seguras (https) o en localhost.')
         return
       }
       try {
@@ -83,9 +92,7 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
           video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
         })
       } catch (err) {
-        if (cancelado) return
-        setError(mensajeDeError(err))
-        setEstado('error')
+        fallar(mensajeDeError(err))
         return
       }
       const video = videoRef.current
@@ -103,7 +110,7 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
         .catch(() => {})
 
       // ZXing (compilado a WebAssembly) lee igual en todos los navegadores, tolera
-      // etiquetas inclinadas o algo desenfocadas, y se descarga solo al abrir la camara.
+      // etiquetas inclinadas o algo desenfocadas, y se descarga solo al encender la camara.
       const [{ prepareZXingModule, readBarcodes }, { default: wasmUrl }] = await Promise.all([
         import('zxing-wasm/reader'),
         import('zxing-wasm/reader/zxing_reader.wasm?url'),
@@ -131,7 +138,7 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
             tryDenoise: true,
             maxNumberOfSymbols: 1,
           }).catch(() => [])
-          if (activo && hallados[0]?.text) entregar(hallados[0].text)
+          if (activo && hallados[0]?.text) alDetectar(hallados[0].text)
         }
         setTimeout(leer, PAUSA_ENTRE_CUADROS_MS)
       }
@@ -139,66 +146,75 @@ function EscanerCamara({ titulo = 'Escanear con la cámara', aviso, onCodigo, on
       detener = () => {
         activo = false
       }
-      if (!cancelado) setEstado('leyendo')
+      setEstado('leyendo')
     }
 
-    iniciar().catch(() => {
-      if (cancelado) return
-      setError('No se pudo iniciar el lector de códigos.')
-      setEstado('error')
-    })
+    iniciar().catch(() => fallar('No se pudo iniciar el lector de códigos.'))
 
     return () => {
       cancelado = true
+      window.clearTimeout(temporizador)
       detener?.()
       stream?.getTracks().forEach((pista) => pista.stop())
+      setEstado('apagada')
+      setConfirmacion(null)
     }
-  }, [])
+  }, [encendida])
 
-  useEffect(() => {
-    function alPresionar(event: KeyboardEvent) {
-      if (event.key === 'Escape') onCerrar()
-    }
-    window.addEventListener('keydown', alPresionar)
-    return () => window.removeEventListener('keydown', alPresionar)
-  }, [onCerrar])
+  const textoEstado = error
+    ? error
+    : estado === 'leyendo'
+      ? 'Pon el código frente a la cámara. Para agregar otro igual, retíralo y muéstralo de nuevo.'
+      : estado === 'iniciando'
+        ? 'Abriendo la cámara…'
+        : 'Enciéndela para agregar paquetes con solo mostrar su código.'
 
   return (
-    <div className="escaner" role="dialog" aria-modal="true" aria-labelledby="escaner-titulo">
-      <div className="escaner__hoja">
-        <header className="escaner__cabeza">
-          <h2 id="escaner-titulo">{titulo}</h2>
-          <button type="button" className="escaner__cerrar" onClick={onCerrar} aria-label="Cerrar cámara" autoFocus>
-            <Icono nombre="cerrar" />
-          </button>
-        </header>
-
-        <div className="escaner__visor">
-          <video ref={videoRef} muted playsInline />
-          {estado === 'leyendo' && <span className="escaner__guia" aria-hidden="true" />}
-          {estado === 'iniciando' && <p className="escaner__estado">Abriendo la cámara…</p>}
-          {estado === 'error' && (
-            <p className="escaner__estado escaner__estado--error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
-
-        <p className={`escaner__aviso ${aviso ? `is-${aviso.tipo}` : ''}`} role="status" aria-live="polite">
-          {aviso?.texto ?? (estado === 'leyendo' ? 'Pon el código de barras dentro del recuadro.' : '\u00a0')}
-        </p>
-
-        {tardando && (
-          <p className="escaner__consejo">
-            ¿No lo lee? Acerca o aleja el paquete hasta que las barras se vean nítidas, evita reflejos y busca más luz.
-          </p>
+    <section className={`camara ${encendida ? 'is-encendida' : ''}`} aria-label="Cámara para leer códigos">
+      <div className="camara__visor">
+        <video ref={videoRef} muted playsInline hidden={!encendida} />
+        {!encendida && (
+          <span className="camara__apagada">
+            <Icono nombre="camara" />
+            Cámara apagada
+          </span>
         )}
+        {estado === 'leyendo' && !confirmacion && <span className="camara__guia" aria-hidden="true" />}
+        {confirmacion && (
+          <span key={confirmacion.clave} className={`camara__confirmacion is-${confirmacion.tipo}`}>
+            <Icono nombre={confirmacion.tipo === 'ok' ? 'palomita' : 'cerrar'} />
+            <span>{confirmacion.texto}</span>
+            <span className="camara__cuenta" style={{ animationDuration: `${PAUSA_TRAS_LECTURA_MS}ms` }} />
+          </span>
+        )}
+      </div>
 
-        <button type="button" className="escaner__listo" onClick={onCerrar}>
-          Listo
+      <div className="camara__lado">
+        <span className="camara__titulo">
+          <span className={`camara__luz ${estado === 'leyendo' ? 'is-viva' : ''}`} aria-hidden="true" />
+          {estado === 'leyendo' ? 'Cámara encendida' : estado === 'iniciando' ? 'Encendiendo…' : 'Cámara'}
+        </span>
+        <p className={`camara__texto ${error ? 'is-error' : ''}`} role={error ? 'alert' : undefined}>
+          {textoEstado}
+        </p>
+        <button
+          type="button"
+          className="camara__boton"
+          aria-pressed={encendida}
+          onClick={() => {
+            setError('')
+            onCambiar(!encendida)
+          }}
+        >
+          {encendida ? 'Apagar cámara' : 'Encender cámara'}
         </button>
       </div>
-    </div>
+
+      {/* Los lectores de pantalla anuncian cada registro aunque no vean la imagen. */}
+      <span className="solo-lectores" role="status" aria-live="polite">
+        {confirmacion?.texto}
+      </span>
+    </section>
   )
 }
 
