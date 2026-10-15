@@ -1,7 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api'
 
-const ACCESS_KEY = 'oso_tostadas_access'
-const REFRESH_KEY = 'oso_tostadas_refresh'
+// El personal y los clientes guardan su sesion por separado, para que un cliente
+// que factura en el mismo navegador no cierre la sesion del cajero (ni al reves).
+let ACCESS_KEY = 'oso_tostadas_access'
+let REFRESH_KEY = 'oso_tostadas_refresh'
+
+export function usarSesionDeCliente() {
+  ACCESS_KEY = 'oso_tostadas_cliente_access'
+  REFRESH_KEY = 'oso_tostadas_cliente_refresh'
+}
 
 export class ApiError extends Error {
   status: number
@@ -388,6 +395,76 @@ export type FacturasAdmin = {
     dias_para_facturar: number
   }
   facturas: FacturaAdmin[]
+}
+
+// --- Portal del cliente ---
+
+export type ClienteCuenta = {
+  id_cliente: number
+  nombre: string
+  correo: string
+  // null hasta que guarde sus datos al facturar por primera vez
+  datos_fiscales: DatosFiscales | null
+}
+
+export type TicketDeCliente = {
+  id_venta: number
+  folio: number
+  fecha: string
+  creado_en: string | null
+  total: number
+  detalles: DetalleVentaDto[]
+  agregado_en: string
+  factura: { serie: string; folio: number; folio_fiscal: string; fecha_emision: string; modo: ModoFactura } | null
+  motivo_no_facturable: string | null
+}
+
+type SesionCliente = { access: string; refresh: string; cliente: ClienteCuenta }
+
+export const apiCliente = {
+  async registro(nombre: string, correo: string, password: string) {
+    const data = await request<SesionCliente>('/clientes/registro/', {
+      method: 'POST',
+      body: JSON.stringify({ nombre, correo, password }),
+    })
+    setTokens(data.access, data.refresh)
+    return data.cliente
+  },
+
+  async login(correo: string, password: string) {
+    const data = await request<SesionCliente>('/clientes/login/', {
+      method: 'POST',
+      body: JSON.stringify({ correo, password }),
+    })
+    setTokens(data.access, data.refresh)
+    return data.cliente
+  },
+
+  logout() {
+    clearTokens()
+  },
+
+  me() {
+    return request<ClienteCuenta>('/clientes/me/')
+  },
+
+  tickets() {
+    return request<TicketDeCliente[]>('/clientes/tickets/')
+  },
+
+  agregarTicket(folio: number, total: number) {
+    return request<TicketDeCliente>('/clientes/tickets/', {
+      method: 'POST',
+      body: JSON.stringify({ folio, total }),
+    })
+  },
+
+  facturar(idVenta: number, datos: DatosFiscales, guardar: boolean) {
+    return request<FacturaGenerada>(`/clientes/tickets/${idVenta}/factura/`, {
+      method: 'POST',
+      body: JSON.stringify({ ...datos, guardar }),
+    })
+  },
 }
 
 export const api = {
