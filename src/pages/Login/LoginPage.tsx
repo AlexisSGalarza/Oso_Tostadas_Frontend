@@ -131,6 +131,9 @@ function LoginPage({ onIniciarSesion }: Props) {
         </form>
 
         <p className="help">¿No puedes ingresar? Contacta a tu administrador.</p>
+        <p className="help">
+          ¿Eres cliente y necesitas factura? <a href="/cliente">Entra aquí</a>
+        </p>
       </section>
     </main>
   )

@@ -1,0 +1,306 @@
+.pc,
+.pc-acceso {
+  min-height: 100dvh;
+  background: var(--page);
+}
+
+.pc-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--verde-tinta);
+}
+
+.pc-marca__oso {
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--verde-tinta);
+}
+
+.pc-marca__oso .bear-mark-muzzle {
+  fill: var(--page);
+}
+
+.pc-cargando {
+  padding: 4rem 1rem;
+  text-align: center;
+  color: var(--tostado);
+}
+
+/* ---------- Acceso ---------- */
+
+.pc-acceso {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1rem;
+}
+
+.pc-acceso__tarjeta {
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio-l);
+  background: var(--surface);
+}
+
+.pc-acceso h1,
+.pc-main h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 600;
+}
+
+.pc-acceso__sub {
+  margin: -0.5rem 0 0;
+  color: var(--tostado);
+  font-size: 0.92rem;
+}
+
+.pc-pestanas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: var(--page);
+}
+
+.pc-pestanas button {
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--tostado);
+  font-weight: 600;
+  transition: background var(--medio) var(--sale), color var(--medio) var(--sale);
+}
+
+.pc-pestanas button[aria-selected='true'] {
+  background: var(--verde-tinta);
+  color: var(--surface);
+}
+
+.pc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.pc-ayuda {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--tostado);
+}
+
+.pc-acceso__pie {
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--tostado);
+}
+
+.pc-acceso__pie a {
+  color: var(--verde-salsa-dark);
+  font-weight: 600;
+}
+
+/* ---------- Portal ---------- */
+
+.pc-barra {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem clamp(1rem, 3vw, 2rem);
+  background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.pc-barra__cuenta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pc-barra__nombre {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pc-barra__salir {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--tinta);
+  font-size: 0.85rem;
+}
+
+.pc-barra__salir:hover {
+  background: var(--hover);
+}
+
+.pc-main {
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pc-agregar {
+  padding: 1.25rem;
+  border: 1.5px solid var(--linea);
+  border-radius: var(--radio-l);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pc-agregar h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.pc-agregar__campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.pc-tickets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pc-ticket {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+  border: 1.5px solid var(--linea);
+  border-radius: var(--radio-l);
+  background: var(--surface);
+}
+
+.pc-ticket.is-nuevo {
+  border-color: var(--verde-salsa);
+  animation: salta var(--lento) var(--rebota);
+}
+
+.pc-ticket__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.pc-ticket__accion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.pc-facturar {
+  border: none;
+  min-height: 40px;
+  padding: 0 1.2rem;
+}
+
+.pc-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.pc-estado svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2.4;
+}
+
+.pc-estado.is-lista {
+  color: var(--verde-salsa-dark);
+}
+
+.pc-estado.is-bloqueada {
+  max-width: 14rem;
+  color: var(--tostado);
+  font-weight: 500;
+}
+
+.pc-guardar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.pc-guardar input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--verde-salsa);
+}
+
+@media (max-width: 640px) {
+  .pc-agregar__campos {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pc-agregar__campos button {
+    grid-column: 1 / -1;
+  }
+
+  .pc-ticket {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
+
+  .pc-ticket__accion {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pc-barra__nombre {
+    display: none;
+  }
+}
+
+/* La miniatura viene de la pantalla de Facturas, que la ubica por area de cuadricula. */
+.pc-ticket .compra__foto {
+  grid-area: auto;
+}
